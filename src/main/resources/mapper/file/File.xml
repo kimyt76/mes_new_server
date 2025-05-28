@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.common.mapper.FileHandlerMapper">
+
+    <select id="getAttachFile">
+        select attach_file_id
+             ,file_name
+             ,seq
+             ,file_path
+        from  tb_attach_file
+        where  use_yn ='Y'
+        and   attach_file_id = #{attachFileId}
+    </select>
+
+    <insert id="saveFile">
+        insert into tb_attach_file
+        (
+         attach_file_id
+        ,seq
+        ,file_name
+        ,real_file_name
+        ,file_path
+        ,file_size
+        ,reg_id
+        ,upd_id
+        )
+        values
+            (
+             #{attachFileId}
+            ,#{seq}
+            ,#{fileName}
+            ,#{realFileName}
+            ,#{filePath}
+            ,#{fileSize}
+            ,#{userId}
+            ,#{userId}
+            )
+    </insert>
+
+    <delete id="deleteFile">
+        update tb_attach_file
+        set    use_yn ='N'
+        where  attach_file_id = #{attachFileId}
+    </delete>
+</mapper>

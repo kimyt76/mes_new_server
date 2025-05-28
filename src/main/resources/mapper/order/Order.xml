@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.order.mapper.OrderMapper">
+
+    <select id="getOrderInfo">
+        select   order_id
+                ,order_date
+                ,seq
+                ,draft_date
+                ,draft_dept
+                ,draft_user_id
+                ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
+                ,customer_nm
+                ,item_nm
+                ,(select member_nm from tb_user where user_id = draft_user_id ) as draft_nm
+                , replace(order_qty, ',','') as order_qty
+                , due_date
+                , order_attach_file_id
+                , prod_attach_file_id
+                , approval_id
+                , board_id
+        from  tb_order
+        where 1=1
+        and   order_id = #{orderId}
+    </select>
+
+    <update id="saveOrderInfo">
+        merge into tb_order a
+            using (select #{orderId} as order_id
+                         ,#{orderDate} as order_date
+                         ,#{seq} as seq
+                    ) b
+            on    a.order_id = b.order_id
+            and   a.order_date = b.order_date
+            and   a.seq = b.seq
+            when matched then
+                update
+                    set  customer_nm = #{customerNm}
+                        ,item_nm = #{itemNm}
+                        ,order_qty = replace(#{orderQty}, ',','')
+                        ,due_date = #{dueDate}
+                        ,order_attach_file_id = #{orderAttachFileId}
+                        ,prod_attach_file_id = #{prodAttachFileId}
+                        ,upd_Id = #{userId}
+                        ,upd_Dt = getdate()
+            when not matched then
+                insert (  order_id ,order_date,seq, draft_date , draft_dept, draft_user_id,customer_nm,item_nm,order_qty,due_date
+                          ,approval_id,board_id,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
+                    values (
+                             #{orderId} ,#{orderDate},#{seq},#{draftDate}, #{draftDept},#{draftUserId},#{customerNm},#{itemNm}, replace(#{orderQty}, ',',''), #{dueDate}
+                            ,#{approvalId}, #{boardId},#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId}
+                           )
+        ;
+    </update>
+
+    <select id="getOrderList">
+        select  order_id
+        ,draft_date
+        ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
+        ,customer_nm
+        ,item_nm
+        ,(select member_nm from tb_user where user_id = draft_user_id ) as draft_nm
+        from  tb_order
+        where 1=1
+        and  order_date between #{fromDate} and #{toDate}
+        <if test='customerNm != "" and customerNm != null'>
+            AND customer_nm LIKE '%' + #{customerNm} + '%'
+        </if>
+        <if test='itemNm != "" and itemNm != null'>
+            AND item_nm LIKE '%' + #{itemNm} + '%'
+        </if>
+        <if test='draftNm != "" and draftNm != null'>
+            AND draft_nm LIKE '%' + #{draftNm} + '%'
+        </if>
+
+        order by order_id desc
+    </select>
+
+    <select id="getSeq">
+        select case when count(*) = 0 then 1
+                    else max(seq)+1 end seq
+        from   tb_order
+        where  order_date = convert(char(10), getdate(), 23 )
+    </select>
+
+    <select id="getApprovalInfo">
+        select  b.approval_id
+             ,a.business_user_id
+             ,a.product_user_id
+             ,a.purchase_user_id
+             ,a.qc_user_id
+             ,b.lab_user_id
+             ,b.business_approval_date
+             ,b.product_approval_date
+             ,b.purchase_approval_date
+             ,b.qc_approval_date
+             ,b.lab_approval_date
+        from   tb_order_approval a
+               left outer join tb_aproval b
+               on  b.use_yn = 'Y'
+               and b.approval_id = #{approvalId}
+        where  a.use_yn = 'Y'
+    </select>
+
+    <insert id="saveApprovalInfo">
+        insert into tb_aproval
+        (approval_id, business_user_id, product_user_id, purchase_user_id, qc_user_id, lab_user_id)
+        select #{approvalId}
+             , business_user_id
+             , product_user_id
+             , purchase_user_id
+             , qc_user_id
+             ,#{labUserId}
+        from  tb_order_approval
+        where  use_yn ='Y'
+    </insert>
+
+    <update id="updateApproval">
+        update tb_aproval
+        set    #{field} = #{userId}
+        where use_yn ='Y'
+        and   approval_id = #{approvalId}
+    </update>
+
+    <update id="saveBoardInfo">
+        merge into tb_board a
+            using (select #{boardId} as board_id
+                        ,#{userId} as board_user_id
+            ) b
+            on    a.board_id = b.board_id
+                and   a.board_user_id = b.board_user_id
+            when matched then
+                update
+                    set  board_txt = #{boardTxt}
+                        ,upd_Id = #{userId}
+                        ,upd_Dt = getdate()
+            when not matched then
+                insert (  board_id ,board_user_id, board_txt,reg_id ,upd_id )
+                    values (
+                         #{boardId} ,#{userId},#{boardTxt},#{userId} ,#{userId}
+                        )
+        ;
+    </update>
+
+    <select id="getBoardInfo">
+        select board_id
+              ,board_user_id
+              ,board_txt
+        from  tb_board
+        where board_id = #{boardId}
+    </select>
+
+</mapper>

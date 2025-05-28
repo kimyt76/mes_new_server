@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.auth.mapper.UserMapper">
+
+    <select id="getUserInfo">
+        select   user_id
+                ,password
+                ,member_nm
+                ,job_position
+                ,dept_nm
+                ,phone
+                ,email
+                ,etc
+                ,use_yn
+        from tb_user
+        where 1 = 1
+        and user_id = #{userId}
+    </select>
+
+    <select id="getUserList">
+        select row_number() over (order by (select 1)) as id
+              ,*
+        from tb_user
+        where 1=1
+        <if test="!useYn.equals('A')">
+            AND use_yn = #{useYn}
+        </if>
+        <if test="jobPosition != null and jobPosition != ''">
+            AND job_position LIKE '%' + #{jobPosition} + '%'
+        </if>
+        <if test="deptNm != null and deptNm != ''">
+            AND dept_nm LIKE '%' + #{deptNm} + '%'
+        </if>
+        <if test="userId != null and userId != ''">
+            AND user_id LIKE '%' + #{userId} + '%'
+        </if>
+        <if test="memberNm != null and memberNm != ''">
+            AND member_nm LIKE '%' + #{memberNm} + '%'
+        </if>
+    </select>
+
+    <update id="updateUserInfo" >
+        merge into tb_user a
+            using (select #{userId} as user_id) b
+            on a.user_id = b.user_id
+            when matched then
+                update
+                    set  dept_nm = #{deptNm}
+                        ,job_position = #{jobPosition}
+                        ,email = #{email}
+                        ,phone = #{phone}
+                        ,use_yn = #{useYn}
+                        ,etc = #{etc}
+                        ,upd_Id = ''
+                        ,upd_Dt = getdate()
+            when not matched then
+                insert (user_id, password, member_nm, dept_nm, job_position, email, phone, use_yn, etc, reg_id, reg_dt,
+                        upd_id, upd_dt)
+                    values (#{userId}, #{password}, #{memberNm}, #{deptNm}, #{jobPosition}, #{email},
+                            #{phone}, 'Y', #{etc}, 'reg_Id', getdate(), 'upd_id', getdate())
+        ;
+    </update>
+
+    <select id="userCheck">
+        select count(user_id) as cnt
+        from   tb_user
+        where  user_id = #{userId}
+    </select>
+
+    <update id="passwordInit">
+        update tb_user
+        set    password = #{password}
+        where  user_id = #{userId}
+
+    </update>
+</mapper>

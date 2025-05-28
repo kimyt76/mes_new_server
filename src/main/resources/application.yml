@@ -1,0 +1,72 @@
+server:
+  port: 8081  # 서버 포트 설정
+  servlet:
+    session:
+      timeout: 86400
+spring:
+  application:
+    name: MES_NEW
+  profiles:
+    active: dev
+  devtools:
+    livereload:
+      enabled: true
+  datasource:
+    url: jdbc:sqlserver://192.168.50.237:1433;databaseName=jct_mes;encrypt=true;trustServerCertificate=true #    Jincostech Server
+    username: jct_admin
+    password: jinco!@34
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  servlet:
+    multipart:
+      enabled: true
+      location: d:\\update
+      max-file-size: 10MB
+
+
+#  jpa:
+#    show-sql: true  # SQL 로그 출력 여부
+#    hibernate:
+#      ddl-auto: update
+#    properties:
+#      hibernate:
+#        format_sql: true                 # 로그, 콘솔의 SQL을 좀 더 이쁘게 출력합니다.
+#    database-platform: org.hibernate.dialect.SQLServerDialect
+logging:
+  level:
+    org:mybatis: TRACE
+    root: INFO  # 전체 로그 레벨
+    org.springframework: DEBUG  # Spring 관련 로그 레벨
+    com.jct.mes_new: debug  # 내 프로젝트의 패키지 로그 레벨
+    org.hibernate:
+      sql: debug
+      type:
+        descriptor:
+          sql: trace
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-handlers-package: com.jct.mes_new.mapper.typehandler
+  type-aliases-package: com.jct.mes_new.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 30
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#암호화
+#jasypt:
+#  encryptor:
+#    bean: jasyptStringEncryptor
+#jwt:
+#  secret: qwrmlasfmlqw2491u4291urjeiqowfjkwklfnlksdnfi13fnou3nounf13
+  org:
+    green:
+      upload:
+        path: d:\\upload
+
+app:
+  webclient:
+    baseUrl: https://sboapiCD.ecounterp.com/OAPI/V2
+    #baseUrl: https://oapiCD.ecounterp.com/OAPI/V2
+  logs:
+    fixedRate: false
+    save: false
+    send: false

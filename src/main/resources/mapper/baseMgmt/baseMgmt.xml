@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.BaseMgmtMapper">
+
+    <select id="getItemList">
+        select a.item_cd
+              ,a.item_nm
+              ,a.item_type_cd
+              ,(select code_nm from tb_common_code where code = a.item_type_cd ) as  item_type_nm
+              ,a.spec
+              ,b.customer_nm
+        from  tmp_item_mst a
+              left outer join tmp_customer b
+              on b.customer_cd = a.customer_cd
+        where 1=1
+        <if test='itemTypeCd != "" and itemTypeCd != null'>
+            and a.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test='itemCd != "" and itemCd != null'>
+            and a.item_cd like '%#{itemCd}%'
+        </if>
+        <if test='itemNm != "" and itemNm != null'>
+            and a.item_nm like '%#{itemNm}%'
+        </if>
+        <if test='customerNm != "" and customerNm != null'>
+            and b.customer_nm like '%#{customerNm}%'
+        </if>
+    </select>
+
+
+    <select id="getCustomerList">
+        select  a.customer_cd
+                ,a.customer_nm
+                ,a.customer_manager
+                ,a.business_no
+                ,b.customer_manager_tel
+        from  tmp_customer a
+        where 1=1
+        <if test='workCategory != "" and workCategory != null'>
+            and a.work_category = #{workCategory}
+        </if>
+        <if test='customerCategory != "" and customerCategory != null'>
+            and a.customer_category = #{customerCategory}
+        </if>
+        <if test='customerNm != "" and customerNm != null'>
+            and a.customer_nm like '%#{customerNm}%'
+        </if>
+        <if test='customerCd != "" and customerCd != null'>
+            and a.customer_cd like '%#{customerCd}%'
+        </if>
+    </select>
+
+</mapper>
