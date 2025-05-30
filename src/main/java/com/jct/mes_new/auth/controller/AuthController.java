@@ -5,6 +5,9 @@ import com.jct.mes_new.auth.service.UserService;
 import com.jct.mes_new.auth.vo.LoginRequest;
 import com.jct.mes_new.auth.vo.UserVo;
 import jakarta.security.auth.message.AuthException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,8 +59,18 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
-        session.invalidate();
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate(); // 서버 세션 무효화
+        }
+
+        // JSESSIONID 쿠키 즉시 만료
+        Cookie cookie = new Cookie("JSESSIONID", "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
         return ResponseEntity.ok("Logged out");
     }
 
