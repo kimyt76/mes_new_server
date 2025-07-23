@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.StorageMapper">
+
+    <select id="getStorageList">
+        select   a.storage_cd
+                ,a.storage_name
+                ,a.storage_type
+                ,dbo.getCommonName('storage_type', a.storage_type) as storageTypeName
+                ,dbo.getCommonName('prod_process', a.prod_process_cd) as prodProcessName
+                ,a.prod_process_cd
+                ,b.customer_name as outcustomerName
+                ,a.out_customer_cd
+                ,a.use_yn
+                ,'(주)진코스텍' as companyName
+        from    tb_storage_mst a
+                left outer join tb_customer b
+                on b.customer_cd = a.out_customer_cd
+        where  1=1
+        <if test='storageName != "" and storageName != null'>
+        and    a.storage_name like '%' + #{storageName} + '%'
+        </if>
+        <if test='outCustomerName != "" and outCustomerName != null'>
+        and    b.customer_name like '%' + #{outCustomerName} + '%'
+        </if>
+        <if test='storageType != "" and storageType != null'>
+        and    a.storage_type = #{storageType}
+        </if>
+        <if test='prodProcessCd != "" and prodProcessCd != null'>
+        and    a.prod_process_cd = #{prodProcessCd}
+        </if>
+
+        order by storage_cd
+    </select>
+
+    <select id="getStorageInfo">
+        select    a.storage_cd
+                 ,a.storage_name
+                 ,a.storage_type
+                 ,dbo.getCommonName('prod_process', a.prod_process_cd) as prodProcessName
+                 ,a.prod_process_cd
+                 ,b.customer_name as outcustomerName
+                 ,a.out_customer_cd
+                 ,a.use_yn
+                 ,'(주)진코스텍' as companyName
+        from     tb_storage_mst a
+                 left outer join tb_customer b
+                 on b.customer_cd = a.out_customer_cd
+        where  a.storage_cd = #{storageCd}
+    </select>
+
+    <update id="saveStorageInfo">
+        merge into tb_storage_mst a
+        using  (select #{storageCd} as storage_Cd ) b
+        on     a.storage_Cd = b.storage_Cd
+        when matched then
+            update set
+                 storage_name = #{storageName}
+                ,storage_type = #{storageType}
+                ,prod_process_cd = #{prodProcessCd}
+                ,out_customer_cd = #{outCustomerCd}
+                ,upd_id = #{userId}
+                ,upd_dt = getdate()
+        when not matched then
+            insert (
+                   storage_cd
+                  ,storage_name
+                  ,storage_type
+                  ,prod_process_cd
+                  ,out_customer_cd
+                  ,reg_id
+                  ,upd_id
+                  )
+            values (
+                     #{storageCd}
+                    ,#{storageName}
+                    ,#{storageType}
+                    ,#{prodProcessCd}
+                    ,#{outCustomerCd}
+                    ,#{userId}
+                    ,#{userId}
+                    )
+            ;
+    </update>
+
+</mapper>
