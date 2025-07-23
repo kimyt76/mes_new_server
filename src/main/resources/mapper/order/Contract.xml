@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.order.mapper.ContractMapper">
+
+    <select id="getNextSeq">
+        select case when count(*) = 0 then 1
+                    else max(seq)+1 end seq
+        from   tb_contract_mst
+        where  contract_date = #{contractDate}
+    </select>
+
+    <select id="getContractList">
+        select   a.contract_date +' -'+ CAST(a.seq AS NVARCHAR) AS contractDateSeq
+                ,b.item_name+'외'+ CAST(b.cnt AS NVARCHAR) + '건' as itemName
+                ,a.due_date
+                ,d.member_nm  as managerName
+                ,c.customer_name
+                ,b.totQty
+                ,b.totSupplyPrice
+                ,a.status_type
+                ,isnull(a.print_yn, 'N') as printYn
+                ,a.contract_id
+                ,a.customer_cd
+        from   tb_contract_mst a
+                inner join (
+                    select b.item_name
+                            ,a.item_cd
+                            ,a.cnt
+                            ,a.totQty
+                            ,a.totSupplyPrice
+                            ,a.min_order_dist
+                            ,a.contract_id
+                    from   (
+                            select   a.item_cd
+                                    ,count(item_cd) as cnt
+                                    ,sum(qty) as totQty
+                                    ,sum(supply_price)  as totSupplyPrice
+                                    ,MIN(a.order_dist) AS min_order_dist
+                            ,a.contract_id
+                            from    tb_contract_item a
+                            group by a.item_cd, a.contract_id
+                            ) a
+                            inner join (
+                                 select  b.item_cd
+                                        ,(SELECT item_name FROM tb_item_mst im WHERE im.item_cd = b.item_cd) AS item_name
+                                        ,b.order_dist
+                                    from  tb_contract_item b
+                                    WHERE NOT EXISTS (
+                                        SELECT 1
+                                        FROM tb_contract_item c
+                                        WHERE c.contract_id = b.contract_id
+                                        AND c.order_dist &lt; b.order_dist
+                                        )
+                            ) b
+                        on a.item_cd = b.item_cd
+                        and a.min_order_dist = b.order_dist
+                ) b
+                on b.contract_id = a.contract_id
+                left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+                left outer join tb_user d
+                on d.user_id = a.manager_id
+        where   1=1
+        <if test='itemName != "" and itemName != null'>
+            AND b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test='managerName != "" and managerName != null'>
+            AND d.member_nm LIKE '%' + #{managerName} + '%'
+        </if>
+        <if test='customerName != "" and customerName != null'>
+            AND c.customer_name LIKE '%' + #{customerName} + '%'
+        </if>
+        <if test='statusType != "" and statusType != null'>
+            AND a.status_Type =  #{statusType}
+        </if>
+        order by a.contract_date desc, seq desc
+    </select>
+
+    <select id="getContractInfo">
+        select    a.contract_date
+                 ,a.seq
+                 ,a.expiry_Date
+                 ,a.due_date
+                 ,(select customer_name from tb_customer where customer_cd = a.customer_cd ) as customerName
+                 ,dbo.getUserName(a.manager_id) as managerName
+                 ,(select storage_name from tb_storage_mst where storage_cd = a.desc_storage_cd) as descStorageName
+                 ,a.desc_storage_cd
+                 ,a.manager_id
+                 ,a.transaction_type
+                 ,a.currency_type
+                 ,a.payment_condition
+                 ,a.trading_method
+                 ,a.customer_cd
+                 ,a.attach_file_id
+        from   tb_contract_mst a
+        where  a.contract_id = #{contractId}
+    </select>
+
+    <delete id="deleteContractItemList">
+        delete from tb_contract_item where contract_id = #{contractId}
+    </delete>
+
+    <select id="getContractItemList">
+        select a.item_cd
+              ,b.item_name
+              ,a.unit
+              ,a.qty
+              ,a.unit_price
+              ,a.supply_price
+              ,a.vat_price
+              ,a.etc
+              ,a.order_dist as id
+              ,a.contract_item_id
+              ,a.contract_id
+        from   tb_contract_item a
+               inner join tb_item_mst b
+               on a.item_cd = b.item_cd
+        where  contract_id = #{contractId}
+    </select>
+
+    <update id="saveContractInfo">
+        merge into tb_contract_mst a
+            using   (select #{contractId} as contract_id ) b
+            on      a.contract_id = b.contract_id
+            when  matched  then
+                update set
+                    contract_date = #{contractDate}
+                    ,seq =#{seq}
+                    ,customer_cd =#{customerCd}
+                    ,manager_Id=#{managerId}
+                    ,desc_storage_cd =#{descStorageCd}
+                    ,transaction_type =#{transactionType}
+                    ,currency_type =#{currencyType}
+                    ,payment_condition =#{paymentCondition}
+                    ,expiry_Date  =#{expiryDate}
+                    ,due_date = #{dueDate}
+                    ,trading_method =#{tradingMethod}
+                    ,status_type =#{statusType}
+                    ,attach_file_id  =#{attachFileId}
+                    ,print_yn = #{printYn}
+                    ,upd_id =#{userId}
+                    ,upd_dt = getdate()
+            when not matched then
+                insert ( contract_id
+                    ,contract_date
+                    ,seq
+                    ,customer_cd
+                    ,manager_id
+                    ,desc_storage_cd
+                    ,transaction_type
+                    ,currency_type
+                    ,payment_condition
+                    ,expiry_Date
+                    ,due_date
+                    ,trading_method
+                    ,status_type
+                    ,attach_file_id
+                    ,print_yn
+                    ,reg_id
+                    ,upd_id )
+                    values (
+                            #{contractId}
+                           ,#{contractDate}
+                           ,#{seq}
+                           ,#{customerCd}
+                           ,#{managerId}
+                           ,#{descStorageCd}
+                           ,#{transactionType}
+                           ,#{currencyType}
+                           ,#{paymentCondition}
+                           ,#{expiryDate}
+                           ,#{dueDate}
+                           ,#{tradingMethod}
+                           ,#{statusType}
+                           ,#{attachFileId}
+                           ,#{printYn}
+                           ,#{userId}
+                           ,#{userId}
+                           )
+        ;
+    </update>
+
+
+    <update id="saveItemList">
+            MERGE INTO tb_contract_item a
+            USING (SELECT #{contractItemId} AS contract_item_id ) b
+            ON (a.contract_item_id = b.contract_item_id)
+            WHEN MATCHED THEN
+            UPDATE SET
+                     item_cd = #{itemCd}
+                    ,unit = #{unit}
+                    ,qty = #{qty}
+                    ,unit_price = #{unitPrice}
+                    ,supply_price = #{supplyPrice}
+                    ,vat_price = #{vatPrice}
+                    ,etc = #{etc}
+                    ,order_dist = #{id}
+                    ,upd_id = #{userId}
+                    ,upd_dt = getDate()
+            WHEN NOT MATCHED THEN
+            INSERT (contract_item_id, contract_id, item_cd, unit, qty, unit_price, supply_price, vat_price, etc, order_dist, reg_id, upd_id)
+            VALUES (
+                     #{contractItemId}
+                    ,#{contractId}
+                    ,#{itemCd}
+                    ,#{unit}
+                    ,#{qty}
+                    ,#{unitPrice}
+                    ,#{supplyPrice}
+                    ,#{vatPrice}
+                    ,#{etc}
+                    ,#{id}
+                    ,#{userId}
+                    ,#{userId}
+                    )
+            ;
+    </update>
+
+
+
+
+</mapper>
