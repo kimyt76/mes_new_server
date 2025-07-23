@@ -14,10 +14,13 @@ public interface OrderService {
     public List<OrderVo> getOrderList(OrderVo orderVo);
 
     String saveOrderInfo(OrderVo orderVo, ApprovalVo approvalVo, MultipartFile orderFile, MultipartFile prodFile) throws Exception;;
+    //String saveOrderInfo(OrderVo orderVo, ApprovalVo approvalVo, BoardVo boardVo, MultipartFile orderFile, MultipartFile prodFile) throws Exception;;
 
     int getSeq();
 
     ApprovalVo getApprovalInfo(String type);
 
     Map<String, Object> getOrderInfo(String orderId);
+
+    String updateInfo(Map<String, String> info) throws Exception;
 }

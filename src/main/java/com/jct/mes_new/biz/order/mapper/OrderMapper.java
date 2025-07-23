@@ -23,7 +23,11 @@ public interface OrderMapper {
 
     boolean saveApprovalInfo(@Param("approvalId") String approvalId, @Param("labUserId") String labUserId);
 
-    boolean saveBoardInfo(OrderVo orderVo);
+    boolean saveBoardInfo(BoardVo boardVo);
 
-    BoardVo getBoardInfo(@Param("boardId") String boardId);
+    List<BoardVo> getBoardInfo(@Param("boardId") String boardId);
+
+    boolean updateApproval(String field, String appDate, String approvalId);
+
+    void saveBoardId(String boardId, String orderId);
 }

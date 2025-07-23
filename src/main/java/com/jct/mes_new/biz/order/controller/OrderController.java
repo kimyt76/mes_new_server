@@ -1,21 +1,16 @@
 package com.jct.mes_new.biz.order.controller;
 
-import com.jct.mes_new.biz.common.service.FileHandlerService;
-import com.jct.mes_new.biz.common.vo.FileVo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jct.mes_new.biz.order.service.OrderService;
 import com.jct.mes_new.biz.order.vo.ApprovalVo;
-import com.jct.mes_new.biz.order.vo.BoardVo;
 import com.jct.mes_new.biz.order.vo.OrderVo;
-import com.jct.mes_new.config.common.CommonUtil;
-import com.jct.mes_new.config.common.FileUpload;
-import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,11 +33,23 @@ public class OrderController {
     }
 
     @PostMapping("/saveOrderInfo")
-    public String saveOrderInfo(OrderVo orderVo,
-                                @ModelAttribute("approvalVo") ApprovalVo approvalVo,
-                                @RequestPart(value = "orderFile", required = false) MultipartFile orderFile,
-                                @RequestPart(value = "prodFile", required = false) MultipartFile prodFile) throws Exception {
-        return orderService.saveOrderInfo(orderVo, approvalVo, orderFile, prodFile);
+    public ResponseEntity<?> saveOrderInfo(@RequestPart("orderInfo") String orderInfoStr,
+                                           @RequestPart("approval") String approvalStr,
+                                           @RequestPart(value = "orderFile", required = false) MultipartFile orderFile,
+                                           @RequestPart(value = "prodFile", required = false) MultipartFile prodFile) throws Exception {
+        //BoardVo boardVo = mapper.readValue(boardStr, BoardVo.class);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            OrderVo orderVo = mapper.readValue(orderInfoStr, OrderVo.class);
+            ApprovalVo approvalVo = mapper.readValue(approvalStr, ApprovalVo.class);
+
+            String result = orderService.saveOrderInfo(orderVo, approvalVo, orderFile, prodFile);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
+        }
     }
 
     @GetMapping("/getSeq")
@@ -54,6 +61,19 @@ public class OrderController {
     public ApprovalVo getApprovalInfo(){
         String type = "order";
         return orderService.getApprovalInfo(type);
+    }
+
+    @PostMapping("/updateInfo")
+    public ResponseEntity<?> updateInfo(@RequestBody Map<String, String> info) throws Exception{
+        try {
+            String result = orderService.updateInfo(info);
+
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
+        }
     }
 
 }

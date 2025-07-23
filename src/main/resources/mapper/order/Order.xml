@@ -74,7 +74,7 @@
             AND draft_nm LIKE '%' + #{draftNm} + '%'
         </if>
 
-        order by order_id desc
+        order by order_Nm desc
     </select>
 
     <select id="getSeq">
@@ -85,26 +85,29 @@
     </select>
 
     <select id="getApprovalInfo">
-        select  b.approval_id
-             ,a.business_user_id
-             ,a.product_user_id
-             ,a.purchase_user_id
-             ,a.qc_user_id
-             ,b.lab_user_id
-             ,b.business_approval_date
-             ,b.product_approval_date
-             ,b.purchase_approval_date
-             ,b.qc_approval_date
-             ,b.lab_approval_date
+        select    b.approval_id
+                 ,a.business_user_id
+                 ,a.product_user_id
+                 ,a.purchase_user_id
+                 ,a.qc_user_id
+                 ,b.lab_user_id
+                 ,b.business_approval_date
+                 ,b.product_approval_date
+                 ,b.purchase_approval_date
+                 ,b.qc_approval_date
+                 ,b.lab_approval_date
+                 ,isnull(b.business_approval_date, 'N') as businessCheckYn
+                 ,isnull(b.product_approval_date, 'N') as productCheckYn
+                 ,isnull(b.purchase_approval_date, 'N') as purchaseCheckYn
+                 ,isnull(b.qc_approval_date, 'N') as qcCheckYn
+                 ,isnull(b.lab_approval_date, 'N') as labCheckYn
         from   tb_order_approval a
-               left outer join tb_aproval b
-               on  b.use_yn = 'Y'
-               and b.approval_id = #{approvalId}
-        where  a.use_yn = 'Y'
+               left outer join tb_approval b
+               on b.approval_id = #{approvalId}
     </select>
 
     <insert id="saveApprovalInfo">
-        insert into tb_aproval
+        insert into tb_approval
         (approval_id, business_user_id, product_user_id, purchase_user_id, qc_user_id, lab_user_id)
         select #{approvalId}
              , business_user_id
@@ -116,17 +119,11 @@
         where  use_yn ='Y'
     </insert>
 
-    <update id="updateApproval">
-        update tb_aproval
-        set    #{field} = #{userId}
-        where use_yn ='Y'
-        and   approval_id = #{approvalId}
-    </update>
 
     <update id="saveBoardInfo">
         merge into tb_board a
             using (select #{boardId} as board_id
-                        ,#{userId} as board_user_id
+                         ,#{boardUserId} as board_user_id
             ) b
             on    a.board_id = b.board_id
                 and   a.board_user_id = b.board_user_id
@@ -138,7 +135,7 @@
             when not matched then
                 insert (  board_id ,board_user_id, board_txt,reg_id ,upd_id )
                     values (
-                         #{boardId} ,#{userId},#{boardTxt},#{userId} ,#{userId}
+                         #{boardId} ,#{boardUserId},#{boardTxt},#{userId} ,#{userId}
                         )
         ;
     </update>
@@ -151,4 +148,15 @@
         where board_id = #{boardId}
     </select>
 
+    <update id="updateApproval">
+        update tb_approval
+        set    ${field} = isnull(#{appDate},  convert(nvarchar(10), getdate(), 23))
+        where  approval_id = #{approvalId}
+    </update>
+
+    <update id="saveBoardId">
+        update tb_order
+        set    board_id = #{boardId}
+        where  order_id = #{orderId}
+    </update>
 </mapper>

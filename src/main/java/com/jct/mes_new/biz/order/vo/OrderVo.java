@@ -31,5 +31,4 @@ public class OrderVo {
     private String userId;
 
     private String draftNm;
-    private String boardTxt;
 }
