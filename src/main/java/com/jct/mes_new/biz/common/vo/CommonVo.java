@@ -18,4 +18,6 @@ public class CommonVo {
     private String description;
     private String useYn;
 
+    private String userId;
+
 }

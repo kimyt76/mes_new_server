@@ -13,4 +13,9 @@ public interface CommonMapper {
 
     List<CommonVo> getCodeList(@Param("comTypeCd") String type);
 
+    String newSeq(String itemTypeCd, String cd, int seqLen);
+
+    CommonVo getCommonInfo(String comId);
+
+    int saveCommonInfo(CommonVo commonVo);
 }

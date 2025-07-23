@@ -12,4 +12,9 @@ public interface CommonService {
 
     List<CommonVo> getCommonList(CommonVo commonVo);
 
+    String newSeq(String itemTypeCd, String cd, int seqLen);
+
+    CommonVo getCommonInfo(String comId);
+
+    String saveCommonInfo(CommonVo commonVo);
 }
