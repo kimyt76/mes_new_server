@@ -5,10 +5,7 @@ import com.jct.mes_new.biz.base.vo.StorageVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,6 +19,11 @@ public class StorageController {
     @PostMapping("/getStorageList")
     public List<StorageVo> getStorageList(@RequestBody StorageVo storageVo) {
         return storageService.getStorageList(storageVo);
+    }
+
+    @GetMapping("/getStorageInfo/{id}")
+    public StorageVo getStorageInfo(@PathVariable("id") String storageCd) {
+        return storageService.getStorageInfo(storageCd);
     }
 
     @PostMapping("/saveStorageInfo")

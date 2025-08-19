@@ -32,5 +32,7 @@ public class StorageServiceImpl implements StorageService {
         return msg;
     }
 
-
+    public StorageVo getStorageInfo(String storageCd) {
+        return storageMapper.getStorageInfo(storageCd);
+    }
 }

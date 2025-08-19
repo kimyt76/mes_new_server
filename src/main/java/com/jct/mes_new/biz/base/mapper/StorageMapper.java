@@ -11,4 +11,6 @@ public interface StorageMapper {
     List<StorageVo> getStorageList(StorageVo storageVo);
 
     int saveStorageInfo(StorageVo storageVo);
+
+    StorageVo getStorageInfo(String storageCd);
 }

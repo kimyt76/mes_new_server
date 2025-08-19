@@ -9,4 +9,6 @@ public interface StorageService {
     List<StorageVo> getStorageList(StorageVo storageVo);
 
     String saveStorageInfo(StorageVo storageVo);
+
+    StorageVo getStorageInfo(String storageCd);
 }
