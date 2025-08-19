@@ -4,11 +4,12 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
 @Data
-public class UserVo {
+public class UserVo implements Serializable {
     /**
      * Userid : 이메일 ID
      */

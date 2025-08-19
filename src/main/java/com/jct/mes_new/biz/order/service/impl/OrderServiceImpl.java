@@ -132,12 +132,12 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> map = new HashMap<>();
         OrderVo orderVo = orderMapper.getOrderInfo(orderId);
         List<BoardVo> boardList = orderMapper.getBoardInfo(orderVo.getBoardId());
-
+        int seq = 1;
         //발주정보
         map.put("orderInfo", orderVo);
         //첨부파일 정보
-        map.put("orderAttachFileInfo",  fileHandlerMapper.getAttachFile(orderVo.getOrderAttachFileId()) );
-        map.put("prodAttachFileInfo", fileHandlerMapper.getAttachFile(orderVo.getProdAttachFileId()) );
+        map.put("orderAttachFileInfo",  fileHandlerMapper.getAttachFileInfo(orderVo.getOrderAttachFileId() , seq) );
+        map.put("prodAttachFileInfo", fileHandlerMapper.getAttachFileInfo(orderVo.getProdAttachFileId(), seq) );
         //결재정보
         map.put("approvalInfo", orderMapper.getApprovalInfo(orderVo.getApprovalId()) );
 

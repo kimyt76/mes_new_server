@@ -5,7 +5,7 @@
 
     <select id="getItemList">
         select a.item_cd
-              ,a.item_nm
+              ,a.item_name
               ,a.item_type_cd
               ,(select code_nm from tb_common_code where code = a.item_type_cd ) as  item_type_nm
               ,a.spec
@@ -20,8 +20,8 @@
         <if test='itemCd != "" and itemCd != null'>
             and a.item_cd like '%#{itemCd}%'
         </if>
-        <if test='itemNm != "" and itemNm != null'>
-            and a.item_nm like '%#{itemNm}%'
+        <if test='itemName != "" and itemName != null'>
+            and a.item_name like '%#{itemName}%'
         </if>
         <if test='customerNm != "" and customerNm != null'>
             and b.customer_nm like '%#{customerNm}%'

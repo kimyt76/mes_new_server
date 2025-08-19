@@ -53,4 +53,12 @@ public class CommonController {
         return commonService.getCommonInfo(comId);
     }
 
+    @GetMapping("/getNextSeq")
+    public int getNextSeq( @RequestParam("tb") String itemTypeCd,
+                              @RequestParam("cd") String cd,
+                              @RequestParam("date") String date) {
+
+        return commonService.getNextSeq( itemTypeCd, cd,  date );
+    }
+
 }

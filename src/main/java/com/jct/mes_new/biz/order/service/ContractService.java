@@ -1,7 +1,8 @@
 package com.jct.mes_new.biz.order.service;
 
+import com.jct.mes_new.biz.order.vo.ContractSaveRequestVo;
 import com.jct.mes_new.biz.order.vo.ContractVo;
-import com.jct.mes_new.biz.order.vo.ItemListVo;
+import com.jct.mes_new.biz.order.vo.ContractItemListVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public interface ContractService {
 
     Map<String, Object> getContractInfo(String contractId);
 
-    int getNextSeq(String date);
+    String saveContractInfo(ContractVo contractInfo, List<ContractItemListVo> itemList, List<MultipartFile> attachFileList) throws Exception;
 
-    String saveContractInfo(ContractVo contractInfo, List<ItemListVo> itemList, List<MultipartFile> attachFileList) throws Exception;
+    String updateContractInfo(ContractSaveRequestVo vo) throws Exception;
 }

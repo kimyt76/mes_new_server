@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 
 @Mapper
@@ -22,7 +23,11 @@ public interface FileHandlerMapper {
 
     boolean saveFile(FileVo fileVo);
 
-    FileVo getAttachFile(@Param("attachFileId") String attachFileId);
+    FileVo getAttachFileInfo(@Param("attachFileId") String attachFileId , @Param("seq") Integer seq);
 
-    boolean deleteFile(@Param("attachFileId") String fileId);
+    List<FileVo> getAttachFileList(@Param("attachFileId") String attachFileId);
+
+    boolean deleteFile(@Param("attachFileId") String fileId, @Param("seq") int seq );
+
+    int nextSeq(@Param("attachFileId") String attachFileId);
 }

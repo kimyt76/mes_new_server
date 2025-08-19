@@ -17,4 +17,6 @@ public interface CommonService {
     CommonVo getCommonInfo(String comId);
 
     String saveCommonInfo(CommonVo commonVo);
+
+    int getNextSeq(String itemTypeCd, String cd, String date);
 }

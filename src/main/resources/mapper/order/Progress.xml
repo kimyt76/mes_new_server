@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.order.mapper.ProgressMapper">
+
+    <select id="getProgressList">
+        select distinct a.contract_id
+                ,b.item_cd
+                ,(select item_name from tb_item_mst x where x.item_cd = b.item_cd) as item_name
+                ,(select x.customer_name from tb_customer x where x.customer_cd = a.customer_cd ) as customerName
+                ,a.contract_date
+                ,(select x.sale_date from tb_sale_mst x where x.sale_id = c.sale_id ) as sale_date
+                ,b.qty
+                ,b.supply_price
+                ,b.vat_price
+                ,(b.qty*b.supply_price+b.vat_price) as totPrice
+                ,dbo.getUserName(a.manager_id) as managerName
+                ,a.customer_cd
+                ,a.manager_id
+        from   tb_contract_mst a
+                inner join tb_contract_item b
+                on a.contract_id = b.contract_id
+                left outer join tb_sale_item c
+                on b.contract_id = c.contract_id
+                and b.item_cd = c.item_cd
+        where   1=1
+        <if test='itemName != "" and itemName != null'>
+            AND b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test='managerName != "" and managerName != null'>
+            AND d.member_nm LIKE '%' + #{managerName} + '%'
+        </if>
+        <if test='customerName != "" and customerName != null'>
+            AND c.customer_name LIKE '%' + #{customerName} + '%'
+        </if>
+        order by b.item_cd desc, a.contract_date desc
+    </select>
+
+
+
+</mapper>

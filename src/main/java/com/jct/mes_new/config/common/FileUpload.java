@@ -1,27 +1,29 @@
 package com.jct.mes_new.config.common;
 
 import com.jct.mes_new.biz.common.service.FileHandlerService;
+import com.jct.mes_new.biz.common.service.impl.FileHandlerServiceImpl;
 import com.jct.mes_new.biz.common.vo.FileVo;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,32 +34,11 @@ import java.util.*;
 @Slf4j
 public class FileUpload {
 
-    /**
-     * 첨부파일 다운로드
-     * @param filepath
-     * @return
-     * @throws IOException
-     */
-    @GetMapping("/files/download")
-    public ResponseEntity<Resource> downloadFile(@RequestParam String filepath) throws IOException {
-        Path path = Paths.get(filepath).normalize();
-
-        if (!Files.exists(path)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Resource resource = new UrlResource(path.toUri());
-        String fileName = path.getFileName().toString();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(resource);
-    }
+    private final Path basePath = Paths.get("D:/mesUploads");
 
     /**
      *  첨부파일 단건 업로드
-     */
+    */
     public FileVo singleFileUpload(@RequestParam("files") MultipartFile file) {
         Map<String, Object> result = new HashMap<>();
         FileVo fileVo = new FileVo();
@@ -72,7 +53,7 @@ public class FileUpload {
         String year = String.valueOf(today.getYear());
         String month = String.format("%02d", today.getMonthValue());
 
-        Path realPath = Paths.get(baseDir, year, month);
+        Path realPath = Paths.get(baseDir , year, month);
         File dir = new File(realPath.toString());
 
         if (!dir.exists()) {
@@ -81,9 +62,9 @@ public class FileUpload {
 
         if (!file.isEmpty()) {
             try{
-                String realFileName = year+month+"_"+file.getOriginalFilename();
-                Path filePath = realPath.resolve(realFileName);
                 String fileName = file.getOriginalFilename();
+                String realFileName = getNewFileName(realPath, fileName);
+                Path filePath = realPath.resolve(realFileName);
                 long fileSize = file.getSize();
 
                 fileVo.setAttachFileId(attachFileId);
@@ -101,28 +82,24 @@ public class FileUpload {
         return fileVo;
     }
 
+
     /**
      * 멀티 첨부파일 업로드
-     * @param files
      * @return
-     */
-    public String multiFileUpload(@RequestParam("files") List<MultipartFile> files) {
+     * */
+    public List<FileVo> multiFileUpload(@RequestParam("files") List<MultipartFile> files) {
         Map<String, Object> result = new HashMap<>();
-        List<String> uploadedFiles = new ArrayList<>();
-        FileVo fileVo = new FileVo();
+        List<FileVo> uploadedFiles = new ArrayList<>();
 
-        //파일 id
         String attachFileId = CommonUtil.createUUId();
         int seq = 0;
 
-        String baseDir = "d:/uploads/"; // 상대 경로 (project root/uploads)
+        String baseDir = "d:/mesUploads/"; // 상대 경로 (project root/uploads)
 
         //path 경로 년 월 일 폴더
         LocalDate today = LocalDate.now();
         String year = String.valueOf(today.getYear());
         String month = String.format("%02d", today.getMonthValue());
-        //String day = String.format("%02d", today.getDayOfMonth());
-
         Path realPath = Paths.get(baseDir, year, month);
         File dir = new File(realPath.toString());
 
@@ -133,15 +110,13 @@ public class FileUpload {
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 try {
-                    //String filePath = realPath+"_" + file.getOriginalFilename();
-                    String realFileName = year+month+"_"+file.getOriginalFilename();
-                    Path filePath = realPath.resolve(realFileName);
-                    seq = seq++;
-                    System.out.println("===============seq========= : " +seq);
                     String fileName = file.getOriginalFilename();
-                    System.out.println("===============fileName========= : " +fileName);
+                    String realFileName = getNewFileName(realPath, fileName);
+                    Path filePath = realPath.resolve(realFileName);
+                    seq++;
                     long fileSize = file.getSize();
-                    System.out.println("===============fileSize========= : " +fileSize);
+
+                    FileVo fileVo = new FileVo();
 
                     fileVo.setAttachFileId(attachFileId);
                     fileVo.setSeq(seq);
@@ -149,19 +124,34 @@ public class FileUpload {
                     fileVo.setRealFileName(realFileName);
                     fileVo.setFilePath(filePath.toString());
                     fileVo.setFileSize(fileSize);
-
                     file.transferTo(new File(filePath.toString()));
 
-                    uploadedFiles.add(file.getOriginalFilename());
-
+                    uploadedFiles.add(fileVo);
                 } catch (IOException e) {
                     e.printStackTrace();
-                    result.put("error", "파일 업로드 실패: " + file.getOriginalFilename());
+                    throw new RuntimeException("첨부파일 저장 오류 : " + e.getMessage());
                 }
             }
         }
-        //result.put("uploaded", uploadedFiles);
-        return attachFileId;
+        return uploadedFiles;
+    }
+
+
+    public static String getNewFileName(Path dir, String originalFileName) {
+        String baseName = FilenameUtils.getBaseName(originalFileName);
+        String extension = FilenameUtils.getExtension(originalFileName);
+
+        String newFileName = originalFileName;
+        int count = 1;
+
+        Path filePath = dir.resolve(newFileName);
+
+        while (Files.exists(filePath)) {
+            newFileName = String.format("%s(%d).%s", baseName, count, extension);
+            filePath = dir.resolve(newFileName);
+            count++;
+        }
+        return newFileName;
     }
 
     /**

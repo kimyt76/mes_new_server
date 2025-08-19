@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.ItemMapper">
+    <select id="getItemCdCheck">
+        select count(*) cnt
+        from   tb_item_mst a
+        where  item_cd = #{itemCd}
+    </select>
+
+    <select id="getItemList">
+        select   a.*
+                ,b.*
+                ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
+                ,c.customer_name as customerName
+                ,(select  LCode_name from tb_prodL where lcode = a.item_category1) as item_category1Name
+                ,(select  MCode_name from tb_prodM where lcode = a.item_category1 and MCode = a.item_category2) as item_category2Name
+        from   tb_item_mst a
+                left outer join tb_item_detail b
+                on b.item_cd = a.item_cd
+                left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+        where  1=1
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+        and  a.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+        and  a.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+        and  a.item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="useYn != null and useYn != ''">
+        and  a.use_yn = #{useYn}
+        </if>
+        <if test="customerName != null and customerName != ''">
+        and  c.customer_name like '%' + #{customerName} + '%'
+        </if>
+        order by a.item_type_cd , a.item_cd desc
+    </select>
+
+    <select id="getItemInfo">
+        select a.*
+              ,b.*
+              ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
+              ,d.customer_name
+        from   tb_item_mst a
+               left outer join tb_item_detail b
+               on b.item_cd = a.item_cd
+               left outer join tb_customer d
+                               on d.customer_cd = a.customer_cd
+               left outer join tb_common_code e
+                               on e.code = a.item_grp2
+        where  1=1
+        and  a.item_cd = #{itemCd}
+    </select>
+
+    <select id="getProdLList">
+        select LCode as code
+              ,LCode_name as codeNm
+        from  tb_prodL
+        where use_yn ='Y'
+    </select>
+
+    <select id="getProdMList">
+        select MCode as code
+              ,MCode_name as codeNm
+        from  tb_prodM
+        where use_yn ='Y'
+        and   LCode = #{lcode}
+    </select>
+
+    <insert id="saveItemInfo">
+        insert into tb_item_mst
+        (   item_cd
+            ,item_name
+            ,item_type_cd
+            ,unit
+            ,spec
+            ,item_grp1
+            ,item_grp2
+            ,item_grp3
+            ,item_category1
+            ,item_category2
+            ,use_cate
+            ,customer_Cd
+            ,in_price
+            ,out_price
+            ,etc
+            ,use_yn
+            ,reg_id
+            ,reg_dt
+            ,upd_id
+            ,upd_dt)
+        values
+            (
+             #{itemCd}
+            ,#{itemName}
+            ,#{itemTypeCd}
+            ,#{unit}
+            ,#{spec}
+            ,#{itemGrp1}
+            ,#{itemGrp2}
+            ,#{itemCategory2}
+            ,#{itemCategory1}
+            ,#{itemCategory2}
+            ,#{useCate}
+            ,#{customerCd}
+            ,#{inPrice}
+            ,#{outPrice}
+            ,#{etc}
+            ,#{useYn}
+            ,#{userId}
+            ,getdate()
+            ,#{userId}
+            ,getdate()
+            )
+    </insert>
+
+    <update id = 'updateItemInfo'>
+        update tb_item_mst
+        set  item_name = #{itemName}
+            ,unit=#{unit}
+            ,spec=#{spec}
+            ,item_grp1=#{itemGrp1}
+            ,item_grp2=#{itemGrp2}
+            ,item_grp3=#{itemGrp3}
+            ,customer_cd=#{customerCd}
+            ,in_price=#{inPrice}
+            ,out_price=#{outPrice}
+            ,etc=#{etc}
+            ,use_yn=#{useYn}
+            ,upd_id=#{userId}
+            ,upd_dt=getdate()
+        where  item_cd = #{itemCd}
+    </update>
+
+
+    <update id ="saveItemDetailInfo">
+        merge into tb_item_detail a
+            using  (select #{itemCd} as item_cd ) b
+            on     a.item_cd = b.item_cd
+            when matched then
+        update  set
+                 unit_weight          = #{unitWeight}
+                ,use_safe_stock_yn	  = #{useSafeStockYn}
+                ,safe_stock_qty		  = #{safeStockQty}
+                ,item_condition		  = #{itemCondition}
+                ,appearance			  = #{appearance}
+                ,search_text		  = #{searchText}
+                ,cos_type_cd		  = #{cosTypeCd}
+                ,functional_type_cd	  = #{functionalTypeCd}
+                ,theory_prod_number1  = #{theoryProdNumber1}
+                ,theory_prod_number2  = #{theoryProdNumber2}
+                ,wooden_pattern		  = #{woodenPattern}
+                ,prod_type			  = #{prodType}
+                ,sheet_width		  = #{sheetWidth}
+                ,sheet_length		  = #{sheetLength}
+                ,sheet_stacking		  = #{sheetStacking}
+                ,std_weight			  = #{stdWeight}
+                ,std_size			  = #{stdSize}
+                ,mat_name			  = #{matName}
+                ,spec_info			  = #{specInfo}
+                ,ex_appearance		  = #{exAppearance}
+                ,packing_spec_value	  = #{packingSpecValue}
+                ,packing_spec_unit	  = #{packingSpecUnit}
+                ,display_capacity	  = #{displayCapacity}
+                ,work_flow			  = #{workFlow}
+                ,reminder_memo		  = #{reminderMemo}
+                ,display_yield		  = #{displayYield}
+                ,std_yield			  = #{stdYield}
+                ,prod_price			  = #{prodPrice}
+                ,ex_item_cd			  = #{exItemCd}
+                ,weigh_type			  = #{weighType}
+                ,weigh_func_type	  = #{weighFuncType}
+                ,related_customer	  = #{relatedCustomer}
+                ,prod_lg_type		  = #{prodLgType}
+                ,prod_md_type		  = #{prodMdType}
+                ,sheet_spec			  = #{sheetSpec}
+                ,charge_researcher	  = #{chargeResearcher}
+                ,charge_salesman	  = #{chargeSalesman}
+                ,qc_proc_test_type	  = #{qcProcTestType}
+                ,lab_no				  = #{labNo}
+                ,charging_qtys		  = #{chargingQtys}
+                ,charging_cnt		  = #{chargingCnt}
+                ,capping_range		  = #{cappingRange}
+                ,essence_std		  = #{essenceStd}
+                ,cooling_temp		  = #{coolingTemp}
+                ,history			  = #{history}
+                ,upd_id				  = #{userId}
+                ,upd_dt				  = getDate()
+
+        when not matched then
+            insert ( item_cd
+                    ,unit_weight
+                    ,use_safe_stock_yn
+                    ,safe_stock_qty
+                    ,item_condition
+                    ,appearance
+                    ,search_text
+                    ,cos_type_cd
+                    ,functional_type_cd
+                    ,theory_prod_number1
+                    ,theory_prod_number2
+                    ,wooden_pattern
+                    ,prod_type
+                    ,sheet_width
+                    ,sheet_length
+                    ,sheet_stacking
+                    ,std_weight
+                    ,std_size
+                    ,mat_name
+                    ,spec_info
+                    ,ex_appearance
+                    ,packing_spec_value
+                    ,packing_spec_unit
+                    ,display_capacity
+                    ,work_flow
+                    ,reminder_memo
+                    ,display_yield
+                    ,std_yield
+                    ,prod_price
+                    ,ex_item_cd
+                    ,weigh_type
+                    ,weigh_func_type
+                    ,related_customer
+                    ,prod_lg_type
+                    ,prod_md_type
+                    ,sheet_spec
+                    ,charge_researcher
+                    ,charge_salesman
+                    ,qc_proc_test_type
+                    ,lab_no
+                    ,charging_qtys
+                    ,charging_cnt
+                    ,capping_range
+                    ,essence_std
+                    ,cooling_temp
+                    ,history
+                    ,reg_id
+                    ,upd_id)
+            values
+                (    #{itemCd}
+                    ,#{unitWeight}
+                    ,#{useSafeStockYn}
+                    ,#{safeStockQty}
+                    ,#{itemCondition}
+                    ,#{appearance}
+                    ,#{searchText}
+                    ,#{cosTypeCd}
+                    ,#{functionalTypeCd}
+                    ,#{theoryProdNumber1}
+                    ,#{theoryProdNumber2}
+                    ,#{woodenPattern}
+                    ,#{prodType}
+                    ,#{sheetWidth}
+                    ,#{sheetLength}
+                    ,#{sheetStacking}
+                    ,#{stdWeight}
+                    ,#{stdSize}
+                    ,#{matName}
+                    ,#{specInfo}
+                    ,#{exAppearance}
+                    ,#{packingSpecValue}
+                    ,#{packingSpecUnit}
+                    ,#{displayCapacity}
+                    ,#{workFlow}
+                    ,#{reminderMemo}
+                    ,#{displayYield}
+                    ,#{stdYield}
+                    ,#{prodPrice}
+                    ,#{exItemCd}
+                    ,#{weighType}
+                    ,#{weighFuncType}
+                    ,#{relatedCustomer}
+                    ,#{prodLgType}
+                    ,#{prodMdType}
+                    ,#{sheetSpec}
+                    ,#{chargeResearcher}
+                    ,#{chargeSalesman}
+                    ,#{qcProcTestType}
+                    ,#{labNo}
+                    ,#{chargingQtys}
+                    ,#{chargingCnt}
+                    ,#{cappingRange}
+                    ,#{essenceStd}
+                    ,#{coolingTemp}
+                    ,#{history}
+                    ,#{userId}
+                    ,#{userId}
+                );
+
+    </update>
+
+</mapper>

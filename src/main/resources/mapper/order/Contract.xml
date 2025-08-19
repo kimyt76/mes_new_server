@@ -3,13 +3,6 @@
 
 <mapper namespace="com.jct.mes_new.biz.order.mapper.ContractMapper">
 
-    <select id="getNextSeq">
-        select case when count(*) = 0 then 1
-                    else max(seq)+1 end seq
-        from   tb_contract_mst
-        where  contract_date = #{contractDate}
-    </select>
-
     <select id="getContractList">
         select   a.contract_date +' -'+ CAST(a.seq AS NVARCHAR) AS contractDateSeq
                 ,b.item_name+'외'+ CAST(b.cnt AS NVARCHAR) + '건' as itemName
@@ -22,6 +15,12 @@
                 ,isnull(a.print_yn, 'N') as printYn
                 ,a.contract_id
                 ,a.customer_cd
+                ,a.desc_storage_cd
+                ,dbo.getStorageName(a.desc_storage_cd) as descStorageName
+                ,a.payment_condition
+                ,a.currency_Type
+                ,a.manager_Id
+                ,a.transaction_type
         from   tb_contract_mst a
                 inner join (
                     select b.item_name
@@ -37,7 +36,7 @@
                                     ,sum(qty) as totQty
                                     ,sum(supply_price)  as totSupplyPrice
                                     ,MIN(a.order_dist) AS min_order_dist
-                            ,a.contract_id
+                                    ,a.contract_id
                             from    tb_contract_item a
                             group by a.item_cd, a.contract_id
                             ) a
@@ -59,7 +58,7 @@
                 on b.contract_id = a.contract_id
                 left outer join tb_customer c
                 on c.customer_cd = a.customer_cd
-                left outer join tb_user d
+                left outer join tb_users d
                 on d.user_id = a.manager_id
         where   1=1
         <if test='itemName != "" and itemName != null'>
@@ -93,6 +92,7 @@
                  ,a.trading_method
                  ,a.customer_cd
                  ,a.attach_file_id
+                 ,a.contract_Id
         from   tb_contract_mst a
         where  a.contract_id = #{contractId}
     </select>
@@ -101,7 +101,7 @@
         delete from tb_contract_item where contract_id = #{contractId}
     </delete>
 
-    <select id="getContractItemList">
+    <select id="getItemList">
         select a.item_cd
               ,b.item_name
               ,a.unit
@@ -110,13 +110,47 @@
               ,a.supply_price
               ,a.vat_price
               ,a.etc
-              ,a.order_dist as id
+              ,a.order_dist as orderDist
               ,a.contract_item_id
               ,a.contract_id
         from   tb_contract_item a
                inner join tb_item_mst b
                on a.item_cd = b.item_cd
         where  contract_id = #{contractId}
+    </select>
+
+    <select id="getContractItemList">
+        select a.item_cd
+              ,b.item_name
+              ,a.unit
+              ,a.unit_price
+              ,a.supply_price
+              ,a.vat_price
+              ,a.etc
+              ,a.order_dist as orderDist
+              ,a.contract_item_id
+              ,a.contract_id
+              ,isnull((
+                select isnull(qty, 0)
+                from   tb_sale_item
+                where  contract_item_id = a.contract_item_id
+                ), 0)  as saleQty
+              ,(
+                select qty
+                from   tb_contract_item
+                where   contract_item_id = a.contract_item_id
+                ) -
+                isnull((select isnull(qty, 0)
+                from   tb_sale_item
+                where   contract_item_id = a.contract_item_id
+                ),0) as qty
+        from   tb_contract_item a
+               inner join tb_item_mst b
+               on a.item_cd = b.item_cd
+        where  contract_id in
+                <foreach item="id" collection="contractIdList" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
     </select>
 
     <update id="saveContractInfo">
@@ -136,9 +170,7 @@
                     ,expiry_Date  =#{expiryDate}
                     ,due_date = #{dueDate}
                     ,trading_method =#{tradingMethod}
-                    ,status_type =#{statusType}
                     ,attach_file_id  =#{attachFileId}
-                    ,print_yn = #{printYn}
                     ,upd_id =#{userId}
                     ,upd_dt = getdate()
             when not matched then
@@ -156,7 +188,6 @@
                     ,trading_method
                     ,status_type
                     ,attach_file_id
-                    ,print_yn
                     ,reg_id
                     ,upd_id )
                     values (
@@ -172,9 +203,8 @@
                            ,#{expiryDate}
                            ,#{dueDate}
                            ,#{tradingMethod}
-                           ,#{statusType}
+                           ,'ING'
                            ,#{attachFileId}
-                           ,#{printYn}
                            ,#{userId}
                            ,#{userId}
                            )
@@ -195,7 +225,7 @@
                     ,supply_price = #{supplyPrice}
                     ,vat_price = #{vatPrice}
                     ,etc = #{etc}
-                    ,order_dist = #{id}
+                    ,order_dist = #{orderDist}
                     ,upd_id = #{userId}
                     ,upd_dt = getDate()
             WHEN NOT MATCHED THEN
@@ -210,7 +240,7 @@
                     ,#{supplyPrice}
                     ,#{vatPrice}
                     ,#{etc}
-                    ,#{id}
+                    ,#{orderDist}
                     ,#{userId}
                     ,#{userId}
                     )

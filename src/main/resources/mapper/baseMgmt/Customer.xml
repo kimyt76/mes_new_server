@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.CustomerMapper">
+
+    <select id="getCustomerList">
+        select a.*
+              ,dbo.getUserName(a.member_cd) as memberName
+              ,dbo.getCommonName('CUSTOMER_TYPE', a.customer_type) as customerTypeName
+        from   tb_customer a
+        where  1=1
+        <if test="customerType != null and customerType != ''">
+        and  customer_Type = #{customerType}
+        </if>
+        <if test="customerGrp1 != null and customerGrp1 != ''">
+        and  customer_grp1 = #{customerGrp1}
+        </if>
+        <if test="customerGrp2 != null and customerGrp2 != ''">
+        and  customer_grp2 = #{customerGrp2}
+        </if>
+        <if test="businessNo != null and businessNo != ''">
+        and  business_no like '%' + #{businessNo} + '%'
+        </if>
+        <if test="customerName != null and customerName != ''">
+        and  customer_name like '%' + #{customerName} + '%'
+        </if>
+        <if test="customerManager != null and customerManager != ''">
+        and  customer_Manager like '%' + #{customerManager} + '%'
+        </if>
+        order by customer_cd desc
+    </select>
+
+    <select id="getCheckCustomerCd">
+        select count(*)
+        from   tb_customer
+        where  customer_cd = #{customerCd}
+    </select>
+
+    <select id="getCustomerInfo">
+        select   a.*
+                ,dbo.getCommonName('CUSTOMER_TYPE',a.customer_Type)  as itemTypeName
+                ,dbo.getUserName(a.member_cd) as memberName
+        from    tb_customer a
+        where  1=1
+        and  customer_cd = #{customerCd}
+    </select>
+
+    <update id="saveCustomerInfo">
+        merge into tb_customer a
+        using  (select #{customerCd} as customer_cd ) b
+        on    a.customer_cd = b.customer_cd
+        when  matched then
+            update set
+                 customer_name = #{customerName}
+                ,customer_type = #{customerType}
+                ,business_no = #{businessNo}
+                ,business_type= #{businessType}
+                ,business_item = #{businessItem}
+                ,tel = #{tel}
+                ,fax = #{fax}
+                ,email = #{email}
+                ,president= #{president}
+                ,president_tel= #{presidentTel}
+                ,customer_manager= #{customerManager}
+                ,customer_manager_tel = #{customerManagerTel}
+                ,zip_code = #{zipCode}
+                ,address = #{address}
+                ,member_cd = #{memberCd}
+                ,customer_grp1= #{customerGrp1}
+                ,customer_grp2= #{customerGrp2}
+                ,search_text = #{searchText}
+                ,etc = #{etc}
+                ,trading_Method = #{tradingMethod}
+                ,upd_id = #{userId}
+                ,upd_dt = getdate()
+            when not matched then
+            insert
+                (
+                 customer_cd
+                ,customer_name
+                ,customer_type
+                ,business_no
+                ,business_type
+                ,business_item
+                ,tel
+                ,fax
+                ,email
+                ,president
+                ,president_tel
+                ,customer_manager
+                ,customer_manager_tel
+                ,zip_code
+                ,address
+                ,member_cd
+                ,customer_grp1
+                ,customer_grp2
+                ,search_text
+                ,etc
+                ,trading_Method
+                ,reg_id
+                ,upd_id  )
+            values
+                (
+                 #{customerCd}
+                ,#{customerName}
+                ,#{customerType}
+                ,#{businessNo}
+                ,#{businessType}
+                ,#{businessItem}
+                ,#{tel}
+                ,#{fax}
+                ,#{email}
+                ,#{president}
+                ,#{presidentTel}
+                ,#{customerManager}
+                ,#{customerManagerTel}
+                ,#{zipCode}
+                ,#{address}
+                ,#{memberCd}
+                ,#{customerGrp1}
+                ,#{customerGrp2}
+                ,#{searchText}
+                ,#{etc}
+                ,#{tradingMethod}
+                ,#{userId}
+                ,#{userId}
+                );
+    </update>
+
+</mapper>

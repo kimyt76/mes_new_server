@@ -17,7 +17,7 @@ public class OrderVo {
 
     private String draftDept;
     private String customerNm;
-    private String itemNm;
+    private String itemName;
     private String orderQty;
     private String dueDate;
     private String approvalId;

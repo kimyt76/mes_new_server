@@ -2,15 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.common.mapper.FileHandlerMapper">
+    <select id="nextSeq">
+        select ISNULL(MAX(seq), 0) + 1 AS seq
+        from   tb_attach_file
+        where  use_yn ='Y'
+        and    attach_file_id = #{attachFileId}
+    </select>
 
-    <select id="getAttachFile">
+    <select id="getAttachFileInfo">
         select attach_file_id
-             ,file_name
-             ,seq
-             ,file_path
+              ,file_name
+              ,seq
+              ,file_path
+              ,file_size
         from  tb_attach_file
         where  use_yn ='Y'
         and   attach_file_id = #{attachFileId}
+        and    seq = #{seq}
+    </select>
+
+    <select id="getAttachFileList">
+        select attach_file_id
+              ,file_name
+              ,seq
+              ,file_path
+              ,file_size
+        from  tb_attach_file
+        where use_yn ='Y'
+          and  attach_file_id = #{attachFileId}
     </select>
 
     <insert id="saveFile">
@@ -42,5 +61,9 @@
         update tb_attach_file
         set    use_yn ='N'
         where  attach_file_id = #{attachFileId}
+        and    seq = #{seq}
     </delete>
+
+
+
 </mapper>

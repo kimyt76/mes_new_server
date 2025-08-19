@@ -9,4 +9,5 @@ public class BoardVo {
     private String boardTxt;
     private String boardUserId;
 
+    private String userId;
 }

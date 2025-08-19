@@ -29,9 +29,10 @@ public class ContractVo {
     private String attachFileId;
     private String printYn;
 
-    private List<ItemListVo> itemList;
+    private List<ContractItemListVo> itemList;
 
     private BigDecimal totQty;
+    private BigDecimal totRealQty;
     private BigDecimal totSupplyPrice;
 
     private String userId;

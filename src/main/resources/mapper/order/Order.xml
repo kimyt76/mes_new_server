@@ -12,8 +12,8 @@
                 ,draft_user_id
                 ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
                 ,customer_nm
-                ,item_nm
-                ,(select member_nm from tb_user where user_id = draft_user_id ) as draft_nm
+                ,item_name
+                ,dbo.getUserName(draft_user_id) as draft_nm
                 , replace(order_qty, ',','') as order_qty
                 , due_date
                 , order_attach_file_id
@@ -37,7 +37,7 @@
             when matched then
                 update
                     set  customer_nm = #{customerNm}
-                        ,item_nm = #{itemNm}
+                        ,item_name = #{itemName}
                         ,order_qty = replace(#{orderQty}, ',','')
                         ,due_date = #{dueDate}
                         ,order_attach_file_id = #{orderAttachFileId}
@@ -45,10 +45,10 @@
                         ,upd_Id = #{userId}
                         ,upd_Dt = getdate()
             when not matched then
-                insert (  order_id ,order_date,seq, draft_date , draft_dept, draft_user_id,customer_nm,item_nm,order_qty,due_date
+                insert (  order_id ,order_date,seq, draft_date , draft_dept, draft_user_id,customer_nm,item_name,order_qty,due_date
                           ,approval_id,board_id,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
                     values (
-                             #{orderId} ,#{orderDate},#{seq},#{draftDate}, #{draftDept},#{draftUserId},#{customerNm},#{itemNm}, replace(#{orderQty}, ',',''), #{dueDate}
+                             #{orderId} ,#{orderDate},#{seq},#{draftDate}, #{draftDept},#{draftUserId},#{customerNm},#{itemName}, replace(#{orderQty}, ',',''), #{dueDate}
                             ,#{approvalId}, #{boardId},#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId}
                            )
         ;
@@ -56,19 +56,19 @@
 
     <select id="getOrderList">
         select  order_id
-        ,draft_date
-        ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
-        ,customer_nm
-        ,item_nm
-        ,(select member_nm from tb_user where user_id = draft_user_id ) as draft_nm
+                ,draft_date
+                ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
+                ,customer_nm
+                ,item_name
+                ,(select member_nm from tb_users where user_id = draft_user_id ) as draft_nm
         from  tb_order
         where 1=1
         and  order_date between #{fromDate} and #{toDate}
         <if test='customerNm != "" and customerNm != null'>
             AND customer_nm LIKE '%' + #{customerNm} + '%'
         </if>
-        <if test='itemNm != "" and itemNm != null'>
-            AND item_nm LIKE '%' + #{itemNm} + '%'
+        <if test='itemName != "" and itemName != null'>
+            AND item_name LIKE '%' + #{itemName} + '%'
         </if>
         <if test='draftNm != "" and draftNm != null'>
             AND draft_nm LIKE '%' + #{draftNm} + '%'

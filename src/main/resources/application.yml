@@ -2,7 +2,10 @@ server:
   port: 8081  # 서버 포트 설정
   servlet:
     session:
-      timeout: 86400
+      store-type: jdbc
+      jdbc:
+        initialize-schema: never  # 이미 테이블을 만들었으면 never
+      timeout: 60m
 spring:
   application:
     name: MES_NEW
@@ -19,10 +22,9 @@ spring:
   servlet:
     multipart:
       enabled: true
-      location: d:\\update
-      max-file-size: 10MB
-
-
+      location: d:/mesUploads
+file:
+  upload-dir: d:/mesUploads
 #  jpa:
 #    show-sql: true  # SQL 로그 출력 여부
 #    hibernate:
@@ -57,11 +59,6 @@ mybatis-plus:
 #    bean: jasyptStringEncryptor
 #jwt:
 #  secret: qwrmlasfmlqw2491u4291urjeiqowfjkwklfnlksdnfi13fnou3nounf13
-  org:
-    green:
-      upload:
-        path: d:\\upload
-
 app:
   webclient:
     baseUrl: https://sboapiCD.ecounterp.com/OAPI/V2

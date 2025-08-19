@@ -10,19 +10,16 @@ public class ApprovalVo {
     private String qcUserId;
     private String labUserId;
     private String businessApprovalDate;
-    private String productIdApprovalDate;
-    private String purchaseIdApprovalDate;
+    private String productApprovalDate;
+    private String purchaseApprovalDate;
     private String qcApprovalDate;
     private String labApprovalDate;
 
-    private String field;
+    private String businessCheckYn;
+    private String productCheckYn;
+    private String purchaseCheckYn;
+    private String qcCheckYn;
+    private String labCheckYn;
 
-    private String approvalId;
-    private String type;
-    private String approvalUserId;
-    private String approvalDate;
-    private String approvalTxt;
-
-
-
+    private String userId;
 }

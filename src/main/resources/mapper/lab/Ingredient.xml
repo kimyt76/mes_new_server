@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.lab.mapper.IngredientMapper">
+    <select id="getNewCode">
+        select 'I' + RIGHT('00000' + CAST(CAST(RIGHT(MAX(ingredient_code), 5) AS INT) + 1 AS VARCHAR), 5) AS next_id
+        from tb_ingredient
+    </select>
+
+    <select id="getIngredientList">
+        select    a.ingredient_code
+                 ,a.Ingredient_date
+                 ,a.kr_Ingredient_name
+                 ,a.en_Ingredient_name
+                 ,a.cn_Ingredient_name
+                 ,a.Ingredient_date
+                 ,a.cas_no
+                 ,a.etc
+                 ,dbo.getUserName(a.reg_id) as reg_nm
+                 ,convert(nvarchar(10), a.upd_dt, 23) as upd_date
+                 ,dbo.getUserName(a.upd_id) as upd_nm
+                 ,b.code_nm as function_nm
+        from     tb_ingredient a
+                 left outer join tb_common_code b
+                 on b.com_type_cd = 'fn_cd'
+                 and b.code = a.function_cd
+        where  1=1
+        <if test="ingredientName != null and ingredientName != ''">
+            AND ( kr_Ingredient_name LIKE '%' + #{ingredientName} + '%'
+            or   en_Ingredient_name like '%' + #{ingredientName} + '%'
+            or   cn_Ingredient_name like '%' + #{ingredientName} + '%' )
+        </if>
+        <if test="functionNm != null and functionNm != ''">
+            AND  b.code_nm LIKE '%' + #{functionNm} + '%'
+        </if>
+        <if test="casNo != null and casNo != ''">
+            AND  a.cas_no LIKE '%' + #{casNo} + '%'
+        </if>
+        <if test="casNo != null and casNo != ''">
+            AND  a.cas_no LIKE '%' + #{casNo} + '%'
+        </if>
+    </select>
+
+    <select id="getIngredientInfo">
+        select   a.ingredient_code
+                ,a.Ingredient_date
+                ,a.kr_Ingredient_name
+                ,a.en_Ingredient_name
+                ,a.cn_Ingredient_name
+                ,a.Ingredient_date
+                ,a.cas_no
+                ,a.etc
+                ,a.function_Cd
+        from     tb_ingredient a
+        where  a.ingredient_code = #{ingredientCode}
+    </select>
+
+    <select id="getCountList">
+        select  country_cd as code
+        from    tb_Ingredient_country
+        where   ingredient_code = #{ingredientCode}
+        and     Ingredient_type = #{type}
+    </select>
+
+    <update id="saveIngredientInfo">
+        merge into tb_ingredient a
+            using    ( select  #{ingredientCode} as ingredient_code ) b
+            on      a.ingredient_code = b.ingredient_code
+            when matched then
+                update
+                    set  kr_Ingredient_name = #{krIngredientName}
+                        ,en_Ingredient_name = #{enIngredientName}
+                        ,cn_Ingredient_name = #{cnIngredientName}
+                        ,cas_no = #{casNo}
+                        ,function_cd = #{functionCd}
+                        ,etc = #{etc}
+                        ,upd_id = #{userId}
+                        ,upd_dt = GETDATE()
+            when not matched then
+                insert ( Ingredient_code,Ingredient_date, kr_Ingredient_name,en_Ingredient_name,cn_Ingredient_name,cas_no,function_cd ,etc, reg_id ,upd_id )
+                    values
+                        ( #{ingredientCode}, convert(nvarchar(10), getDate(), 23), #{krIngredientName}, #{enIngredientName}, #{cnIngredientName},#{casNo},#{functionCd},#{etc}, #{userId},#{userId})
+            ;
+    </update>
+
+    <delete id="countryInit">
+        delete tb_Ingredient_country
+        where  ingredient_code = #{ingredientCode}
+        and    ingredient_type = #{type}
+    </delete>
+
+    <insert id="saveCountry">
+        insert into tb_Ingredient_country
+            ( ingredient_code, ingredient_type, country_cd,check_yn, reg_id ,upd_id )
+            values
+            <foreach collection="countries" item="country" separator=",">
+            ( #{ingredientCode}, #{type}, #{country} , 'Y',  #{userId},#{userId})
+            </foreach>
+    </insert>
+</mapper>

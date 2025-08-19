@@ -46,4 +46,8 @@ public class CommonServiceImpl implements CommonService {
         return msg;
     }
 
+    public int getNextSeq(String tb, String cd, String date){
+        return commonMapper.getNextSeq(tb, cd, date);
+    }
+
 }

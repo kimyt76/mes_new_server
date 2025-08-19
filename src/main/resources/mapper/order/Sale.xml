@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.order.mapper.SaleMapper">
+
+    <select id="getSaleList">
+        select   a.sale_date +' -'+ CAST(a.seq AS NVARCHAR) AS saleDateSeq
+                ,b.item_name+'외'+ CAST(b.cnt AS NVARCHAR) + '건' as itemName
+                ,d.member_nm  as managerName
+                ,c.customer_name
+                ,b.totPrice
+                ,dbo.getCommonName('vat_rate', a.transaction_type) as transactionTypeName
+                ,dbo.getStorageName(a.desc_storage_cd) as descStorageName
+                ,a.status_type
+                ,isnull(a.print_yn, 'N') as printYn
+                ,a.sale_id
+                ,a.contract_Ids
+                ,a.customer_cd
+                ,a.manager_id
+                ,a.desc_storage_cd
+                ,a.transaction_type
+                ,a.currency_type
+                ,a.trading_method
+        from   tb_sale_mst a
+                inner join (
+                    select  distinct b.item_name
+                            ,a.item_cd
+                            ,a.cnt
+                            ,a.totPrice
+                            ,a.min_order_dist
+                            ,a.sale_id
+                    from   (
+                            select   a.item_cd
+                                    ,count(item_cd) as cnt
+                                    ,sum(qty*supply_price+vat_price) as totPrice
+                                    ,MIN(a.order_dist) AS min_order_dist
+                                    ,a.sale_id
+                            from    tb_sale_item a
+                            group by a.item_cd, a.sale_id
+                            ) a
+                            inner join (
+                                 select  b.item_cd
+                                        ,(SELECT item_name FROM tb_item_mst im WHERE im.item_cd = b.item_cd) AS item_name
+                                        ,b.order_dist
+                                    from  tb_sale_item b
+                                    WHERE NOT EXISTS (
+                                        SELECT 1
+                                        FROM tb_sale_item c
+                                        WHERE c.sale_id = b.sale_id
+                                        AND c.order_dist &lt; b.order_dist
+                                        )
+                            ) b
+                        on a.item_cd = b.item_cd
+                        and a.min_order_dist = b.order_dist
+                ) b
+                on b.sale_id = a.sale_id
+                left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+                left outer join tb_users d
+                on d.user_id = a.manager_id
+        where   1=1
+        <if test='itemName != "" and itemName != null'>
+            AND b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test='managerName != "" and managerName != null'>
+            AND d.member_nm LIKE '%' + #{managerName} + '%'
+        </if>
+        <if test='customerName != "" and customerName != null'>
+            AND c.customer_name LIKE '%' + #{customerName} + '%'
+        </if>
+        <if test='statusType != "" and statusType != null'>
+            AND a.status_Type =  #{statusType}
+        </if>
+        order by a.sale_date desc, seq desc
+    </select>
+
+    <select id="getSaleInfo">
+        select    a.sale_date
+                 ,a.seq
+                 ,(select customer_name from tb_customer where customer_cd = a.customer_cd ) as customerName
+                 ,dbo.getUserName(a.manager_id) as managerName
+                 ,(select storage_name from tb_storage_mst where storage_cd = a.desc_storage_cd) as descStorageName
+                 ,a.desc_storage_cd
+                 ,a.manager_id
+                 ,a.transaction_type
+                 ,a.currency_type
+                 ,a.trading_method
+                 ,a.customer_cd
+                 ,a.sale_Id
+        from   tb_sale_mst a
+        where  a.sale_id = #{saleId}
+    </select>
+
+    <delete id="deleteSaleItemList">
+        delete from tb_sale_item where sale_id = #{saleId}
+    </delete>
+
+    <select id="getSaleItemList">
+        select a.item_cd
+              ,b.item_name
+              ,a.unit
+              ,a.qty
+              ,a.unit_price
+              ,a.supply_price
+              ,a.vat_price
+              ,a.etc
+              ,a.serial_lot
+              ,a.order_dist as id
+              ,a.sale_item_id
+              ,a.sale_id
+              ,( select distinct contract_date +' -'+ CAST(seq AS NVARCHAR) AS contractDateSeq
+                 from   tb_contract_mst
+                 where  contract_id = a.contract_id
+                ) as contractDateSeq
+              , a.contract_id
+        from   tb_sale_item a
+               inner join tb_item_mst b
+               on a.item_cd = b.item_cd
+        where  sale_id = #{saleId}
+    </select>
+
+    <select id="getSalesItemList">
+        select a.item_cd
+             ,b.item_name
+             ,a.qty
+             ,a.order_dist as id
+             ,a.sale_item_id
+             ,a.sale_id
+             ,( select distinct contract_date +' -'+ CAST(seq AS NVARCHAR) AS contractDateSeq
+                from   tb_contract_mst
+                where  contract_id = a.contract_id
+                ) as contractDateSeq
+             , a.contract_id
+        from   tb_sale_item a
+               inner join tb_item_mst b
+                              on a.item_cd = b.item_cd
+        where  sale_id in
+        <foreach item="id" collection="saleIdList" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+
+    <update id="saveSaleInfo">
+        merge into tb_sale_mst a
+            using   (select #{saleId} as sale_id ) b
+            on      a.sale_id = b.sale_id
+            when  matched  then
+                update set
+                     sale_date = #{saleDate}
+                    ,seq =#{seq}
+                    ,customer_cd =#{customerCd}
+                    ,manager_Id=#{managerId}
+                    ,desc_storage_cd =#{descStorageCd}
+                    ,transaction_type =#{transactionType}
+                    ,currency_type =#{currencyType}
+                    ,trading_method =#{tradingMethod}
+                    ,contract_ids =#{contractIds}
+                    ,upd_id =#{userId}
+                    ,upd_dt = getdate()
+            when not matched then
+                insert ( sale_id
+                    ,sale_date
+                    ,seq
+                    ,customer_cd
+                    ,manager_id
+                    ,desc_storage_cd
+                    ,transaction_type
+                    ,currency_type
+                    ,trading_method
+                    ,status_type
+                    ,contract_ids
+                    ,reg_id
+                    ,upd_id )
+                    values (
+                            #{saleId}
+                           ,#{saleDate}
+                           ,#{seq}
+                           ,#{customerCd}
+                           ,#{managerId}
+                           ,#{descStorageCd}
+                           ,#{transactionType}
+                           ,#{currencyType}
+                           ,#{tradingMethod}
+                           ,'ING'
+                           ,#{contractIds}
+                           ,#{userId}
+                           ,#{userId}
+                           )
+        ;
+    </update>
+
+
+    <update id="saveItemList">
+            MERGE INTO tb_sale_item a
+            USING (SELECT #{saleItemId} AS sale_item_id ) b
+            ON (a.sale_item_id = b.sale_item_id)
+            WHEN MATCHED THEN
+            UPDATE SET
+                     item_cd = #{itemCd}
+                    ,unit = #{unit}
+                    ,qty = #{qty}
+                    ,unit_price = #{unitPrice}
+                    ,supply_price = #{supplyPrice}
+                    ,vat_price = #{vatPrice}
+                    ,etc = #{etc}
+                    ,serial_lot = #{serialLot}
+                    ,order_dist = #{orderDist}
+                    ,contract_id = #{contractId}
+                    ,contract_item_id = #{contractItemId}
+                    ,upd_id = #{userId}
+                    ,upd_dt = getDate()
+            WHEN NOT MATCHED THEN
+            INSERT (sale_item_id, sale_id, item_cd, unit, qty, unit_price, supply_price, vat_price, etc, serial_lot, order_dist
+                    ,contract_id, contract_item_id, reg_id, upd_id)
+            VALUES (
+                     #{saleItemId}
+                    ,#{saleId}
+                    ,#{itemCd}
+                    ,#{unit}
+                    ,#{qty}
+                    ,#{unitPrice}
+                    ,#{supplyPrice}
+                    ,#{vatPrice}
+                    ,#{etc}
+                    ,#{serialLot}
+                    ,#{orderDist}
+                    ,#{contractId}
+                    ,#{contractItemId}
+                    ,#{userId}
+                    ,#{userId}
+                    )
+            ;
+    </update>
+
+
+
+
+</mapper>

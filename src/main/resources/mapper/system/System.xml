@@ -4,7 +4,7 @@
 <mapper namespace="com.jct.mes_new.biz.system.mapper.SystemMapper">
 
     <update id="deleteUser">
-        update tb_user
+        update tb_users
         set use_yn = 'N'
         where user_id = '${userId}'
     </update>

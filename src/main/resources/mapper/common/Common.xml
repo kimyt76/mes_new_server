@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.common.mapper.CommonMapper">
+    <select id="getNextSeq">
+        SELECT CASE WHEN COUNT(*) = 0 THEN 1 ELSE MAX(seq)+1 END AS seq
+        FROM   ${tb}
+        WHERE  ${cd} = #{date}
+    </select>
+
+    <select id="getCodeList">
+        select code
+              ,code_nm
+        from  tb_common_code
+        where com_type_cd = #{comTypeCd}
+    </select>
+
+    <select id="getCommonList">
+        select *
+        from  tb_common_code
+        where use_yn = #{useYn}
+        <if test='comTypeNm != "" and comTypeNm != null'>
+            and com_type_nm like '%${comTypeNm}%'
+        </if>
+        <if test='codeNm != "" and codeNm != null'>
+            and code_nm like '%${codeNm}%'
+        </if>
+    </select>
+
+    <select id="getCommonInfo">
+        select *
+        from   tb_common_code
+        where  com_id = #{comId}
+    </select>
+
+    <update id="saveCommonInfo">
+        merge into tb_common_code a
+        using  (select #{comId} as com_id ) b
+        on     a.com_id = b.com_id
+        when matched then
+             update
+             set  com_type_cd= #{comTypeCd}
+                 ,com_type_nm= #{comTypeNm}
+                 ,code= #{code}
+                 ,code_nm= #{codeNm}
+                 ,disp_order= #{dispOrder}
+                 ,description= #{description}
+                 ,use_yn= #{useYn}
+                 ,upd_Id = #{userId}
+                 ,upd_Dt = getdate()
+       when not matched then
+            insert ( com_type_cd ,com_type_nm, code, code_nm, disp_order , description, use_yn,reg_id ,upd_id )
+            values (#{comTypeCd} ,#{comTypeNm},#{code},#{codeNm}, #{dispOrder}, #{description}, #{useYn},#{userId} ,#{userId})
+        ;
+    </update>
+    <select id="checkItemCd">
+        select count(*)
+        from   tb_item_mst
+        where  item_teyp_cd not in ('M4')
+        and    item_cd = #{itemCd}
+
+    </select>
+
+    <select id="newSeq">
+        WITH max_num AS (
+            SELECT MAX(
+                           TRY_CAST(SUBSTRING(item_cd, LEN(#{cd}) + 1, 100) AS INT)
+                   ) AS max_num
+            FROM tb_item_mst
+            WHERE 1=1
+            and  item_type_cd = #{itemTypeCd}
+            and  item_cd LIKE #{cd}+ '%'
+        )
+        SELECT #{cd} + RIGHT(REPLICATE('0', #{seqLen})
+            + CAST(ISNULL(max_num, 0) + 1 AS VARCHAR(50)), #{seqLen}) AS next_seq
+        FROM max_num
+    </select>
+
+
+</mapper>
