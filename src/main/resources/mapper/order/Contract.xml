@@ -21,6 +21,7 @@
                 ,a.currency_Type
                 ,a.manager_Id
                 ,a.transaction_type
+                ,a.trading_Method
         from   tb_contract_mst a
                 inner join (
                     select b.item_name
@@ -49,7 +50,7 @@
                                         SELECT 1
                                         FROM tb_contract_item c
                                         WHERE c.contract_id = b.contract_id
-                                        AND c.order_dist &lt; b.order_dist
+                                        AND c.order_dist &gt; b.order_dist
                                         )
                             ) b
                         on a.item_cd = b.item_cd
