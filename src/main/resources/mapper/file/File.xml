@@ -5,8 +5,7 @@
     <select id="nextSeq">
         select ISNULL(MAX(seq), 0) + 1 AS seq
         from   tb_attach_file
-        where  use_yn ='Y'
-        and    attach_file_id = #{attachFileId}
+        where  attach_file_id = #{attachFileId}
     </select>
 
     <select id="getAttachFileInfo">
