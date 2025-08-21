@@ -6,7 +6,7 @@
     <select id="getShipmentList">
         select   a.shipment_date +' -'+ CAST(a.seq AS NVARCHAR) AS shipmentDateSeq
                 ,b.item_name+'외'+ CAST(b.cnt AS NVARCHAR) + '건' as itemName
-                ,d.member_nm  as releaseUserName
+                ,d.member_nm  as managerName
                 ,c.customer_name
                 ,a.due_date
                 ,a.release_time
@@ -52,13 +52,13 @@
             left outer join tb_customer c
             on c.customer_cd = a.customer_cd
             left outer join tb_users d
-            on d.user_id = a.release_user_id
+            on d.user_id = a.manager_id
         where   1=1
         <if test='itemName != "" and itemName != null'>
             AND b.item_name LIKE '%' + #{itemName} + '%'
         </if>
-        <if test='releaseUserName != "" and releaseUserName != null'>
-            AND d.member_nm LIKE '%' + #{releaseUserName} + '%'
+        <if test='managerName != "" and managerName != null'>
+            AND d.member_nm LIKE '%' + #{managerName} + '%'
         </if>
         <if test='customerName != "" and customerName != null'>
             AND c.customer_name LIKE '%' + #{customerName} + '%'
@@ -74,10 +74,10 @@
                  ,a.shipment_date
                  ,a.seq
                  ,(select customer_name from tb_customer where customer_cd = a.customer_cd ) as customerName
-                 ,dbo.getUserName(a.release_user_id) as releaseUserName
+                 ,dbo.getUserName(a.manager_id) as managerName
                  ,(select storage_name from tb_storage_mst where storage_cd = a.desc_storage_cd) as descStorageName
                  ,a.desc_storage_cd
-                 ,a.release_user_id
+                 ,a.manager_id
                  ,a.trading_method
                  ,a.customer_cd
                  ,a.shipment_id
@@ -128,7 +128,7 @@
                      shipment_date = #{shipmentDate}
                     ,seq =#{seq}
                     ,customer_cd =#{customerCd}
-                    ,release_user_id=#{releaseUserId}
+                    ,manager_Id=#{managerId}
                     ,desc_storage_cd =#{descStorageCd}
                     ,delivery_manager_name =#{deliveryManagerName}
                     ,delivery_telno =#{deliveryTelno}
@@ -149,7 +149,7 @@
                     ,shipment_date
                     ,seq
                     ,customer_cd
-                    ,release_user_id
+                    ,manager_id
                     ,desc_storage_cd
                     ,delivery_manager_name
                     ,delivery_telno
@@ -170,7 +170,7 @@
                            ,#{shipmentDate}
                            ,#{seq}
                            ,#{customerCd}
-                           ,#{releaseUserId}
+                           ,#{managerId}
                            ,#{descStorageCd}
                            ,#{deliveryManagerName}
                            ,#{deliveryTelno}

@@ -14,8 +14,8 @@ public class ShipmentVo {
     private String itemName;
     private String customerCd;
     private String customerName;
-    private String releaseUserId;                /*출고요청자*/
-    private String releaseUserName;
+    private String managerId;                /*출고요청자*/
+    private String managerName;
     private String descStorageCd;
     private String descStorageName;
     private String deliveryManagerName;  /*납품담당자*/
