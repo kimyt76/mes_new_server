@@ -1,81 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.jct.mes_new.biz.order.mapper.OrderMapper">
-
-    <select id="getOrderInfo">
-        select   order_id
-                ,order_date
-                ,seq
-                ,draft_date
-                ,draft_dept
-                ,draft_user_id
-                ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
-                ,customer_nm
-                ,item_name
-                ,dbo.getUserName(draft_user_id) as draft_nm
-                , replace(order_qty, ',','') as order_qty
-                , due_date
-                , order_attach_file_id
-                , prod_attach_file_id
-                , approval_id
-                , board_id
-        from  tb_order
+<mapper namespace="com.jct.mes_new.biz.order.mapper.DraftMapper">
+    <select id="getDraftList">
+        select   a.draft_date+'-'+ convert(nvarchar, seq) as draftDateSeq
+                ,a.item_name
+                ,a.customer_name
+                ,a.draft_date
+                ,b.member_nm as draftUserName
+                ,a.draft_id
+                ,a.seq
+        from   tb_draft_mst a
+               inner join tb_users b
+               on b.user_id = a.draft_user_id
         where 1=1
-        and   order_id = #{orderId}
-    </select>
-
-    <update id="saveOrderInfo">
-        merge into tb_order a
-            using (select #{orderId} as order_id
-                         ,#{orderDate} as order_date
-                         ,#{seq} as seq
-                    ) b
-            on    a.order_id = b.order_id
-            and   a.order_date = b.order_date
-            and   a.seq = b.seq
-            when matched then
-                update
-                    set  customer_nm = #{customerNm}
-                        ,item_name = #{itemName}
-                        ,order_qty = replace(#{orderQty}, ',','')
-                        ,due_date = #{dueDate}
-                        ,order_attach_file_id = #{orderAttachFileId}
-                        ,prod_attach_file_id = #{prodAttachFileId}
-                        ,upd_Id = #{userId}
-                        ,upd_Dt = getdate()
-            when not matched then
-                insert (  order_id ,order_date,seq, draft_date , draft_dept, draft_user_id,customer_nm,item_name,order_qty,due_date
-                          ,approval_id,board_id,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
-                    values (
-                             #{orderId} ,#{orderDate},#{seq},#{draftDate}, #{draftDept},#{draftUserId},#{customerNm},#{itemName}, replace(#{orderQty}, ',',''), #{dueDate}
-                            ,#{approvalId}, #{boardId},#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId}
-                           )
-        ;
-    </update>
-
-    <select id="getOrderList">
-        select  order_id
-                ,draft_date
-                ,order_date+'-'+ convert(nvarchar, seq) as order_Nm
-                ,customer_nm
-                ,item_name
-                ,(select member_nm from tb_users where user_id = draft_user_id ) as draft_nm
-        from  tb_order
-        where 1=1
-        and  order_date between #{fromDate} and #{toDate}
-        <if test='customerNm != "" and customerNm != null'>
-            AND customer_nm LIKE '%' + #{customerNm} + '%'
+        <if test='customerName != "" and customerName != null'>
+        AND a.customer_nm LIKE '%' + #{customerName} + '%'
         </if>
         <if test='itemName != "" and itemName != null'>
-            AND item_name LIKE '%' + #{itemName} + '%'
+            AND a.item_name LIKE '%' + #{itemName} + '%'
         </if>
-        <if test='draftNm != "" and draftNm != null'>
-            AND draft_nm LIKE '%' + #{draftNm} + '%'
+        <if test='draftUserName != "" and draftUserName != null'>
+            AND b.member_nm LIKE '%' + #{draftUserName} + '%'
         </if>
-
-        order by order_Nm desc
+        order by a.draft_date desc, a.seq desc
     </select>
+
+    <select id="getDraftInfo">
+        select   a.draft_date+'-'+ convert(nvarchar, seq) as draftDateSeq
+                 ,a.seq
+                 ,a.item_name
+                 ,a.customer_name
+                 ,a.draft_date
+                 ,dbo.getUserName(a.draft_user_id) as draftUserName
+                 ,a.draft_id
+                 ,a.draft_dept
+                 ,a.due_date
+                 ,a.order_qty
+                 ,a.order_attach_file_id
+                 ,a.prod_attach_file_id
+                 ,a.approval_id
+                 ,a.board_id
+        from   tb_draft_mst a
+        where  draft_id = #{draftId}
+    </select>
+
+    <update id="saveDraftInfo">
+        merge into tb_draft_mst a
+            using (select #{draftId} as draft_id
+                        ,#{draftDate} as draft_date
+                        ,#{seq} as seq
+            ) b
+            on    a.draft_id = b.draft_id
+            and   a.draft_date = b.draft_date
+            and   a.seq = b.seq
+        when matched then
+            update  set  customer_name = #{customerName}
+                        ,item_name = #{itemName}
+                        ,order_qty = #{orderQty}
+                        ,due_date = #{dueDate}
+                        ,upd_Id = #{userId}
+                        ,upd_Dt = getdate()
+        when not matched then
+            insert (  draft_id ,draft_date,seq,draft_user_id,customer_name,item_name,order_qty,due_date,board_id, approval_id
+                    ,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
+            values ( #{draftId} ,#{draftDate},#{seq},#{draftUserId},#{customerName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
+                    ,#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId} )
+        ;
+    </update>
 
     <select id="getSeq">
         select case when count(*) = 0 then 1
@@ -91,6 +83,11 @@
                  ,a.purchase_user_id
                  ,a.qc_user_id
                  ,b.lab_user_id
+                 ,dbo.getUserName(a.business_user_id) as businessUserName
+                 ,dbo.getUserName(a.product_user_id) as productUserName
+                 ,dbo.getUserName(a.purchase_user_id) as purchaseUserName
+                 ,dbo.getUserName(a.qc_user_id) as qcUserName
+                 ,dbo.getUserName(b.lab_user_id) as labUserName
                  ,b.business_approval_date
                  ,b.product_approval_date
                  ,b.purchase_approval_date

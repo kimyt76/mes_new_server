@@ -3,20 +3,19 @@ package com.jct.mes_new.biz.order.vo;
 import lombok.Data;
 
 @Data
-public class OrderVo {
+public class DraftVo {
 
 
-    private String orderId;
-    private String orderNm;
-    private String orderDate;
-    private String orderStatus;
-
-    private int seq;
+    private String draftId;
+    private String draftDateSeq;
     private String draftDate;
+    private String draftStatus;
+    private int seq;
     private String draftUserId;
+    private String draftUserName;
 
     private String draftDept;
-    private String customerNm;
+    private String customerName;
     private String itemName;
     private String orderQty;
     private String dueDate;
@@ -30,5 +29,4 @@ public class OrderVo {
     private String toDate;
     private String userId;
 
-    private String draftNm;
 }
