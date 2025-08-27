@@ -29,5 +29,7 @@ public interface DraftMapper {
 
     boolean updateApproval(String field, String appDate, String approvalId);
 
-    void saveBoardId(String boardId, String orderId);
+    void saveBoardId(String boardId, String draftId);
+
+    boolean updateApprovalInfo(String approvalId, String labUserId);
 }

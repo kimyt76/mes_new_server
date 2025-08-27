@@ -33,7 +33,7 @@
                  ,a.customer_name
                  ,a.draft_date
                  ,dbo.getUserName(a.draft_user_id) as draftUserName
-                 ,a.draft_id
+                 ,a.draft_user_id
                  ,a.draft_dept
                  ,a.due_date
                  ,a.order_qty
@@ -41,6 +41,8 @@
                  ,a.prod_attach_file_id
                  ,a.approval_id
                  ,a.board_id
+                 ,a.draft_id
+                 ,a.status_type
         from   tb_draft_mst a
         where  draft_id = #{draftId}
     </select>
@@ -59,12 +61,14 @@
                         ,item_name = #{itemName}
                         ,order_qty = #{orderQty}
                         ,due_date = #{dueDate}
+                        ,order_attach_file_id = #{orderAttachFileId}
+                        ,prod_attach_file_id = #{prodAttachFileId}
                         ,upd_Id = #{userId}
                         ,upd_Dt = getdate()
         when not matched then
-            insert (  draft_id ,draft_date,seq,draft_user_id,customer_name,item_name,order_qty,due_date,board_id, approval_id
+            insert (  draft_id ,draft_date,seq,draft_Dept, draft_user_id,customer_name,item_name,order_qty,due_date,board_id, approval_id
                     ,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
-            values ( #{draftId} ,#{draftDate},#{seq},#{draftUserId},#{customerName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
+            values ( #{draftId} ,#{draftDate},#{seq},#{draftDept},#{draftUserId},#{customerName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
                     ,#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId} )
         ;
     </update>
@@ -116,6 +120,11 @@
         where  use_yn ='Y'
     </insert>
 
+    <update id="updateApprovalInfo">
+        update tb_approval
+        set    lab_user_id = #{labUserId}
+        where  approval_id = #{approvalId}
+    </update>
 
     <update id="saveBoardInfo">
         merge into tb_board a
@@ -152,8 +161,8 @@
     </update>
 
     <update id="saveBoardId">
-        update tb_order
+        update tb_draft_mst
         set    board_id = #{boardId}
-        where  order_id = #{orderId}
+        where  draft_id = #{draftId}
     </update>
 </mapper>

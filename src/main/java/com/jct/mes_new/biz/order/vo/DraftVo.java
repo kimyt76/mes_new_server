@@ -24,6 +24,7 @@ public class DraftVo {
     private String orderAttachFileId;
     private String prodAttachFileId;
     private String useYn;
+    private String statusType;
 
     private String fromDate;
     private String toDate;

@@ -54,15 +54,18 @@ public class DraftServiceImpl implements DraftService {
 
         String msg = "저장되었습니다.";
         draftVo.setUserId(UserUtil.getUserId());
-
+        log.info("================draftVo.getDraftId()================== : " + draftVo.getDraftId());
         try {
             if (draftVo.getDraftId() == null) {
                 draftVo.setDraftId(CommonUtil.createUUId());
                 draftVo.setApprovalId(CommonUtil.createUUId());
-
                 //결재정보 저장
                 if (!draftMapper.saveApprovalInfo(draftVo.getApprovalId(), approvalVo.getLabUserId())) {
                     throw new Exception("결재정보 등록 오류 발생");
+                }
+            }else{
+                if (!draftMapper.updateApprovalInfo(draftVo.getApprovalId(), approvalVo.getLabUserId())) {
+                    throw new Exception("결재정보 수정 오류 발생");
                 }
             }
 
@@ -111,23 +114,22 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /**
-     * 발주정보 조회
+     * 기안서정보 조회
      * @param draftId
      * @return
      */
     public Map<String, Object> getDraftInfo(String draftId){
         Map<String, Object> map = new HashMap<>();
-        DraftVo drdaftVo = draftMapper.getDraftInfo(draftId);
-        List<BoardVo> boardList = draftMapper.getBoardInfo(drdaftVo.getBoardId());
+        DraftVo draftVo = draftMapper.getDraftInfo(draftId);
+        List<BoardVo> boardList = draftMapper.getBoardInfo(draftVo.getBoardId());
         int seq = 1;
         //발주정보
-        map.put("orderInfo", drdaftVo);
+        map.put("draftInfo", draftVo);
         //첨부파일 정보
-        map.put("orderAttachFileInfo",  fileHandlerMapper.getAttachFileInfo(drdaftVo.getOrderAttachFileId() , seq) );
-        map.put("prodAttachFileInfo", fileHandlerMapper.getAttachFileInfo(drdaftVo.getProdAttachFileId(), seq) );
+        map.put("orderAttachFileInfo",  fileHandlerMapper.getAttachFileInfo(draftVo.getOrderAttachFileId() , seq) );
+        map.put("prodAttachFileInfo", fileHandlerMapper.getAttachFileInfo(draftVo.getProdAttachFileId(), seq) );
         //결재정보
-        map.put("approvalInfo", draftMapper.getApprovalInfo(drdaftVo.getApprovalId()) );
-
+        map.put("approvalInfo", draftMapper.getApprovalInfo(draftVo.getApprovalId()) );
         //댓글 정보
         map.put("boardInfo", boardList );
 
@@ -171,7 +173,7 @@ public class DraftServiceImpl implements DraftService {
                 throw new Exception("게시판 정보 업데이트중 오류가 발생했습니다.");
             }
         }catch(Exception e){
-            throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
+            throw new RuntimeException("저장에 실패했습니다.", e);
         }
 
         return msg;
