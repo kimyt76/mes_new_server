@@ -105,7 +105,7 @@
               ,a.vat_price
               ,a.etc
               ,a.serial_lot
-              ,a.order_dist as id
+              ,a.order_dist
               ,a.sale_item_id
               ,a.sale_id
               ,( select distinct contract_date +' -'+ CAST(seq AS NVARCHAR) AS contractDateSeq
@@ -123,7 +123,7 @@
         select a.item_cd
              ,b.item_name
              ,a.qty
-             ,a.order_dist as id
+             ,a.order_dist
              ,a.sale_item_id
              ,a.sale_id
              ,( select distinct contract_date +' -'+ CAST(seq AS NVARCHAR) AS contractDateSeq
