@@ -200,7 +200,7 @@
                      item_cd = #{itemCd}
                     ,qty = #{qty}
                     ,lot_no = #{lotNo}
-                    ,order_dist = #{id}
+                    ,order_dist = #{orderDist}
                     ,sale_id = #{saleId}
                     ,sale_item_id = #{saleItemId}
                     ,upd_id = #{userId}
@@ -213,7 +213,7 @@
                     ,#{itemCd}
                     ,#{qty}
                     ,#{lotNo}
-                    ,#{id}
+                    ,#{orderDist}
                     ,#{saleId}
                     ,#{saleItemId}
                     ,#{userId}
@@ -227,7 +227,7 @@
              ,b.item_name
              ,a.qty
              ,a.lot_no
-             ,a.order_dist as id
+             ,a.order_dist
              ,a.shipment_Id
              ,a.shipment_Item_Id
              ,a.sale_item_id
@@ -241,6 +241,5 @@
                               on a.item_cd = b.item_cd
         where  shipment_id = #{shipmentId}
     </select>
-
 
 </mapper>

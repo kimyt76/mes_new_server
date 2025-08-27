@@ -16,4 +16,6 @@ public interface ShipmentService {
     Map<String, Object> getShipmentInfo(String shipmentId);
 
     List<ShipmentItemListVo> getShipmentItemList(String shipmentId);
+
+    String updateShipmentInfo(ShipmentSaveRequestVo vo) throws Exception;
 }

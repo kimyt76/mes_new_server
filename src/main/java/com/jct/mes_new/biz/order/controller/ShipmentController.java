@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.order.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.service.ShipmentService;
 import com.jct.mes_new.biz.order.vo.*;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,11 @@ public class ShipmentController {
     @GetMapping("/getShipmentItemList/{id}")
     public List<ShipmentItemListVo> getShipmentItemList(@PathVariable("id") String shipmentId) {
         return shipmentService.getShipmentItemList(shipmentId);
+    }
+
+    @GetMapping("/getShipmentInfo/{id}")
+    public Map<String, Object> getShipmentInfo (@PathVariable("id") String shipmentId) {
+        return shipmentService.getShipmentInfo(shipmentId);
     }
 
     @GetMapping("/getSalesItemList/{ids}")
@@ -56,8 +63,42 @@ public class ShipmentController {
         }
     }
 
-    @GetMapping("/getShipmentInfo/{id}")
-    public Map<String, Object> getShipmentInfo (@PathVariable("id") String shipmentId) {
-        return shipmentService.getShipmentInfo(shipmentId);
+    @PostMapping("updateShipmentInfo")
+    public ResponseEntity<?> updateShipmentInfo ( @RequestPart("shipmentInfo") String shipmentInfoJson,
+                                                  @RequestPart("itemList") String itemListJson,
+                                                  @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles,
+                                                  @RequestPart(value = "deleteFiles", required = false) String deleteFilesJson,
+                                                  @RequestPart(value = "keptFiles", required = false) String keptFilesJson
+                                                ) throws Exception {
+
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+
+            ShipmentSaveRequestVo vo = new ShipmentSaveRequestVo();
+
+            vo.setShipmentInfo(mapper.readValue((shipmentInfoJson), ShipmentVo.class));
+            vo.setItemList(mapper.readValue(itemListJson, new TypeReference<List<ShipmentItemListVo>>() {}));
+            vo.setNewFiles(newFiles != null ? newFiles : new ArrayList<>());
+
+            List<FileVo> deleteFiles = new ArrayList<>();
+            if (deleteFilesJson != null && !deleteFilesJson.isEmpty()) {
+                deleteFiles = mapper.readValue(deleteFilesJson, new TypeReference<List<FileVo>>() {});
+            }
+
+            vo.setDeleteFiles(deleteFiles);
+
+            vo.setKeptFiles(keptFilesJson != null ?
+                    mapper.readValue(keptFilesJson, new TypeReference<List<FileVo>>() {}) :
+                    new ArrayList<>());
+
+            String result = shipmentService.updateShipmentInfo(vo);
+
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
+        }
+
     }
 }

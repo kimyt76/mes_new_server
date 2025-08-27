@@ -10,6 +10,7 @@ import com.jct.mes_new.config.common.CommonUtil;
 import com.jct.mes_new.config.common.FileUpload;
 import com.jct.mes_new.config.common.Snowflake;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ShipmentServiceImpl implements ShipmentService {
@@ -44,7 +46,9 @@ public class ShipmentServiceImpl implements ShipmentService {
         int distOrder = 0;
         try{
             /* 출하지시서 id 채번*/
-            shipmentInfo.setShipmentId(CommonUtil.generateUUID());
+            if ( shipmentInfo.getShipmentId() == null || shipmentInfo.getShipmentId().isEmpty()   ){
+                shipmentInfo.setShipmentId(CommonUtil.generateUUID());
+            }
 
             /* 첨부파일 정보 저장 및 ID 채번*/
             if ( attachFileList != null ){
@@ -95,5 +99,62 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     public List<ShipmentItemListVo> getShipmentItemList(String shipmentId){
         return shipmentMapper.getShipmentItemList(shipmentId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public String updateShipmentInfo(ShipmentSaveRequestVo vo) throws Exception {
+        Snowflake snowflake = new Snowflake(1, 1);
+        String msg = "저장되었습니다";
+
+        try {
+
+            if ( shipmentMapper.saveShipmentInfo(vo.getShipmentInfo()) <= 0 ) {
+                throw new Exception("출하지시서 저장에 실패했습니다.");
+            }
+
+            String shipmentId = vo.getShipmentInfo().getShipmentId();
+            String userId = vo.getShipmentInfo().getUserId();
+
+            shipmentMapper.deleteShipmentItemList(shipmentId);
+
+            for(ShipmentItemListVo item : vo.getItemList()){
+                item.setShipmentItemId(String.valueOf(snowflake.nextId()));
+                item.setShipmentId(shipmentId);
+                item.setUserId(userId);
+
+                shipmentMapper.saveItemList(item);
+            }
+
+            log.info("--------------vo.getDeleteFiles()---------------------------------- : " + vo.getDeleteFiles());
+
+            if ( vo.getDeleteFiles() != null && !vo.getDeleteFiles().isEmpty() ) {
+                for (FileVo item : vo.getDeleteFiles()){
+                    fileHandlerMapper.deleteFile(item.getAttachFileId(), item.getSeq() );
+                }
+            }
+
+            List<FileVo> fileVoList = FileUpload.multiFileUpload(vo.getNewFiles());
+            int nextSeq = fileHandlerMapper.nextSeq( vo.getShipmentInfo().getAttachFileId());
+            log.info("--------------nextSeq---------------------------------- : " + nextSeq);
+            log.info("--------------getAttachFileId---------------------------------- : " + vo.getShipmentInfo().getAttachFileId());
+            if ( vo.getShipmentInfo().getAttachFileId()  == null ){
+                vo.getShipmentInfo().setAttachFileId(fileVoList.get(0).getAttachFileId());
+            }
+
+            for (FileVo item : fileVoList) {
+                item.setAttachFileId(vo.getShipmentInfo().getAttachFileId());
+                item.setSeq(nextSeq);
+                item.setUserId(userId);
+                if (!fileHandlerMapper.saveFile(item)) {
+                    throw new Exception("첨부 파일 저장 실패");
+                }
+                nextSeq++;
+            }
+
+        }catch (Exception e) {
+            throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
+        }
+
+        return msg;
     }
 }
