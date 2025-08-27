@@ -24,37 +24,18 @@
                 ,a.trading_Method
         from   tb_contract_mst a
                 inner join (
-                    select b.item_name
-                            ,a.item_cd
-                            ,a.cnt
-                            ,a.totQty
-                            ,a.totSupplyPrice
-                            ,a.min_order_dist
+                    select   a.item_cd
+                            ,count(a.item_cd) as cnt
+                            ,sum(qty) as totQty
+                            ,sum(supply_price)  as totSupplyPrice
+                            ,MIN(a.order_dist) AS min_order_dist
                             ,a.contract_id
-                    from   (
-                            select   a.item_cd
-                                    ,count(item_cd) as cnt
-                                    ,sum(qty) as totQty
-                                    ,sum(supply_price)  as totSupplyPrice
-                                    ,MIN(a.order_dist) AS min_order_dist
-                                    ,a.contract_id
-                            from    tb_contract_item a
-                            group by a.item_cd, a.contract_id
-                            ) a
-                            inner join (
-                                 select  b.item_cd
-                                        ,(SELECT item_name FROM tb_item_mst im WHERE im.item_cd = b.item_cd) AS item_name
-                                        ,b.order_dist
-                                    from  tb_contract_item b
-                                    WHERE NOT EXISTS (
-                                        SELECT 1
-                                        FROM tb_contract_item c
-                                        WHERE c.contract_id = b.contract_id
-                                        AND c.order_dist &gt; b.order_dist
-                                        )
-                            ) b
-                        on a.item_cd = b.item_cd
-                        and a.min_order_dist = b.order_dist
+                            ,b.item_name
+                    from    tb_contract_item a
+                    inner join tb_item_mst b
+                    on b.item_cd = a.item_cd
+                    where   order_dist =1
+                    group by a.item_cd, a.contract_id,b.item_name
                 ) b
                 on b.contract_id = a.contract_id
                 left outer join tb_customer c
@@ -111,7 +92,7 @@
               ,a.supply_price
               ,a.vat_price
               ,a.etc
-              ,a.order_dist as orderDist
+              ,a.order_dist
               ,a.contract_item_id
               ,a.contract_id
         from   tb_contract_item a
@@ -128,7 +109,7 @@
               ,a.supply_price
               ,a.vat_price
               ,a.etc
-              ,a.order_dist as orderDist
+              ,a.order_dist
               ,a.contract_item_id
               ,a.contract_id
               ,isnull((
