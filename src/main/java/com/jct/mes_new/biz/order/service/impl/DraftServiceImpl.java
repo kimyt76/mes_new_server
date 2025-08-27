@@ -33,9 +33,7 @@ public class DraftServiceImpl implements DraftService {
      * @param draftVo
      * @return List<OrderVo>
      */
-    public List<DraftVo> getDraftList(DraftVo draftVo) {
-        return draftMapper.getDraftList(draftVo);
-    }
+    public List<DraftVo> getDraftList(DraftVo draftVo) {return draftMapper.getDraftList(draftVo);}
 
     /**
      * 발주서 정보 등록
@@ -54,7 +52,7 @@ public class DraftServiceImpl implements DraftService {
 
         String msg = "저장되었습니다.";
         draftVo.setUserId(UserUtil.getUserId());
-        log.info("================draftVo.getDraftId()================== : " + draftVo.getDraftId());
+
         try {
             if (draftVo.getDraftId() == null) {
                 draftVo.setDraftId(CommonUtil.createUUId());
@@ -165,6 +163,8 @@ public class DraftServiceImpl implements DraftService {
                 //결재자 정보 업데이트
                 if (!draftMapper.updateApproval(info.get("field") , info.get("appDate"), approvalId) ){
                     throw new Exception("결재자 정보 업데이트중 오류가 발생했습니다.");
+                }else {
+                    draftMapper.updateStatType(info.get("draftId"), info.get("statusType"));
                 }
             }
 

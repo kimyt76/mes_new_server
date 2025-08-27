@@ -8,6 +8,7 @@
                 ,a.customer_name
                 ,a.draft_date
                 ,b.member_nm as draftUserName
+                ,a.status_Type
                 ,a.draft_id
                 ,a.seq
         from   tb_draft_mst a
@@ -67,10 +68,16 @@
                         ,upd_Dt = getdate()
         when not matched then
             insert (  draft_id ,draft_date,seq,draft_Dept, draft_user_id,customer_name,item_name,order_qty,due_date,board_id, approval_id
-                    ,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
+                      ,status_Type  ,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
             values ( #{draftId} ,#{draftDate},#{seq},#{draftDept},#{draftUserId},#{customerName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
-                    ,#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId} )
+                    ,#{statusType},#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId} )
         ;
+    </update>
+
+    <update id="updateStatType">
+        update tb_draft_mst
+        set    status_Type = #{statusType}
+        where  draft_id = #{draftId}
     </update>
 
     <select id="getSeq">

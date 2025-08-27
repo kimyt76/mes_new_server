@@ -32,4 +32,6 @@ public interface DraftMapper {
     void saveBoardId(String boardId, String draftId);
 
     boolean updateApprovalInfo(String approvalId, String labUserId);
+
+    void updateStatType(String draftId, String statusType);
 }
