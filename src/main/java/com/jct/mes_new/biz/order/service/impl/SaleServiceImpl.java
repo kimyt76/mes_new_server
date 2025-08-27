@@ -55,6 +55,8 @@ public class SaleServiceImpl implements SaleService {
             if ( saleMapper.saveSaleInfo(saleInfo) <= 0 ) {
                 throw new Exception("주문서 저장에 실패했습니다.");
             }else{
+                saleMapper.deleteSaleItemList(saleInfo.getSaleId());
+
                 for (SaleItemListVo item : itemList) {
                     item.setSaleItemId(String.valueOf(snowflake.nextId()));
                     item.setSaleId(saleInfo.getSaleId());
