@@ -14,12 +14,13 @@ public class ProgressVo {
     private String contractDate;
     private String saleDate;
     private String shipmentDate;
+    private BigDecimal totQty;
     private BigDecimal qty;
+    private BigDecimal unitPrice;
     private BigDecimal supplyPrice;
     private BigDecimal vatPrice;
     private BigDecimal totPrice;
     private String managerName;
     private String managerId;
-
-
+    private String tradingMethod;
 }
