@@ -17,4 +17,5 @@ public interface UserService {
     int userCheck(String id);
 
     boolean passwordInit(String id, String password);
+
 }
