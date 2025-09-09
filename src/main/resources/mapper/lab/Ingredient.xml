@@ -16,11 +16,13 @@
                  ,a.Ingredient_date
                  ,a.cas_no
                  ,a.etc
-                 ,dbo.getUserName(a.reg_id) as reg_nm
+                 ,c.member_nm as regName
                  ,convert(nvarchar(10), a.upd_dt, 23) as upd_date
-                 ,dbo.getUserName(a.upd_id) as upd_nm
+                 ,dbo.getUserName(a.upd_id) as updName
                  ,b.code_nm as function_nm
         from     tb_ingredient a
+                 inner join tb_users c
+                 on c.user_id = a.reg_id
                  left outer join tb_common_code b
                  on b.com_type_cd = 'fn_cd'
                  and b.code = a.function_cd
@@ -36,8 +38,8 @@
         <if test="casNo != null and casNo != ''">
             AND  a.cas_no LIKE '%' + #{casNo} + '%'
         </if>
-        <if test="casNo != null and casNo != ''">
-            AND  a.cas_no LIKE '%' + #{casNo} + '%'
+        <if test="regName != null and regName != ''">
+            AND  c.member_nm LIKE '%' + #{regName} + '%'
         </if>
     </select>
 
