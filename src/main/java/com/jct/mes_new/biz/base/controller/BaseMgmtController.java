@@ -19,5 +19,4 @@ public class BaseMgmtController {
 
         return baseMgmtService.getItemList(itemVo);
     }
-
 }
