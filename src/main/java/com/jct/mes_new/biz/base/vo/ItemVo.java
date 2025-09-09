@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class ItemVo {
-
+    private int rowNum;
     private String itemCd;
     private String itemName;
     private String itemTypeCd;

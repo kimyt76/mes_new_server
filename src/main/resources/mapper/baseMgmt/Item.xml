@@ -9,7 +9,8 @@
     </select>
 
     <select id="getItemList">
-        select   a.*
+        select   ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+                ,a.*
                 ,b.*
                 ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
                 ,c.customer_name as customerName
