@@ -11,6 +11,7 @@ import com.jct.mes_new.config.common.Snowflake;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class SaleServiceImpl implements SaleService {
         return map;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public String saveSaleInfo(SaleVo saleInfo, List<SaleItemListVo> itemList){
         Snowflake snowflake = new Snowflake(1, 1);
         String msg = "저장되었습니다.";
