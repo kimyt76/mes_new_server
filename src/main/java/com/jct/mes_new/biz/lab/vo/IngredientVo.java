@@ -18,8 +18,8 @@ public class IngredientVo {
     private String functionCd;
     private String casNo;
     private String etc;
-    private String regNm;
-    private String updNm;
+    private String regName;
+    private String updName;
     private String updDate;
 
     private String type;
