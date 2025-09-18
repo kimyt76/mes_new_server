@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.ClientMapper">
+
+    <select id="getClientList">
+        select  ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+                ,a.business_no
+                ,a.client_name
+                ,a.president
+                ,b.member_nm as saleManagerName
+                ,a.payment_condition
+                ,(select min(contract_date)
+                   from  tb_contract_mst x
+                  where x.client_id = a.client_id
+                  ) as firstDelaDate
+                ,case when a.trade_type = 'I' then '내수'
+                        when a.trade_type = 'O' then '해외'
+                        else '' end as tradeType
+                ,a.client_id
+        from   tb_client_mst a
+                left outer join tb_users b
+                on b.user_id = a.sale_manager_id
+        where   1=1
+        <if test='strDate != "" and strDate != null'>
+        and  a.reg_date between #{strDate} and #{toDate}
+        </if>
+        <if test='businessNo != "" and businessNo != null'>
+            AND a.business_no LIKE '%' + #{businessNo} + '%'
+        </if>
+        <if test='clientName != "" and clientName != null'>
+            AND c.client_name LIKE '%' + #{clientName} + '%'
+        </if>
+        <if test='saleManagerName != "" and saleManagerName != null'>
+            AND b.member_nm =  #{saleManagerName}
+        </if>
+        order by a.client_id desc
+    </select>
+
+    <select id="getClientInfo">
+        select    a.client_id
+                 ,a.business_no
+                 ,a.client_name
+                 ,a.client_type
+                 ,a.client_type_name
+                 ,a.trade_type
+                 ,a.reg_date
+                 ,a.respon_sales_biz
+                 ,a.establish_date
+                 ,a.president
+                 ,a.business_type
+                 ,a.business_item
+                 ,a.tel_no
+                 ,a.fax_no
+                 ,a.homepage
+                 ,a.address_id
+                 ,a.manager_id
+                 ,a.payment_condition
+                 ,dbo.getUserName(a.sale_manager_id) as saleManagerName
+                 ,dbo.getUserName(a.sale_manager_id_b) as saleManagerNameB
+                 ,a.group_cd
+                 ,a.group_name
+                 ,a.groups_cd
+                 ,a.groups_name
+                 ,a.payment_cd
+                 ,a.payment_name
+                 ,a.sale_manager_id
+                 ,a.sale_manager_id_b
+                 ,(select distinct min(contract_date)
+                   from  tb_contract_mst x
+                   where x.client_id = a.client_id
+                ) as firstDelaDate
+        from   tb_client_mst a
+        where  a.client_id = #{clientId}
+    </select>
+
+    <select id="getHistoryList">
+        select a.history_id
+              ,a.client_id
+              ,a.change_date
+              ,a.history_contents
+              ,a.order_dist
+        from   tb_client_history a
+        where  a.client_id = #{client_id}
+    </select>
+    <select id="getAddressList">
+        select a.address_id
+              ,a.address
+              ,a.order_dist
+        from   tb_address_list a
+        where  a.client_id = #{client_id}
+    </select>
+    <select id="getManagerList">
+        select a.client_manager_id
+              ,a.client_id
+              ,a.dept_name
+              ,a.manager_name
+              ,a.tel
+              ,a.direct_tel
+              ,a.email
+              ,a.order_dist
+        from   tb_user_list a
+        where  a.client_id = #{client_id}
+    </select>
+
+    <update id="saveClientInfo">
+        merge into tb_client_mst a
+            using   (select #{clientId} as client_id ) b
+            on      a.client_id = b.client_id
+            when  matched  then
+                update set
+                     business_no		= #{businessNo}
+                    ,client_name		= #{clientName}
+                    ,client_type		= #{clientType}
+                    ,client_type_name	= #{clientTypeName}
+                    ,trade_type     	= #{tradeType}
+                    ,reg_date           = #{regDate}
+                    ,respon_sales_biz	= #{responSalesBiz}
+                    ,establish_date     = #{establishDate}
+                    ,president			= #{president}
+                    ,business_type		= #{businessType}
+                    ,business_item		= #{businessItem}
+                    ,tel_no				= #{telNo}
+                    ,fax_no				= #{faxNo}
+                    ,homepage			= #{homepage}
+                    ,address_id			= #{addressId}
+                    ,manager_id			= #{managerId}
+                    ,payment_condition  = #{paymentCondition}
+                    ,sale_manager_id	= #{saleManagerId}
+                    ,sale_manager_id_b	= #{saleManagerIdB}
+                    ,group_cd			= #{groupCd}
+                    ,group_name			= #{groupName}
+                    ,groups_cd			= #{groupsCd}
+                    ,groups_name		= #{groupsName}
+                    ,payment_cd			= #{paymentCd}
+                    ,payment_name		= #{paymentName}
+                    ,upd_id =#{userId}
+                    ,upd_dt = getdate()
+            when not matched then
+                insert ( client_id
+                        ,business_no
+                        ,client_name
+                        ,client_type
+                        ,client_type_name
+                        ,trade_type
+                        ,reg_date
+                        ,respon_sales_biz
+                        ,establish_date
+                        ,president
+                        ,business_type
+                        ,business_item
+                        ,tel_no
+                        ,fax_no
+                        ,homepage
+                        ,address_id
+                        ,manager_id
+                        ,payment_condition
+                        ,sale_manager_id
+                        ,sale_manager_id_b
+                        ,group_cd
+                        ,group_name
+                        ,groups_cd
+                        ,groups_name
+                        ,payment_cd
+                        ,payment_name
+                        ,reg_id
+                        ,upd_id
+                        )
+                    values (
+                           #{clientId}
+                           ,#{businessNo}
+                           ,#{clientName}
+                           ,#{clientType}
+                           ,#{clientTypeName}
+                           ,#{tradeType}
+                           ,#{regDate}
+                           ,#{responSalesBiz}
+                           ,#{establishDate}
+                           ,#{president}
+                           ,#{businessType}
+                           ,#{businessItem}
+                           ,#{telNo}
+                           ,#{faxNo}
+                           ,#{homepage}
+                           ,#{addressId}
+                           ,#{managerId}
+                           ,#{paymentCondition}
+                           ,#{saleManagerId}
+                           ,#{saleManagerIdB}
+                           ,#{groupCd}
+                           ,#{groupName}
+                           ,#{groupsCd}
+                           ,#{groupsName}
+                           ,#{paymentCd}
+                           ,#{paymentName}
+                           ,#{userId}
+                           ,#{userId}
+                           )
+        ;
+    </update>
+
+    <delete id="deleteManagerList">
+        delete from tb_user_list where client_id = #{clientId}
+    </delete>
+    <delete id="deleteAddressList">
+        delete from tb_address_list where client_id = #{clientId}
+    </delete>
+    <delete id="deleteHistoryList">
+        delete from tb_client_history where client_id = #{clientId}
+    </delete>
+
+    <insert id="saveManagerList">
+        insert into tb_user_list
+        ( client_id, dept_name, manager_name, job_position, tel, direct_tel, email, order_dist, reg_id, upd_id  )
+        values
+        <foreach collection="managerList" item="manager" separator=",">
+            ( #{manager.clientId}, #{manager.deptName}, #{manager.managerName}, #{manager.jobPosition} , #{manager.tel}, #{manager.directTel}, #{manager.email}, #{manager.orderDist},  #{manager.userId},#{manager.userId})
+        </foreach>
+    </insert>
+    <insert id="saveAddressList">
+        insert into tb_address_list
+        ( client_id, address, order_dist, reg_id, upd_id  )
+        values
+        <foreach collection="addressList" item="address" separator=",">
+            ( #{address.clientId}, #{address.address}, #{address.orderDist}, #{address.userId}, #{address.userId})
+        </foreach>
+    </insert>
+    <insert id="saveHistoryList">
+        insert into tb_client_history
+        ( client_id, change_date, history_contents, order_dist, reg_id, upd_id  )
+        values
+        <foreach collection="historyList" item="history" separator=",">
+            ( #{history.clientId}, #{history.changeDate}, #{history.historyContents}, #{history.orderDist}, #{history.userId},#{history.userId})
+        </foreach>
+    </insert>
+
+    <select id="getBusinessNoChecked">
+        select count(*)
+        from   tb_client_mst
+        where  business_No = #{businessNo}
+    </select>
+
+</mapper>
