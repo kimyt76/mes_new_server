@@ -6,7 +6,8 @@ import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.service.ContractService;
 import com.jct.mes_new.biz.order.vo.ContractSaveRequestVo;
 import com.jct.mes_new.biz.order.vo.ContractVo;
-import com.jct.mes_new.biz.order.vo.ContractItemListVo;
+import com.jct.mes_new.biz.order.vo.ContractItemVo;
+import com.jct.mes_new.config.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -45,14 +46,17 @@ public class ContractController {
             ObjectMapper mapper = new ObjectMapper();
 
             ContractVo contractInfo = mapper.readValue(contractInfoJson, ContractVo.class);
-            List<ContractItemListVo> itemList = mapper.readValue(itemListJson, new TypeReference<List<ContractItemListVo>>() {});
+            List<ContractItemVo> itemList = mapper.readValue(itemListJson, new TypeReference<List<ContractItemVo>>() {});
             String result = contractService.saveContractInfo(contractInfo, itemList, attachFileList);
+            Map<String, String> response = Map.of("contractId", result);
 
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(ApiResponse.success(response));
+            //return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
+            return ResponseEntity.badRequest().body(ApiResponse.fail("저장에 실패했습니다.", 400));
+//            return ResponseEntity
+//                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
         }
     }
 
@@ -64,14 +68,13 @@ public class ContractController {
                                                 @RequestPart(value = "deleteFiles", required = false) String deleteFilesJson,
                                                 @RequestPart(value = "keptFiles", required = false) String keptFilesJson
                                                 ) throws Exception {
-
         try {
             ObjectMapper mapper = new ObjectMapper();
 
             ContractSaveRequestVo vo = new ContractSaveRequestVo();
 
             vo.setContractInfo(mapper.readValue(contractInfoJson, ContractVo.class));
-            vo.setItemList(mapper.readValue(itemListJson, new TypeReference<List<ContractItemListVo>>() {}));
+            vo.setItemList(mapper.readValue(itemListJson, new TypeReference<List<ContractItemVo>>() {}));
             vo.setNewFiles(newFiles != null ? newFiles : new ArrayList<>());
 
             List<FileVo> deleteFiles = new ArrayList<>();
@@ -84,7 +87,6 @@ public class ContractController {
                     new ArrayList<>());
 
             String result = contractService.updateContractInfo(vo);
-
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             return ResponseEntity

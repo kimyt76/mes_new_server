@@ -1,7 +1,7 @@
 package com.jct.mes_new.biz.order.mapper;
 
 import com.jct.mes_new.biz.order.vo.ContractVo;
-import com.jct.mes_new.biz.order.vo.ContractItemListVo;
+import com.jct.mes_new.biz.order.vo.ContractItemVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -13,13 +13,13 @@ public interface ContractMapper {
 
     ContractVo getContractInfo(String contractId);
 
-    List<ContractItemListVo> getItemList(String contractId);
+    List<ContractItemVo> getItemList(String contractId);
 
     int saveContractInfo(ContractVo contractInfo);
 
-    int saveItemList(ContractItemListVo itemListVo);
+    int saveItemList(ContractItemVo itemListVo);
 
     void deleteContractItemList(String contractId);
 
-    List<ContractItemListVo> getContractItemList(List<String> contractIdList);
+    List<ContractItemVo> getContractItemList(List<String> contractIdList);
 }

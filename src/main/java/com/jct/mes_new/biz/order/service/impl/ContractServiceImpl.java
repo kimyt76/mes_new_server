@@ -6,7 +6,7 @@ import com.jct.mes_new.biz.order.mapper.ContractMapper;
 import com.jct.mes_new.biz.order.service.ContractService;
 import com.jct.mes_new.biz.order.vo.ContractSaveRequestVo;
 import com.jct.mes_new.biz.order.vo.ContractVo;
-import com.jct.mes_new.biz.order.vo.ContractItemListVo;
+import com.jct.mes_new.biz.order.vo.ContractItemVo;
 import com.jct.mes_new.config.common.CommonUtil;
 import com.jct.mes_new.config.common.FileUpload;
 import com.jct.mes_new.config.common.Snowflake;
@@ -36,7 +36,7 @@ public class ContractServiceImpl implements ContractService {
         Map<String, Object> map = new HashMap<>();
 
         ContractVo contractInfo = contractMapper.getContractInfo(contractId);
-        List<ContractItemListVo> itemList = contractMapper.getItemList(contractId);
+        List<ContractItemVo> itemList = contractMapper.getItemList(contractId);
 
         map.put("contractInfo", contractInfo);
         map.put("itemList", itemList);
@@ -46,13 +46,13 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public String saveContractInfo(ContractVo contractInfo, List<ContractItemListVo> itemList, List<MultipartFile> attachFileList) throws Exception {
+    public String saveContractInfo(ContractVo contractInfo, List<ContractItemVo> itemList, List<MultipartFile> attachFileList) throws Exception {
         Snowflake snowflake = new Snowflake(1, 1);
-        String msg = "저장되었습니다.";
+        String contractId = CommonUtil.generateUUID();
 
         try{
             /* 주문서id 채번*/
-            contractInfo.setContractId(CommonUtil.generateUUID());
+            contractInfo.setContractId(contractId);
 
             /* 첨부파일 정보 저장 및 ID 채번*/
             if ( attachFileList != null ){
@@ -72,7 +72,7 @@ public class ContractServiceImpl implements ContractService {
             }else{
                 contractMapper.deleteContractItemList(contractInfo.getContractId());
 
-                for (ContractItemListVo item : itemList) {
+                for (ContractItemVo item : itemList) {
                     item.setContractItemId(String.valueOf(snowflake.nextId()));
                     item.setContractId(contractInfo.getContractId());
                     item.setUserId(contractInfo.getUserId());
@@ -85,7 +85,7 @@ public class ContractServiceImpl implements ContractService {
         }catch (Exception e){
             throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
         }
-        return msg;
+        return contractId;
     }
 
 
@@ -100,10 +100,9 @@ public class ContractServiceImpl implements ContractService {
 
             String contractId = vo.getContractInfo().getContractId();
             String userId = vo.getContractInfo().getUserId();
-
             contractMapper.deleteContractItemList(contractId);
 
-            for (ContractItemListVo item : vo.getItemList()) {
+            for (ContractItemVo item : vo.getItemList()) {
                 item.setContractItemId(String.valueOf(snowflake.nextId()));
                 item.setContractId(contractId);
                 item.setUserId(userId);
@@ -135,11 +134,9 @@ public class ContractServiceImpl implements ContractService {
                 }
                 nextSeq++;
             }
-
         }catch (Exception e){
             throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
         }
-
         return msg;
     }
 }
