@@ -4,7 +4,7 @@
 <mapper namespace="com.jct.mes_new.biz.lab.mapper.IngredientMapper">
     <select id="getNewCode">
         select 'I' + RIGHT('00000' + CAST(CAST(RIGHT(MAX(ingredient_code), 5) AS INT) + 1 AS VARCHAR), 5) AS next_id
-        from tb_ingredient
+        from tb_Ingredient_mst
     </select>
 
     <select id="getIngredientList">
@@ -20,13 +20,29 @@
                  ,convert(nvarchar(10), a.upd_dt, 23) as upd_date
                  ,dbo.getUserName(a.upd_id) as updName
                  ,b.code_nm as function_nm
-        from     tb_ingredient a
+                ,(
+                    SELECT L_countries = STRING_AGG(CASE WHEN Ingredient_type = 'L' THEN country_cd END, ',')
+                    FROM tb_Ingredient_country
+                    WHERE ingredient_code = a.ingredient_code
+                    AND check_yn = 'Y'
+                    GROUP BY ingredient_code
+                ) as limitCountry
+                ,(
+                    SELECT B_countries = STRING_AGG(CASE WHEN Ingredient_type = 'B' THEN country_cd END, ',')
+                    FROM tb_Ingredient_country
+                    WHERE ingredient_code = a.ingredient_code
+                    AND check_yn = 'Y'
+                ) as banCountry
+        from     tb_Ingredient_mst a
                  inner join tb_users c
                  on c.user_id = a.reg_id
                  left outer join tb_common_code b
                  on b.com_type_cd = 'fn_cd'
                  and b.code = a.function_cd
         where  1=1
+        <if test="ingredientCode != null and ingredientCode != ''">
+            AND  a.ingredient_code LIKE '%' + #{ingredientCode} + '%'
+        </if>
         <if test="ingredientName != null and ingredientName != ''">
             AND ( kr_Ingredient_name LIKE '%' + #{ingredientName} + '%'
             or   en_Ingredient_name like '%' + #{ingredientName} + '%'
@@ -53,7 +69,7 @@
                 ,a.cas_no
                 ,a.etc
                 ,a.function_Cd
-        from     tb_ingredient a
+        from     tb_Ingredient_mst a
         where  a.ingredient_code = #{ingredientCode}
     </select>
 
@@ -65,7 +81,7 @@
     </select>
 
     <update id="saveIngredientInfo">
-        merge into tb_ingredient a
+        merge into tb_Ingredient_mst a
             using    ( select  #{ingredientCode} as ingredient_code ) b
             on      a.ingredient_code = b.ingredient_code
             when matched then

@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.lab.vo;
 import lombok.Data;
 import org.springframework.core.KotlinReflectionParameterNameDiscoverer;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -27,5 +28,9 @@ public class IngredientVo {
     private List<String> limitCountries;
     private List<String> bannedCountries;
 
+    private String limitCountry;
+    private String banCountry;
+    private BigDecimal inContent;
+    private BigDecimal outContent;
     private String userId;
 }
