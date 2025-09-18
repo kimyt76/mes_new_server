@@ -9,24 +9,29 @@
     </select>
 
     <select id="getItemList">
-        select   ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
-                ,a.*
-                ,b.*
-                ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
-                ,c.customer_name as customerName
-                ,(select  LCode_name from tb_prodL where lcode = a.item_category1) as item_category1Name
-                ,(select  MCode_name from tb_prodM where lcode = a.item_category1 and MCode = a.item_category2) as item_category2Name
-        from   tb_item_mst a
-                inner join tb_item_detail b
-                on b.item_cd = a.item_cd
-                left outer join tb_customer c
-                on c.customer_cd = a.customer_cd
-        where  1=1
-        <if test="itemTypeCd != null and itemTypeCd != ''">
-        and  a.item_type_cd = #{itemTypeCd}
+        select *
+        from (
+        select ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+        ,a.*
+        ,b.vegan
+        ,b.halal
+        ,b.rspo
+        ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
+        ,c.customer_name as customerName
+        ,(select LCode_name from tb_prodL where lcode = a.item_category1) as item_category1Name
+        ,(select MCode_name from tb_prodM where lcode = a.item_category1 and MCode = a.item_category2) as
+        item_category2Name
+        from tb_item_mst a
+        inner join tb_item_detail b
+        on b.item_cd = a.item_cd
+        left outer join tb_customer c
+        on c.customer_cd = a.customer_cd
+        where 1=1
+        <if test="itemTypeCd != null and itemTypeCd != ''">    and  a. item_type_cd = #{itemTypeCd}
         </if>
         <if test="itemCd != null and itemCd != ''">
-        and  a.item_cd like '%' + #{itemCd} + '%'
+        and  a.
+            item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
         and  a.item_name like '%' + #{itemName} + '%'
@@ -37,7 +42,8 @@
         <if test="customerName != null and customerName != ''">
         and  c.customer_name like '%' + #{customerName} + '%'
         </if>
-        order by a.item_type_cd , a.item_cd desc
+        ) a
+        order by a.rowNum, a.item_type_cd , a.item_cd desc
     </select>
 
     <select id="getItemInfo">
@@ -188,9 +194,12 @@
                 ,essence_std		  = #{essenceStd}
                 ,cooling_temp		  = #{coolingTemp}
                 ,history			  = #{history}
+                ,vegan			      = #{vegan}
+                ,halal			      = #{halal}
+                ,rspo			      = #{rspo}
+                ,addtion		      = #{addtion}
                 ,upd_id				  = #{userId}
                 ,upd_dt				  = getDate()
-
         when not matched then
             insert ( item_cd
                     ,unit_weight
@@ -238,6 +247,10 @@
                     ,essence_std
                     ,cooling_temp
                     ,history
+                    ,vegan
+                    ,halal
+                    ,rspo
+                    ,addtion
                     ,reg_id
                     ,upd_id)
             values
@@ -287,10 +300,13 @@
                     ,#{essenceStd}
                     ,#{coolingTemp}
                     ,#{history}
+                    ,#{vegan}
+                    ,#{halal}
+                    ,#{rspo}
+                    ,#{addtion}
                     ,#{userId}
                     ,#{userId}
                 );
-
     </update>
 
 </mapper>

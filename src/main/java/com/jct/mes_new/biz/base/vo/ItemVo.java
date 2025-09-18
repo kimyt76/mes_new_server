@@ -77,6 +77,10 @@ public class ItemVo {
     private String essenceStd;/*에센스 충전량 기준*/
     private String coolingTemp;/*냉각온도기준*/
     private String history;/*이력관리*/
+    private String vegan;/* 비건 lab*/
+    private String halal;/* 할랄  lab*/
+    private String rspo; /* rspo lab*/
+    private String addtion; /*추가 lab*/
 
     List<String> prodLList;
     List<String> prodMList;
