@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.lab.mapper.MaterialMapper">
+    <select id="getMaterialInfo">
+        select   item_cd
+                ,attach_file_id
+                ,history_id
+        from  tb_material_mst
+        where  item_cd = #{itemCd}
+    </select>
+    <select id="getMaterialList">
+        select    a.item_cd
+                 ,b.ingredient_code
+                 ,c.kr_Ingredient_name
+                 ,c.en_Ingredient_name
+                 ,b.in_content
+                 ,b.out_content
+                 ,c.cas_no
+                 ,c.function_cd
+                 ,(
+                    SELECT L_countries = STRING_AGG(CASE WHEN Ingredient_type = 'L' THEN country_cd END, ',')
+                    FROM tb_Ingredient_country
+                    WHERE ingredient_code = c.ingredient_code
+                      AND check_yn = 'Y'
+                    GROUP BY ingredient_code
+                    ) as limitCountry
+                     ,(
+                    SELECT B_countries = STRING_AGG(CASE WHEN Ingredient_type = 'B' THEN country_cd END, ',')
+                    FROM tb_Ingredient_country
+                    WHERE ingredient_code = c.ingredient_code
+                      AND check_yn = 'Y'
+                ) as banCountry
+               ,b.mapping_id
+        from   tb_material_mst a
+               left outer join  tb_material_mapping b
+               on b.item_cd = a.item_cd
+               left outer join tb_ingredient_mst c
+               on c.ingredient_code = b.ingredient_code
+        where  a.item_cd = #{itemCd}
+    </select>
+
+    <select id="getHistoryList">
+        select  history_comment
+               ,item_cd
+               ,upd_name
+               ,upd_date
+               ,history_id
+               ,order_dist
+        from    tb_material_history
+        where   item_cd = #{item_cd}
+        order by history_id
+    </select>
+
+    <update id="saveMaterialMst">
+        MERGE INTO tb_material_mst a
+        USING (SELECT #{itemCd} AS item_cd ) b
+        ON		(a.item_cd = b.item_cd)
+        WHEN MATCHED THEN
+            UPDATE SET
+                     attach_file_id = #{attachFileId}
+                    ,upd_id = #{userId}
+                    ,upd_dt = getdate()
+        WHEN NOT MATCHED THEN
+            INSERT (item_cd,  attach_file_id, reg_id, upd_id)
+            VALUES (#{itemCd},#{attachFileId},#{userId},#{userId})
+            ;
+    </update>
+
+    <delete id="deleteMaterialList">
+        delete from tb_material_mapping where item_cd = #{itemCd}
+    </delete>
+
+    <insert id="saveMaterialList">
+        insert into tb_material_mapping
+            (item_cd,ingredient_code,in_content,out_content,reg_id,upd_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.itemCd},#{item.ingredientCode},#{item.inContent},#{item.outContent},#{item.userId},#{item.userId} )
+        </foreach>
+    </insert>
+
+    <update id="updateHistory">
+        UPDATE tb_material_history
+        SET  history_comment = #{historyComment}
+            ,upd_name= #{updName}
+            ,upd_date= #{updDate}
+            ,upd_id = #{userId}
+            ,upd_dt = getdate()
+        where  history_id = #{historyId}
+    </update>
+
+    <insert id="insertHistory">
+    INSERT into tb_material_history
+        (item_cd ,history_comment,upd_name,upd_date, order_dist, reg_id,upd_id)
+    VALUES
+        (#{itemCd},#{historyComment},#{updName},#{updDate},#{orderDist},#{userId},#{userId})
+    </insert>
+
+
+</mapper>
