@@ -32,5 +32,7 @@ public class IngredientVo {
     private String banCountry;
     private BigDecimal inContent;
     private BigDecimal outContent;
+
+    private String itemCd;
     private String userId;
 }
