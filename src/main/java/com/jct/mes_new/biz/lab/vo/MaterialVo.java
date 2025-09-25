@@ -12,5 +12,8 @@ public class MaterialVo {
     private String attachFileId;
     private String historyId;
 
+    private String itemName;
+    private String ingredientName;
+
     private String userId;
 }

@@ -2,6 +2,40 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.lab.mapper.MaterialMapper">
+    <select id="getMaterialItemList">
+        select distinct a.item_cd
+             ,a.item_name
+             ,e.customer_name
+             ,a.in_price
+             ,a.out_price
+             ,b.Vegan
+             ,b.Halal
+             ,b.RSPO
+        from  tb_item_mst a
+                  left outer join tb_item_detail b
+                                  on b.item_cd = a.item_cd
+                  left outer join tb_material_mapping c
+                                  on c.item_cd =a.item_cd
+                  left outer join tb_ingredient_mst d
+                                  on d.Ingredient_code = c.ingredient_code
+                  left outer join tb_customer e
+                                  on e.customer_cd = a.customer_cd
+        where  a.item_type_cd = 'M1'
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  a.item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="ingredientName != null and ingredientName != ''">
+            AND ( d.kr_Ingredient_name LIKE '%' + #{ingredientName} + '%'
+            or   d.en_Ingredient_name like '%' + #{ingredientName} + '%'
+            or   d.cn_Ingredient_name like '%' + #{ingredientName} + '%' )
+        </if>
+    </select>
+
+
+
     <select id="getMaterialInfo">
         select   item_cd
                 ,attach_file_id
@@ -10,7 +44,7 @@
         where  item_cd = #{itemCd}
     </select>
     <select id="getMaterialList">
-        select    a.item_cd
+        select    b.item_cd
                  ,b.ingredient_code
                  ,c.kr_Ingredient_name
                  ,c.en_Ingredient_name
@@ -32,12 +66,10 @@
                       AND check_yn = 'Y'
                 ) as banCountry
                ,b.mapping_id
-        from   tb_material_mst a
-               left outer join  tb_material_mapping b
-               on b.item_cd = a.item_cd
+        from   tb_material_mapping b
                left outer join tb_ingredient_mst c
                on c.ingredient_code = b.ingredient_code
-        where  a.item_cd = #{itemCd}
+        where  b.item_cd = #{itemCd}
     </select>
 
     <select id="getHistoryList">

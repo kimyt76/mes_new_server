@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.lab.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.lab.service.MaterialService;
 import com.jct.mes_new.biz.lab.vo.HistoryVo;
@@ -25,6 +26,11 @@ import java.util.List;
 public class MaterialController {
 
     private final MaterialService materialService;
+
+    @PostMapping("/getMaterialItemList")
+    public List<ItemVo> getMaterialItemList(@RequestBody MaterialVo vo) {
+        return materialService.getMaterialItemList(vo);
+    }
 
     @GetMapping("/getMaterialInfo/{id}")
     public MaterialRequestVo getMaterialInfo (@PathVariable("id") String itemCd) {

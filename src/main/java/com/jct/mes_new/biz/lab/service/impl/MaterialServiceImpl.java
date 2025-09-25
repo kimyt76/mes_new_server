@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.lab.service.impl;
 
 import com.jct.mes_new.biz.base.mapper.ItemMapper;
+import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.common.mapper.FileHandlerMapper;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.lab.mapper.MaterialMapper;
@@ -8,6 +9,7 @@ import com.jct.mes_new.biz.lab.service.MaterialService;
 import com.jct.mes_new.biz.lab.vo.HistoryVo;
 import com.jct.mes_new.biz.lab.vo.IngredientVo;
 import com.jct.mes_new.biz.lab.vo.MaterialRequestVo;
+import com.jct.mes_new.biz.lab.vo.MaterialVo;
 import com.jct.mes_new.config.common.FileUpload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,10 @@ public class MaterialServiceImpl implements MaterialService {
     private final ItemMapper itemMapper;
     private final FileHandlerMapper fileHandlerMapper;
 
+    public List<ItemVo> getMaterialItemList(MaterialVo vo){
+        return materialMapper.getMaterialItemList(vo);
+    }
+
     public MaterialRequestVo getMaterialInfo(String itemCd) {
         MaterialRequestVo vo = new MaterialRequestVo();
 
@@ -37,7 +43,6 @@ public class MaterialServiceImpl implements MaterialService {
         if (vo.getMaterialInfo().getAttachFileId() != null ) {
             vo.setFileList( fileHandlerMapper.getAttachFileList(vo.getMaterialInfo().getAttachFileId()));
         }
-
         return vo;
     }
 
@@ -93,13 +98,16 @@ public class MaterialServiceImpl implements MaterialService {
                 if (attachFileId == null || attachFileId.isEmpty()) {
                     attachFileId = fileVoList.get(0).getAttachFileId();
                 }
+                int nextSeq = fileHandlerMapper.nextSeq(attachFileId);
                 // 모든 파일에 userId 세팅 후 DB 저장
                 for (FileVo item : fileVoList) {
                     item.setAttachFileId(attachFileId); // 기존 id 이어서 묶이도록 강제 세팅
+                    item.setSeq(nextSeq);
                     item.setUserId(userId);
                     if (!fileHandlerMapper.saveFile(item)) {
                         throw new Exception("첨부 파일 저장 실패");
                     }
+                    nextSeq++;
                 }
             }
             //mst

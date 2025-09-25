@@ -33,6 +33,7 @@ public class IngredientVo {
     private BigDecimal inContent;
     private BigDecimal outContent;
 
+    private String id;
     private String itemCd;
     private String userId;
 }

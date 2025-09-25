@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.lab.mapper;
 
+import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.lab.vo.HistoryVo;
 import com.jct.mes_new.biz.lab.vo.IngredientVo;
 import com.jct.mes_new.biz.lab.vo.MaterialVo;
@@ -26,4 +27,6 @@ public interface MaterialMapper {
     int updateHistory(HistoryVo item);
 
     int insertHistory(HistoryVo item);
+
+    List<ItemVo> getMaterialItemList(MaterialVo vo);
 }
