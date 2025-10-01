@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.core.KotlinReflectionParameterNameDiscoverer;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 @Data
@@ -33,6 +34,10 @@ public class IngredientVo {
     private BigDecimal inContent;
     private BigDecimal outContent;
 
+
+    private String newMaterialId;
+    private String newMaterialCd;
+    private BigInteger newDtlId;
     private String id;
     private String itemCd;
     private String userId;

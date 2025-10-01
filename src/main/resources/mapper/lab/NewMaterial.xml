@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.lab.mapper.NewMaterialMapper">
+    <select id="getNewCode">
+        select isnull('T' + RIGHT('000000' + CAST(CAST(RIGHT(MAX(new_material_cd), 6) AS INT) + 1 AS VARCHAR), 5), 'T00001') AS next_id
+        from tb_new_material_mst
+    </select>
+
+    <select id="getNewMaterialList">
+        select  ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+                ,a.new_material_cd
+                ,a.item_cd
+                ,a.material_Name
+                ,b.member_nm as regName
+                ,convert(nvarchar(10), a.reg_dt, 23) as regDate
+                ,c.customer_name
+                ,a.new_material_id
+        from  tb_new_material_mst a
+                inner join tb_users b
+                on b.user_id = a.reg_id
+                left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+        where  1=1
+        <if test="newMaterialCd != null and newMaterialCd != ''">
+            and  a.new_material_cd like '%' + #{newMaterialCd} + '%'
+        </if>
+        <if test="regName != null and regName != ''">
+            and  b.member_nm like '%' + #{regName} + '%'
+        </if>
+        <if test="materialName != null and materialName != ''">
+            AND  a.material_Name LIKE '%' + #{materialName} + '%'
+        </if>
+    </select>
+
+    <select id="getNewMaterialInfo">
+        select   a.new_material_cd
+                ,a.item_cd
+                ,a.material_Name
+                ,b.member_nm as managerName
+                ,c.customer_name
+                ,a.new_material_id
+                ,a.customer_cd
+        from    tb_new_material_mst a
+                inner join tb_users b
+                on b.user_id = a.reg_id
+                left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+        where   a.new_material_cd = #{newMaterialCd}
+    </select>
+
+    <select id="getMaterialMappingList">
+        select    a.ingredient_code
+                 ,b.kr_Ingredient_name
+                 ,b.en_Ingredient_name
+                 ,a.in_content
+                 ,a.out_content
+                 ,b.cas_no
+                 ,b.function_cd
+                 ,(
+                    SELECT L_countries = STRING_AGG(CASE WHEN Ingredient_type = 'L' THEN country_cd END, ',')
+                    FROM tb_Ingredient_country
+                    WHERE ingredient_code = b.ingredient_code
+                      AND check_yn = 'Y'
+                    GROUP BY ingredient_code
+                    ) as limitCountry
+                     ,(
+                    SELECT B_countries = STRING_AGG(CASE WHEN Ingredient_type = 'B' THEN country_cd END, ',')
+                    FROM tb_Ingredient_country
+                    WHERE ingredient_code = b.ingredient_code
+                      AND check_yn = 'Y'
+                ) as banCountry
+               ,a.new_dtl_id
+               ,a.new_material_cd
+        from   tb_new_material_detail a
+               inner join tb_ingredient_mst b
+               on b.ingredient_code = a.ingredient_code
+        where  a.new_material_cd = #{newMaterialCd}
+    </select>
+
+    <update id="saveNewMaterialInfo">
+        merge into tb_new_material_mst a
+        using  (select #{newMaterialId} as new_material_id ) b
+        on     a.new_material_id = b.new_material_id
+        WHEN MATCHED THEN
+            UPDATE SET
+                 item_cd  	    = #{itemCd}
+                ,material_name  = #{materialName}
+                ,in_price	    = #{inPrice}
+                ,customer_cd 	= #{customerCd}
+                ,mtr_name  	    = #{mtrName}
+                ,upd_id         = #{userId}
+                ,upd_dt         = getdate()
+        WHEN NOT MATCHED THEN
+            INSERT (new_material_id, new_material_cd, item_cd, material_name, in_price, customer_cd, mtr_name, reg_id, upd_id)
+            VALUES (#{newMaterialId}, #{newMaterialCd},#{itemCd },#{materialName},#{inPrice},#{customerCd},#{mtrName},	#{userId},#{userId})
+        ;
+    </update>
+
+    <delete id="deleteMaterialMappingList">
+        delete from tb_new_material_detail where new_material_cd = #{newMaterialCd}
+    </delete>
+
+    <insert id="saveNewMaterialMappingList">
+        insert into tb_new_material_detail
+            (new_material_cd, item_cd, Ingredient_code, in_content, out_content, reg_id, upd_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.newMaterialCd},#{item.itemCd},#{item.ingredientCode},#{item.inContent},#{item.outContent},#{item.userId},#{item.userId})
+        </foreach>
+    </insert>
+</mapper>
