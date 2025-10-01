@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/lab")
+@RequestMapping("/material")
 public class MaterialController {
 
     private final MaterialService materialService;
