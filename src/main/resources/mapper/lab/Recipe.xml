@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.lab.mapper.RecipeMapper">
+    <select id="getRecipeList">
+        select ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+                ,b.client_name
+                ,a.prod_name
+                ,a.lab_no
+                ,c.member_nm as managerName
+                ,a.reg_date
+                ,a.manager_id
+                ,a.client_id
+                ,a.recipe_id
+                ,dbo.getCommonName('prod_type',  a.prod_type ) as prod_type
+        from   tb_recipe_mst a
+                left outer join tb_client_mst b
+                on b.client_id = a.client_id
+                inner join tb_users c
+                on c.user_id = a.manager_id
+        where  1=1
+        <if test="prodName != null and prodName != ''">
+            and  a.prod_name like '%' + #{prodName} + '%'
+        </if>
+        <if test="labNo != null and labNo != ''">
+            and  a.lab_no like '%' + #{labNo} + '%'
+        </if>
+        <if test="managerName != null and managerName != ''">
+            AND  c.member_nm LIKE '%' + #{managerName} + '%'
+        </if>
+    </select>
+
+    <select id="getRecipeInfo">
+        select   b.client_name
+                 ,a.prod_name
+                 ,a.lab_no
+                 ,c.member_nm as managerName
+                 ,a.reg_date
+                 ,a.manager_id
+                 ,a.client_id
+                 ,a.recipe_id
+                 ,a.prod_type
+        from   tb_recipe_mst a
+               left outer join tb_client_mst b
+               on b.client_id = a.client_id
+               inner join tb_users c
+               on c.user_id = a.manager_id
+        where  a.recipe_id = #{recipeId}
+    </select>
+
+    <select id="getRecipeDtlList">
+        select    a.phase
+                 ,a.item_cd
+                 ,b.item_name
+                 ,a.content
+                 ,b.in_price
+                 ,a.unit_price
+                 ,a.recipe_id
+                 ,a.recipe_item_id
+        from  tb_recipe_detail a
+              inner join tb_item_mst b
+              on b.item_cd = a.item_cd
+        where a.recipe_id = #{recipeId}
+    </select>
+
+    <update id="saveRecipeInfo">
+        merge into tb_recipe_mst a
+        using  (select #{recipeId} as recipe_id ) b
+        on     a.recipe_id = b.recipe_id
+        WHEN MATCHED THEN
+            UPDATE SET
+                     prod_name 	 = #{prodName}
+                    ,reg_date  	 = #{regDate}
+                    ,lab_no  	 = #{labNo}
+                    ,client_id 	 = #{clientId}
+                    ,manager_id	 = #{managerId}
+                    ,prod_type 	 = #{prodType}
+                    ,upd_id      = #{userId}
+                    ,upd_dt      = getdate()
+        WHEN NOT MATCHED THEN
+            INSERT (recipe_id, prod_name, reg_date, lab_no, client_id, manager_id, prod_type,  reg_id, upd_id)
+            VALUES
+                (#{recipeId}, #{prodName}, #{regDate}, #{labNo}, #{clientId}, #{managerId}, #{prodType }, #{userId}, #{userId})
+        ;
+    </update>
+
+    <delete id="deleteRecipeList">
+        delete from tb_recipe_detail where recipe_id = #{recipeId}
+    </delete>
+
+    <insert id="saveRecipeList">
+        insert into tb_recipe_detail
+        (recipe_id, item_cd, phase, content, unit_price, reg_id, upd_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.recipeId}, #{item.itemCd}, #{item.phase}, #{item.content},#{item.unitPrice}, #{item.userId}, #{item.userId})
+        </foreach>
+    </insert>
+</mapper>
+
