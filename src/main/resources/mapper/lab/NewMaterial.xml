@@ -41,6 +41,7 @@
                 ,b.member_nm as managerName
                 ,c.customer_name
                 ,a.new_material_id
+                ,a.in_price
                 ,a.customer_cd
         from    tb_new_material_mst a
                 inner join tb_users b
