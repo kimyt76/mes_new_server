@@ -55,13 +55,14 @@ public class NewMaterialServiceImpl implements NewMaterialService {
 
             if ( !materialMappingList.isEmpty() ){
                 newMaterialMapper.deleteMaterialMappingList(newMaterialInfo.getNewMaterialCd());
-            }
-            for(IngredientVo ingredient : materialMappingList) {
-                ingredient.setNewMaterialCd(newMaterialInfo.getNewMaterialCd());
-                ingredient.setUserId(userId);
-            }
-            if(newMaterialMapper.saveNewMaterialMappingList(materialMappingList) <= 0){
-                throw new Exception("성분저장에 실패했습니다.");
+
+                for(IngredientVo ingredient : materialMappingList) {
+                    ingredient.setNewMaterialCd(newMaterialInfo.getNewMaterialCd());
+                    ingredient.setUserId(userId);
+                }
+                if(newMaterialMapper.saveNewMaterialMappingList(materialMappingList) <= 0){
+                    throw new Exception("성분저장에 실패했습니다.");
+                }
             }
         }catch(Exception e) {
             throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);

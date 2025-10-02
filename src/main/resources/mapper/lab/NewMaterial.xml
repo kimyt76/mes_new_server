@@ -3,8 +3,9 @@
 
 <mapper namespace="com.jct.mes_new.biz.lab.mapper.NewMaterialMapper">
     <select id="getNewCode">
-        select isnull('T' + RIGHT('000000' + CAST(CAST(RIGHT(MAX(new_material_cd), 6) AS INT) + 1 AS VARCHAR), 5), 'T00001') AS next_id
-        from tb_new_material_mst
+        SELECT 'T' + RIGHT('00000' + CAST(
+                ISNULL(CAST(RIGHT(MAX(new_material_cd), 5) AS INT), 0) + 1 AS VARCHAR), 5) AS next_id
+        FROM tb_new_material_mst;
     </select>
 
     <select id="getNewMaterialList">
