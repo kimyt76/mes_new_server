@@ -3,34 +3,43 @@
 
 <mapper namespace="com.jct.mes_new.biz.lab.mapper.MaterialMapper">
     <select id="getMaterialItemList">
-        select distinct a.item_cd
-             ,a.item_name
-             ,e.customer_name
-             ,a.in_price
-             ,a.out_price
-             ,b.Vegan
-             ,b.Halal
-             ,b.RSPO
-        from  tb_item_mst a
-                  left outer join tb_item_detail b
-                                  on b.item_cd = a.item_cd
-                  left outer join tb_material_mapping c
-                                  on c.item_cd =a.item_cd
-                  left outer join tb_ingredient_mst d
-                                  on d.Ingredient_code = c.ingredient_code
-                  left outer join tb_customer e
-                                  on e.customer_cd = a.customer_cd
-        where  a.item_type_cd = 'M1'
+
+        select  ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+                ,a.item_cd
+                ,a.item_name
+                ,c.customer_name
+                ,a.in_price
+                ,a.out_price
+                ,b.Vegan
+                ,b.Halal
+                ,b.RSPO
+        from    tb_item_mst a
+                inner join tb_item_detail b
+                on a.item_cd = b.item_cd
+                left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+        <if test="ingredientName != null and ingredientName != ''">
+                inner join (
+                    select distinct item_cd
+                    from   tb_material_mapping a
+                    where  a.ingredient_code in (
+                            select Ingredient_code
+                            from   tb_ingredient_mst a
+                            where  1=1
+                            AND (    a.kr_Ingredient_name LIKE '%' + #{ingredientName} + '%'
+                                or   a.en_Ingredient_name LIKE '%' + #{ingredientName} + '%'
+                                or   a.cn_Ingredient_name LIKE '%' + #{ingredientName} + '%'
+                                )
+                            )
+                ) d
+                on d.item_cd = a.item_cd
+        </if>
+        where   a.item_type_cd ='M1'
         <if test="itemCd != null and itemCd != ''">
             and  a.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
             and  a.item_name like '%' + #{itemName} + '%'
-        </if>
-        <if test="ingredientName != null and ingredientName != ''">
-            AND ( d.kr_Ingredient_name LIKE '%' + #{ingredientName} + '%'
-            or   d.en_Ingredient_name like '%' + #{ingredientName} + '%'
-            or   d.cn_Ingredient_name like '%' + #{ingredientName} + '%' )
         </if>
     </select>
 
