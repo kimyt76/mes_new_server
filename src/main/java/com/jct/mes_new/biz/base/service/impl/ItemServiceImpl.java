@@ -35,6 +35,7 @@ public class ItemServiceImpl implements ItemService {
             if ( itemMapper.saveItemInfo(itemVo) <= 0 ) {
                 throw new Exception("저장에 실패했습니다.");
             }
+            itemMapper.insertItemDetial(itemVo.getItemCd(), itemVo.getUserId());
         } catch (Exception e) {
             throw new RuntimeException("저장 실패 : " + e.getMessage(), e );
         }

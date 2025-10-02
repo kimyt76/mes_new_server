@@ -23,4 +23,6 @@ public interface ItemMapper {
     int getItemCdCheck(String itemCd);
 
     int saveItemDetailInfo(ItemVo itemVo);
+
+    void insertItemDetial(String itemCd, String userId);
 }
