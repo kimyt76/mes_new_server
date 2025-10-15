@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 public class RecipeVo {
 
     private String recipeId;
-    private String recipeCd;
     private String prodName;
     private String regDate;
     private String labNo;

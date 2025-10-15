@@ -25,11 +25,11 @@ public class RecipeServiceImpl implements RecipeService {
         return recipeMapper.getRecipeList(recipeVo);
     }
 
-    public RecipeRequestVo getNewMaterialInfo(String recipeCd){
+    public RecipeRequestVo getNewMaterialInfo(String recipeId){
         RecipeRequestVo vo = new RecipeRequestVo();
 
-        vo.setRecipeInfo(recipeMapper.getRecipeInfo(recipeCd));
-        vo.setRecipeList(recipeMapper.getRecipeDtlList(recipeCd));
+        vo.setRecipeInfo(recipeMapper.getRecipeInfo(recipeId));
+        vo.setRecipeList(recipeMapper.getRecipeDtlList(recipeId));
 
         return vo;
     }
@@ -37,29 +37,31 @@ public class RecipeServiceImpl implements RecipeService {
     @Transactional(rollbackFor = Exception.class)
     public String saveRecipeInfo(RecipeVo recipeInfo, List<RecipeDetailVo> recipeList){
         String recipe_id =recipeInfo.getRecipeId();
-
+        log.info("======================recipeInfo========== : " + recipeInfo);
         try{
-            if( recipe_id == null ){
+            if( recipe_id == null || recipe_id.isEmpty()){
                 recipe_id = CommonUtil.generateUUID();
                 recipeInfo.setRecipeId(recipe_id);
             }
             if( recipeMapper.saveRecipeInfo(recipeInfo) <= 0 ){
                 throw new Exception("처방정보 저장에 실패했습니다.");
             }
-
             if(!recipeList.isEmpty()){
                 recipeMapper.deleteRecipeList(recipe_id);
 
                 for(RecipeDetailVo recipe : recipeList){
                     recipe.setRecipeId(recipe_id);
                     recipe.setUserId(recipeInfo.getUserId());
+                    log.info("======================recipe========== : " + recipe);
+                    if( recipeMapper.saveRecipeList(recipe) <= 0 ){
+                        throw new Exception("처방정보 저장에 실패했습니다.");
+                    }
                 }
-                log.info("================recipeList============= : " + recipeList);
-                if( recipeMapper.saveRecipeList(recipeList) <= 0 ){
-                    throw new Exception("처방정보 저장에 실패했습니다.");
-                }
-            }
 
+//                if( recipeMapper.saveRecipeList(recipeList) <= 0 ){
+//                    throw new Exception("처방정보 저장에 실패했습니다.");
+//                }
+            }
         }catch(Exception e){
             throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
         }

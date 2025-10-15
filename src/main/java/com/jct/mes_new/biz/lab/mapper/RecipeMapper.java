@@ -14,11 +14,11 @@ public interface RecipeMapper {
 
     int saveRecipeInfo(RecipeVo recipeInfo);
 
-    int saveRecipeList(List<RecipeDetailVo> recipeList);
+    int saveRecipeList(RecipeDetailVo recipe);
 
-    RecipeVo getRecipeInfo(String recipeCd);
+    RecipeVo getRecipeInfo(String recipeId);
 
-    List<RecipeDetailVo> getRecipeDtlList(String recipeCd);
+    List<RecipeDetailVo> getRecipeDtlList(String recipeId);
 
     void deleteRecipeList(String recipeId);
 }

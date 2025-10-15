@@ -11,7 +11,7 @@ import java.util.Map;
 public interface RecipeService {
     List<RecipeVo> getRecipeList(RecipeVo recipeVo);
 
-    RecipeRequestVo getNewMaterialInfo(String recipeCd);
+    RecipeRequestVo getNewMaterialInfo(String recipeId);
 
     String saveRecipeInfo(RecipeVo recipeInfo, List<RecipeDetailVo> recipeList);
 }

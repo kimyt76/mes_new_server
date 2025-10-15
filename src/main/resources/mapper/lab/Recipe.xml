@@ -28,6 +28,7 @@
         <if test="managerName != null and managerName != ''">
             AND  c.member_nm LIKE '%' + #{managerName} + '%'
         </if>
+        order by a.reg_date desc
     </select>
 
     <select id="getRecipeInfo">
@@ -53,12 +54,10 @@
                  ,a.item_cd
                  ,b.item_name
                  ,a.content
-                 ,b.in_price
-                 ,a.unit_price
                  ,a.recipe_id
                  ,a.recipe_item_id
         from  tb_recipe_detail a
-              inner join tb_item_mst b
+              left outer join tb_item_mst b
               on b.item_cd = a.item_cd
         where a.recipe_id = #{recipeId}
     </select>
@@ -90,11 +89,9 @@
 
     <insert id="saveRecipeList">
         insert into tb_recipe_detail
-        (recipe_id, item_cd, phase, content, unit_price, reg_id, upd_id)
+        (recipe_id, item_cd, phase, content,  reg_id, upd_id)
         values
-        <foreach collection="list" item="item" separator=",">
-            (#{item.recipeId}, #{item.itemCd}, #{item.phase}, #{item.content},#{item.unitPrice}, #{item.userId}, #{item.userId})
-        </foreach>
+        (#{recipeId}, #{itemCd}, #{phase}, #{content}, #{userId}, #{userId})
     </insert>
 </mapper>
 

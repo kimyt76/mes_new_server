@@ -13,6 +13,7 @@ public class RecipeDetailVo {
     private String itemName;
     private String phase;
     private BigDecimal content;
+    private BigDecimal inPrice;
     private BigDecimal unitPrice;
 
     private String userId;
