@@ -50,16 +50,36 @@
     </select>
 
     <select id="getRecipeDtlList">
-        select    a.phase
-                 ,a.item_cd
-                 ,b.item_name
-                 ,a.content
-                 ,a.recipe_id
-                 ,a.recipe_item_id
-        from  tb_recipe_detail a
-              left outer join tb_item_mst b
-              on b.item_cd = a.item_cd
-        where a.recipe_id = #{recipeId}
+        select a.phase
+             ,a.item_cd
+             ,a.item_name
+             ,a.content
+             ,a.in_price
+             ,(a.content*a.in_price*0.01*0.001) as unitPrice
+             ,a.recipe_id
+        from  (
+                  select a.phase
+                       ,a.item_cd
+                       ,b.item_name
+                       ,a.content
+                       ,b.in_price
+                       ,a.recipe_id
+                  from   tb_recipe_detail a
+                             inner join tb_item_mst b
+                                        on b.item_cd = a.item_cd
+                  where  a.recipe_id = #{recipeId}
+                  union all
+                  select a.phase
+                       ,a.item_cd
+                       ,b.material_name
+                       ,a.content
+                       ,b.in_price
+                       ,a.recipe_id
+                  from   tb_recipe_detail a
+                             inner join tb_new_material_mst b
+                                        on b.new_material_cd = a.item_cd
+                  where  a.recipe_id = #{recipeId}
+              ) a
     </select>
 
     <update id="saveRecipeInfo">
@@ -93,5 +113,186 @@
         values
         (#{recipeId}, #{itemCd}, #{phase}, #{content}, #{userId}, #{userId})
     </insert>
+
+    <select id="getProdInfo"  resultType="hashmap">
+        select  a.prodName
+                ,a.prodTypeName
+                ,isnull(b.enProd_type_name, '') as enProdTypeName
+        from   (
+               select a.prod_Name as prodName
+                    ,dbo.getCommonName('prod_type', a.prod_type) as prodTypeName
+               from   tb_recipe_mst a
+               where  recipe_id = #{recipeId}
+               ) a
+               left outer join tb_product_type b
+               on (b.prod_type_name = a.prodTypeName or b.enProd_type_name = a.prodTypeName)
+    </select>
+
+    <select id="allIngredientInList">
+        select  ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
+                ,a.kr_Ingredient_name
+                 ,a.en_Ingredient_name
+                 ,a.cn_Ingredient_name
+                 ,a.ingredient_code
+                 ,sum(a.content) as content
+                 ,a.reference
+                 ,a.cas_no
+                 ,a.functionName
+        from  (
+                  select  c.kr_Ingredient_name
+                       ,c.en_Ingredient_name
+                       ,c.cn_Ingredient_name
+                       ,b.ingredient_code
+                       ,b.in_content*a.content*0.01 as content
+                       ,'ICID' as reference
+                       ,c.cas_no
+                       ,dbo.getCommonName('fn_cd', c.function_cd) as functionName
+                  from   tb_recipe_detail a
+                             inner join tb_material_mapping b
+                                        on b.item_cd = a.item_cd
+                             inner join tb_ingredient_mst c
+                                        on c.Ingredient_code = b.ingredient_code
+                  where  a.recipe_id = #{recipeId}
+                  union all
+                  select   b.kr_Ingredient_name
+                       ,b.en_Ingredient_name
+                       ,b.cn_Ingredient_name
+                       ,b.ingredient_code
+                       ,a.in_content*a.content*0.01 as content
+                       ,'ICID' as reference
+                       ,b.cas_no
+                       ,dbo.getCommonName('fn_cd', b.function_cd) as functionName
+                  from  (
+                            select a.Ingredient_code
+                                 ,b.item_cd
+                                 ,b.content
+                                 ,a.in_content
+                                 ,a.out_content
+                            from   tb_new_material_detail a
+                                       inner join (
+                                select b.new_material_cd as item_cd
+                                     ,a.content
+                                     ,a.recipe_id
+                                from   tb_recipe_detail a
+                                           inner join tb_new_material_mst b
+                                                      on b.new_material_cd = a.item_cd
+                                           inner join tb_new_material_detail c
+                                                      on c.new_material_cd = b.new_material_cd
+                                where  recipe_id = #{recipeId}
+                            ) b
+                                                  on a.new_material_cd = b.item_cd
+                        ) a
+                            inner join tb_ingredient_mst b
+                                       on b.Ingredient_code = a.Ingredient_code
+              ) a
+        group by a.kr_Ingredient_name
+               ,a.en_Ingredient_name
+               ,a.cn_Ingredient_name
+               ,a.ingredient_code
+               ,a.reference
+               ,a.cas_no
+               ,a.functionName
+        order by content desc
+    </select>
+    <select id="allIngredientOutList">
+        select   DENSE_RANK() OVER (ORDER BY a.content desc, a.item_cd) AS rowNum
+                ,a.kr_Ingredient_name
+                 ,a.en_Ingredient_name
+                 ,a.cn_Ingredient_name
+                 ,a.ingredient_code
+                 ,a.content
+                 ,a.composition
+                 ,a.InFormula
+                 ,reference
+                 ,a.cas_no
+                 ,dbo.getCommonName('fn_cd', a.function_cd) as functionName
+                 ,a.item_cd
+        from (
+                 select   c.kr_Ingredient_name
+                      ,c.en_Ingredient_name
+                      ,c.cn_Ingredient_name
+                      ,b.ingredient_code
+                      ,sum(a.content) as content
+                      ,sum(b.out_content) as composition
+                      ,sum(b.out_content*a.content*0.01) as InFormula
+                      ,'ICID' as reference
+                      ,c.cas_no
+                      ,c.function_cd
+                      -- ,dbo.getCommonName('fn_cd', c.function_cd) as functionName
+                      ,a.item_cd
+                 from   tb_recipe_detail a
+                            inner join tb_material_mapping b
+                                       on b.item_cd = a.item_cd
+                            inner join tb_ingredient_mst c
+                                       on c.Ingredient_code = b.ingredient_code
+                 where  a.recipe_id =  #{recipeId}
+                 group by c.kr_Ingredient_name
+                        ,c.en_Ingredient_name
+                        ,c.cn_Ingredient_name
+                        ,b.ingredient_code
+                        ,c.cas_no
+                        ,c.function_cd
+                        ,a.item_cd
+                 union all
+                 select   b.kr_Ingredient_name
+                      ,b.en_Ingredient_name
+                      ,b.cn_Ingredient_name
+                      ,b.ingredient_code
+                      ,sum(a.content) as content
+                      ,sum(a.out_content) as composition
+                      ,sum(a.out_content*a.content*0.01) as InFormula
+                      ,'ICID' as reference
+                      ,b.cas_no
+                      ,b.function_cd
+                      ,a.item_cd
+                 from  (
+                           select a.Ingredient_code
+                                ,b.item_cd
+                                ,b.content
+                                ,a.in_content
+                                ,a.out_content
+                           from   tb_new_material_detail a
+                                      inner join (
+                               select b.new_material_cd as item_cd
+                                    ,a.content
+                                    ,a.recipe_id
+                               from   tb_recipe_detail a
+                                          inner join tb_new_material_mst b
+                                                     on b.new_material_cd = a.item_cd
+                                          inner join tb_new_material_detail c
+                                                     on c.new_material_cd = b.new_material_cd
+                               where  recipe_id =  #{recipeId}
+                           ) b
+                           on a.new_material_cd = b.item_cd
+                       ) a
+                           inner join tb_ingredient_mst b
+                           on b.Ingredient_code = a.Ingredient_code
+                 group by b.kr_Ingredient_name
+                        ,b.en_Ingredient_name
+                        ,b.cn_Ingredient_name
+                        ,b.ingredient_code
+                        ,b.cas_no
+                        ,b.function_cd
+                        ,a.item_cd
+             ) a
+        order by a.content desc
+    </select>
+
+    <select id="getProdTypeInfo" resultType="hashmap">
+        select   prod_type_Name as prodTypeName
+                ,enProd_type_Name enProdTypeName
+                ,kr_Effect as krEffect
+                ,en_Effect as enEffect
+                ,kr_Usage as krUsage
+                ,en_Usage as enUsage
+                ,kr_Use as krUse
+                ,en_Use as enUse
+                ,kr_Caution as krCaution
+                ,en_Caution as enCaution
+                ,kr_Craftiness as krCraftiness
+                ,en_Craftiness as enCraftiness
+        from tb_product_type
+        where (prod_type_Name = #{prodTypeName} or enProd_type_Name = #{prodTypeName})
+    </select>
 </mapper>
 

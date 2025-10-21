@@ -37,7 +37,6 @@ public class RecipeServiceImpl implements RecipeService {
     @Transactional(rollbackFor = Exception.class)
     public String saveRecipeInfo(RecipeVo recipeInfo, List<RecipeDetailVo> recipeList){
         String recipe_id =recipeInfo.getRecipeId();
-        log.info("======================recipeInfo========== : " + recipeInfo);
         try{
             if( recipe_id == null || recipe_id.isEmpty()){
                 recipe_id = CommonUtil.generateUUID();
@@ -52,7 +51,6 @@ public class RecipeServiceImpl implements RecipeService {
                 for(RecipeDetailVo recipe : recipeList){
                     recipe.setRecipeId(recipe_id);
                     recipe.setUserId(recipeInfo.getUserId());
-                    log.info("======================recipe========== : " + recipe);
                     if( recipeMapper.saveRecipeList(recipe) <= 0 ){
                         throw new Exception("처방정보 저장에 실패했습니다.");
                     }
@@ -66,5 +64,22 @@ public class RecipeServiceImpl implements RecipeService {
             throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
         }
         return recipe_id;
+    }
+
+    public Map<String, Object> getProdInfo(String recipeId){
+
+        return recipeMapper.getProdInfo(recipeId);
+    }
+
+    public List<AllIngredientVo> allIngredientInList(String recipeId){
+        return recipeMapper.allIngredientInList(recipeId);
+    }
+
+    public List<AllIngredientVo> allIngredientOutList(String recipeId){
+        return  recipeMapper.allIngredientOutList(recipeId);
+    }
+
+    public Map<String, Object> getProdTypeInfo(String prodTypeName){
+        return recipeMapper.getProdTypeInfo(prodTypeName);
     }
 }
