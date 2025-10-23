@@ -3,19 +3,23 @@
 
 <mapper namespace="com.jct.mes_new.biz.common.mapper.MenuMapper">
 
-    <select id="getMenus">
-        SELECT m.menu_id,
-               m.parent_id,
-               m.menu_name,
-               m.menu_path,
-               m.icon,
-               a.read_yn,
-               a.write_yn
-        FROM tb_menu m
-             JOIN tb_user_menu_auth a
-             ON m.menu_id = a.menu_id
-        WHERE  a.read_yn ='Y'
-        and    a.user_id = #{userId}
+
+    <select id="getMenuListByUser">
+        SELECT
+            m.menu_id ,
+            m.parent_id,
+            m.menu_name,
+            m.menu_path,
+            m.route_name,
+            m.icon,
+            m.sort_order,
+            a.read_yn as readYn,
+            a.write_yn as writeYn
+        FROM tb_menu_mst m
+                 INNER JOIN tb_menu_auth a ON m.menu_id = a.menu_id
+        WHERE a.user_id = #{userId}
+          AND a.read_yn = 'Y'
+        ORDER BY m.sort_order
     </select>
 
 </mapper>
