@@ -93,6 +93,9 @@
             ,customer_Cd
             ,in_price
             ,out_price
+            ,category
+            ,avg_delivery_date
+            ,safe_stock
             ,etc
             ,use_yn
             ,reg_id
@@ -115,6 +118,9 @@
             ,#{customerCd}
             ,#{inPrice}
             ,#{outPrice}
+            ,#{category}
+            ,#{avgDeliveryDate}
+            ,#{safeStock}
             ,#{etc}
             ,#{useYn}
             ,#{userId}
@@ -124,7 +130,7 @@
             )
     </insert>
 
-    <update id = 'updateItemInfo'>
+    <update id="updateItemInfo">
         update tb_item_mst
         set  item_name = #{itemName}
             ,unit=#{unit}
@@ -135,6 +141,9 @@
             ,customer_cd=#{customerCd}
             ,in_price=#{inPrice}
             ,out_price=#{outPrice}
+            ,category=#{category}
+            ,avg_delivery_date=#{avgDeliveryDate}
+            ,safe_stock=#{safeStock}
             ,etc=#{etc}
             ,use_yn=#{useYn}
             ,upd_id=#{userId}

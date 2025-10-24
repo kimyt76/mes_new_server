@@ -31,6 +31,9 @@ public class ItemVo {
     private String itemGrp2Name;
     private String itemGrp3Name;
     private String useCate;
+    private String category;                 /*유형*/
+    private String avgDeliveryDate;     /*평균납품일*/
+    private String safeStock;           /* 안전재고*/
 
     private String unitWeight;         /*단위중량*/
     private String useSafeStockYn;     /*안전재고여부*/
