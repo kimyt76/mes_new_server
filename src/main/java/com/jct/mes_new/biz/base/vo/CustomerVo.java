@@ -29,6 +29,8 @@ public class CustomerVo {
     private String etc;
     private String useYn;
     private String tradingMethod;
+    private String bankName;
+    private String accountNo;
 
     private String userId;
 

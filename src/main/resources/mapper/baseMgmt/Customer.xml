@@ -71,6 +71,8 @@
                 ,search_text = #{searchText}
                 ,etc = #{etc}
                 ,trading_Method = #{tradingMethod}
+                ,bank_name = #{bankName}
+                ,account_no = #{accountNo}
                 ,upd_id = #{userId}
                 ,upd_dt = getdate()
             when not matched then
@@ -97,6 +99,8 @@
                 ,search_text
                 ,etc
                 ,trading_Method
+                ,bank_name
+                ,account_no
                 ,reg_id
                 ,upd_id  )
             values
@@ -122,6 +126,8 @@
                 ,#{searchText}
                 ,#{etc}
                 ,#{tradingMethod}
+                ,#{bankName}
+                ,#{accountNo}
                 ,#{userId}
                 ,#{userId}
                 );
