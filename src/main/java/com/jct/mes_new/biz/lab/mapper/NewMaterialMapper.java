@@ -16,7 +16,7 @@ public interface NewMaterialMapper {
 
     int saveNewMaterialInfo(NewMaterialVo newMaterialInfo);
 
-    int saveNewMaterialMappingList(List<IngredientVo> materialMappingList);
+    int saveNewMaterialMappingList(IngredientVo materialMappingList);
 
     String getNewCode();
 

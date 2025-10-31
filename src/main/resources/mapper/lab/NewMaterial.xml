@@ -107,8 +107,6 @@
         insert into tb_new_material_detail
             (new_material_cd, item_cd, Ingredient_code, in_content, out_content, reg_id, upd_id)
         values
-        <foreach collection="list" item="item" separator=",">
-            (#{item.newMaterialCd},#{item.itemCd},#{item.ingredientCode},#{item.inContent},#{item.outContent},#{item.userId},#{item.userId})
-        </foreach>
+            (#{newMaterialCd},#{itemCd},#{ingredientCode},#{inContent},#{outContent},#{userId},#{userId})
     </insert>
 </mapper>
