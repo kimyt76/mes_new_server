@@ -60,7 +60,6 @@ public class NewMaterialServiceImpl implements NewMaterialService {
                     ingredient.setNewMaterialCd(newMaterialInfo.getNewMaterialCd());
                     ingredient.setUserId(userId);
 
-
                     if(newMaterialMapper.saveNewMaterialMappingList(ingredient) <= 0){
                     throw new Exception("성분저장에 실패했습니다.");
                    }

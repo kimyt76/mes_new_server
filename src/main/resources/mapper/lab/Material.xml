@@ -116,9 +116,7 @@
         insert into tb_material_mapping
             (item_cd,ingredient_code,in_content,out_content,reg_id,upd_id)
         values
-        <foreach collection="list" item="item" separator=",">
-            (#{item.itemCd},#{item.ingredientCode},#{item.inContent},#{item.outContent},#{item.userId},#{item.userId} )
-        </foreach>
+            (#{itemCd},#{ingredientCode},#{inContent},#{outContent},#{userId},#{userId} )
     </insert>
 
     <update id="updateHistory">

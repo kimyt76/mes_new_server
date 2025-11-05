@@ -15,9 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigInteger;
 import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
@@ -71,16 +69,16 @@ public class MaterialServiceImpl implements MaterialService {
                         }
                     }
                 }
-
             }
             if ( vo.getMaterialList() != null && !vo.getMaterialList().isEmpty() ) {
                 materialMapper.deleteMaterialList(itemCd);
                 for ( IngredientVo  item : vo.getMaterialList()) {
                     item.setItemCd(itemCd);
                     item.setUserId(userId);
-                }
-                if (materialMapper.saveMaterialList(vo.getMaterialList()) <= 0 ) {
-                    throw new Exception("성분저장에 실패했습니다.");
+
+                    if ( materialMapper.saveMaterialList(item) <= 0 ) {
+                        throw new Exception("성분저장에 실패했습니다.");
+                    }
                 }
             }
             //첨부파일 삭제 건

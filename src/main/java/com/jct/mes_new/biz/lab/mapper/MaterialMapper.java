@@ -18,7 +18,8 @@ public interface MaterialMapper {
 
     List<IngredientVo> getMaterialList(String itemCd);
 
-    int saveMaterialList(List<IngredientVo> materialList);
+    //int saveMaterialList(List<IngredientVo> materialList);
+    int saveMaterialList(IngredientVo materialList);
 
     int saveMaterialMst(@Param("itemCd") String itemCd, @Param("attachFileId") String attachFileId, @Param("userId") String userId);
 
