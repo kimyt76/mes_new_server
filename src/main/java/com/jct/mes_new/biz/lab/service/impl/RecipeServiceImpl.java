@@ -20,6 +20,7 @@ public class RecipeServiceImpl implements RecipeService {
 
     private final RecipeMapper recipeMapper;
 
+    public List<RecipeVo> getProdTypeList() {return recipeMapper.getProdTypeList();}
 
     public List<RecipeVo> getRecipeList(RecipeVo recipeVo){
         return recipeMapper.getRecipeList(recipeVo);
@@ -55,10 +56,6 @@ public class RecipeServiceImpl implements RecipeService {
                         throw new Exception("처방정보 저장에 실패했습니다.");
                     }
                 }
-
-//                if( recipeMapper.saveRecipeList(recipeList) <= 0 ){
-//                    throw new Exception("처방정보 저장에 실패했습니다.");
-//                }
             }
         }catch(Exception e){
             throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);

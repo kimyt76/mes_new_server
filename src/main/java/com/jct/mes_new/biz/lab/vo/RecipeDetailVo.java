@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.lab.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @Data
 public class RecipeDetailVo {
@@ -15,6 +16,6 @@ public class RecipeDetailVo {
     private BigDecimal content;
     private BigDecimal inPrice;
     private BigDecimal unitPrice;
-
+    private BigInteger sortDist;
     private String userId;
 }

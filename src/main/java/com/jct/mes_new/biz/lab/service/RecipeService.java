@@ -20,4 +20,5 @@ public interface RecipeService {
 
     Map<String, Object> getProdTypeInfo(String prodTypeName);
 
+    List<RecipeVo> getProdTypeList();
 }

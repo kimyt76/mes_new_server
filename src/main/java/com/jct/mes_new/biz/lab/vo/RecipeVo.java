@@ -20,5 +20,9 @@ public class RecipeVo {
     private String managerName;
     private String clientName;
     private String item_name;
+
+    private String code;
+    private String codeNm;
+
     private String userId;
 }

@@ -31,5 +31,7 @@ public interface RecipeMapper {
     List<AllIngredientVo> allIngredientOutList(String recipeId);
 
     Map<String, Object> getProdTypeInfo(String prodTypeName);
+
+    List<RecipeVo> getProdTypeList();
 }
 
