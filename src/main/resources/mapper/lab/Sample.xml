@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.lab.mapper.SampleMapper">
+    <select id="nextSeq">
+        DECLARE @prefix NVARCHAR(3) = 'JC-';
+        DECLARE @today NVARCHAR(6) = FORMAT(GETDATE(), 'yyMMdd');
+        DECLARE @monthKey NVARCHAR(4) = FORMAT(GETDATE(), 'yyMM');
+        DECLARE @seq INT;
+
+            SELECT @seq = ISNULL(MAX(CAST(SUBSTRING(prod_mgmt_no, 10, 3) AS INT)), 0) + 1
+            FROM tb_lab_sample
+            WHERE SUBSTRING(prod_mgmt_no, 4, 4) = @monthKey;
+
+        DECLARE @newNo NVARCHAR(20);
+        SET @newNo = @prefix + @today + FORMAT(@seq, '000');
+
+        SELECT @newNo;
+    </select>
+
+    <select id="getSampleList">
+        select  dbo.getCommonName('area', area_cd ) areaName
+                ,client_name
+                ,item_name
+                ,formulation_cd
+                ,business_manager_name
+                ,lab_manager_name
+                ,req_date
+                ,prod_mgmt_no
+                ,count_qty
+                ,qty
+                ,etc
+                ,status_type
+                ,confirm_yn
+                ,end_reason
+                ,sample_id
+                ,area_cd
+        from  tb_lab_sample
+        where  1=1
+        <if test="areaCd != null and areaCd != ''">
+        and    area_cd = #{areaCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+        and    item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="clientName != null and clientName != ''">
+        and    client_name like '%' + #{clientName} + '%'
+        </if>
+        <if test="businessManagerName != null and businessManagerName != ''">
+        and    business_manager_name like '%' + #{businessManagerName} + '%'
+        </if>
+        <if test="labManagerName != null and labManagerName != ''">
+        and    lab_manager_name like '%' + #{labManagerName} + '%'
+        </if>
+        order by prod_mgmt_no desc
+    </select>
+
+    <select id="getSampleInfo">
+        select    area_cd
+                 ,client_name
+                 ,item_name
+                 ,formulation_cd
+                 ,business_manager_name
+                 ,lab_manager_name
+                 ,req_date
+                 ,prod_mgmt_no
+                 ,count_qty
+                 ,qty
+                 ,etc
+                 ,status_type
+                 ,confirm_yn
+                 ,end_reason
+                 ,sample_id
+        from  tb_lab_sample
+        where  sample_id = #{sampleId}
+    </select>
+
+    <update id="saveSampleInfo">
+        merge into tb_lab_sample a
+        using  (select #{sampleId} as sample_id ) b
+        on     a.sample_id = b.sample_id
+        WHEN MATCHED THEN
+            UPDATE SET
+                     area_cd = #{areaCd}
+                    ,client_name = #{clientName}
+                    ,item_name = #{itemName}
+                    ,formulation_cd = #{formulationCd}
+                    ,business_manager_name = #{businessManagerName}
+                    ,lab_manager_name = #{labManagerName}
+                    ,req_date = #{reqDate}
+                    ,prod_mgmt_no = #{prodMgmtNo}
+                    ,count_qty = #{countQty}
+                    ,qty = #{qty}
+                    ,etc = #{etc}
+                    ,status_type = #{statusType}
+                    ,confirm_yn = #{confirmYn}
+                    ,end_reason = #{endReason}
+                    ,upd_id      = #{userId}
+                    ,upd_dt      = getdate()
+        WHEN NOT MATCHED THEN
+            INSERT ( area_cd, client_name,item_name,formulation_cd,business_manager_name,lab_manager_name,
+                     req_date,prod_mgmt_no,count_qty,qty,etc,status_Type, confirm_yn,end_reason, reg_id, upd_id)
+            VALUES
+                ( #{areaCd}, #{clientName}, #{itemName}, #{formulationCd}, #{businessManagerName}, #{labManagerName},
+                 #{reqDate}, #{prodMgmtNo}, #{countQty}, #{qty}, #{etc},#{statusType}, #{confirmYn}, #{endReason}, #{userId}, #{userId})
+        ;
+        SELECT SCOPE_IDENTITY() AS sampleId;
+    </update>
+
+</mapper>
+
