@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0-unknown  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="test01" pageWidth="227" pageHeight="145" orientation="Landscape" columnWidth="200" leftMargin="5" rightMargin="5" topMargin="10" bottomMargin="10" uuid="f3bae00d-6742-41fb-9999-4b8fb8ad1929">
+	<property name="net.sf.jasperreports.print.create.bookmarks" value="true"/>
+	<field name="barcodeImage" class="java.awt.Image"/>
+	<field name="testNo" class="java.lang.String"/>
+	<field name="itemName" class="java.lang.String"/>
+	<field name="expiryDate" class="java.lang.String"/>
+	<field name="procStateName" class="java.lang.String"/>
+	<background>
+		<band height="1" splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="125" splitType="Stretch">
+			<image>
+				<reportElement x="133" y="38" width="80" height="80" uuid="1c71e8fd-1d2a-465b-b620-6001d1a3f5ac">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[$F{barcodeImage}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="0" y="5" width="40" height="20" uuid="3f2e4aee-571b-4cfd-a95d-c6a04e865954"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[품명]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="40" width="40" height="20" uuid="f78cda40-d510-407c-b8dc-08b6ca80d564"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[시험번호]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="70" width="40" height="20" uuid="b893b641-e113-4fe5-8cee-f0d45bd2a8ea"/>
+				<textElement>
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[사용기한]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="100" width="40" height="20" uuid="620b9f94-390b-428c-9d5e-91ae2d444d2d"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[상태]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="40" y="5" width="176" height="20" uuid="d045f780-c06a-4b16-96d9-0270083e9147"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{itemName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="40" width="90" height="20" uuid="7573c968-e9f3-4901-bea3-f0ec2330640b"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{testNo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="70" width="90" height="20" uuid="187033a7-5c32-4b16-a7e8-ed681a536ede"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{expiryDate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="100" width="90" height="20" uuid="d545a8b9-2148-4c08-9ae2-02f7374ecd73"/>
+				<textElement textAlignment="Center">
+					<font fontName="맑은 고딕" size="9" pdfFontName="fonts/malgun.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{procStateName}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="0" width="217" height="1" uuid="6719f01c-55fb-480d-8dd6-ae62ff316eef"/>
+			</line>
+			<line>
+				<reportElement x="129" y="30" width="1" height="94" uuid="7ecd51c1-ef08-4c6d-9378-79c9fd1c7538"/>
+			</line>
+			<line>
+				<reportElement x="1" y="30" width="215" height="1" uuid="a654e23c-991f-476d-a8e6-6a685e832e52"/>
+			</line>
+			<line>
+				<reportElement x="1" y="60" width="128" height="1" uuid="b89a8c54-23e9-4ab7-9694-6fc8a7aac3df"/>
+			</line>
+			<line>
+				<reportElement x="1" y="90" width="128" height="1" uuid="760a6fa8-7224-4241-a16b-9a21a12eac25"/>
+			</line>
+			<line>
+				<reportElement x="0" y="0" width="1" height="124" uuid="efc48f9f-8faf-4053-9a8b-cab7a3db2062"/>
+			</line>
+			<line>
+				<reportElement x="38" y="1" width="1" height="124" uuid="1161d976-ac59-4756-828a-3261a6e6e3bc"/>
+			</line>
+			<line>
+				<reportElement x="216" y="0" width="1" height="124" uuid="c37301af-4be2-4dde-9561-176bc4dcdf6f"/>
+			</line>
+			<line>
+				<reportElement x="0" y="124" width="217" height="1" uuid="54874cb6-2aad-42b1-8230-785e4c127024"/>
+			</line>
+		</band>
+	</detail>
+</jasperReport>
