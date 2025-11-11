@@ -4,12 +4,15 @@ package com.jct.mes_new.biz.base.controller;
 import com.jct.mes_new.biz.base.service.ItemService;
 import com.jct.mes_new.biz.base.vo.ItemVo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/item")
@@ -74,6 +77,18 @@ public class ItemController {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());  // 사용자에게 오류 메시지 반환
+        }
+    }
+
+    @PostMapping("/updatePriceInfo")
+    public ResponseEntity<?> updatePriceInfo(@RequestBody Map<String, Object> paramMap) {
+       try {
+            // Service로 Map 그대로 전달
+            itemService.updatePriceInfoMap(paramMap);
+            return ResponseEntity.ok("단가 변경 완료");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("단가 변경 실패");
         }
     }
 

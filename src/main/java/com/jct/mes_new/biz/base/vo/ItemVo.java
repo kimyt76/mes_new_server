@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.base.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -34,6 +35,8 @@ public class ItemVo {
     private String category;                 /*유형*/
     private String avgDeliveryDate;     /*평균납품일*/
     private String safeStock;           /* 안전재고*/
+
+    private List<PriceHistoryVo> priceHistory = new ArrayList<>();
 
     private String unitWeight;         /*단위중량*/
     private String useSafeStockYn;     /*안전재고여부*/

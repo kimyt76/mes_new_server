@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.base.vo.ItemVo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ItemService {
     public List<ItemVo> getProdLList();
@@ -21,4 +22,6 @@ public interface ItemService {
     String updateItemInfo(ItemVo itemVo);
 
     String saveItemDetailInfo(ItemVo itemVo);
+
+    void updatePriceInfoMap(Map<String, Object> paramMap);
 }

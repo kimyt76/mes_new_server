@@ -3,11 +3,14 @@ package com.jct.mes_new.biz.base.service.impl;
 import com.jct.mes_new.biz.base.mapper.ItemMapper;
 import com.jct.mes_new.biz.base.service.ItemService;
 import com.jct.mes_new.biz.base.vo.ItemVo;
+import com.jct.mes_new.biz.base.vo.PriceHistoryVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -55,7 +58,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public ItemVo getItemInfo(String itemCd){
-        return itemMapper.getItemInfo(itemCd);
+        ItemVo item = itemMapper.getItemInfo(itemCd);
+        //pricd history 조회 추가
+        item.setPriceHistory(itemMapper.getItemPriceHistory(itemCd));
+log.info("===================item==================== : " + item);
+        return item;
     }
 
     public String getItemCdCheck(String itemCd){
@@ -79,4 +86,30 @@ public class ItemServiceImpl implements ItemService {
         return msg;
     }
 
+    public void updatePriceInfoMap(Map<String, Object> paramMap){
+        String itemCd = (String) paramMap.get("itemCd");
+        String type = (String) paramMap.get("type");
+        String userId = (String) paramMap.get("userId");
+
+        BigDecimal inPrice = paramMap.get("inPrice") != null
+                ? new BigDecimal(paramMap.get("inPrice").toString())
+                : null;
+
+        BigDecimal outPrice = paramMap.get("outPrice") != null
+                ? new BigDecimal(paramMap.get("outPrice").toString())
+                : null;
+
+        // 입고 단가 변경
+        if ((type.equals("I") || type.equals("A")) && inPrice != null ) {
+            itemMapper.insertPriceHistory(itemCd, "I", inPrice, userId);
+        }
+
+        // 출고 단가 변경
+        if ((type.equals("O") || type.equals("A")) && outPrice != null ) {
+            BigDecimal oldOutPrice;
+            itemMapper.insertPriceHistory(itemCd, "O",  outPrice, userId);
+        }
+        // tb_item 단가 업데이트
+        itemMapper.updateItemPrice(itemCd, inPrice, outPrice, userId);
+    }
 }
