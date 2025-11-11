@@ -32,7 +32,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'   //ecount 접속 용
     implementation 'org.springframework.boot:spring-boot-starter-security'      //security 설정
 //    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'      //JPA 설정
-    implementation("com.baomidou:mybatis-plus-spring-boot3-starter:3.5.10")
+//    implementation("com.baomidou:mybatis-plus-spring-boot3-starter:3.5.10")
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
     implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'// jasypt
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.6'
     implementation 'org.apache.poi:poi:5.2.5'
@@ -41,9 +42,12 @@ dependencies {
     implementation 'org.springframework.session:spring-session-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc' // 사용 DB에 따라 변경
-    //implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 
-
+//   바코드
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.google.zxing:core:3.5.1")
+    implementation("com.google.zxing:javase:3.5.1")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 
 //    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -51,7 +55,6 @@ dependencies {
 //    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     compileOnly 'org.projectlombok:lombok'
