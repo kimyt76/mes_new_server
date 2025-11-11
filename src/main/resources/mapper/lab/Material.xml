@@ -3,7 +3,6 @@
 
 <mapper namespace="com.jct.mes_new.biz.lab.mapper.MaterialMapper">
     <select id="getMaterialItemList">
-
         select  ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
                 ,a.item_cd
                 ,a.item_name
@@ -42,8 +41,6 @@
             and  a.item_name like '%' + #{itemName} + '%'
         </if>
     </select>
-
-
 
     <select id="getMaterialInfo">
         select   item_cd
@@ -136,5 +133,10 @@
         (#{itemCd},#{historyComment},#{updName},#{updDate},#{orderDist},#{userId},#{userId})
     </insert>
 
+    <select id="getItemCdCheck">
+        select count(item_cd)
+        from   tb_material_mapping
+        where  item_cd = #{itemCd}
+    </select>
 
 </mapper>
