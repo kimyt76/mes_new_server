@@ -21,4 +21,6 @@ public interface NewMaterialMapper {
     String getNewCode();
 
     void deleteMaterialMappingList(String newMaterialCd);
+
+    void updateItemCd(NewMaterialVo newMaterialVo);
 }

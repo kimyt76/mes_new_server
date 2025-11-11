@@ -30,4 +30,6 @@ public interface MaterialMapper {
     int insertHistory(HistoryVo item);
 
     List<ItemVo> getMaterialItemList(MaterialVo vo);
+
+    int getItemCdCheck(String itemCd);
 }

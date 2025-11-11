@@ -14,4 +14,8 @@ public interface NewMaterialService {
     NewMaterialRequestVo getNewMaterialInfo(String newMaterialCd);
 
     String saveNewMaterialInfo(NewMaterialVo newMaterialInfo, List<IngredientVo> materialMappingList);
+
+    List<IngredientVo> getNewMaterialListMapping(String newMaterialCd);
+
+    String saveNewMaterialMapping(NewMaterialVo newMaterialInfo, List<IngredientVo> materialMappingList);
 }

@@ -32,6 +32,7 @@
         <if test="materialName != null and materialName != ''">
             AND  a.material_Name LIKE '%' + #{materialName} + '%'
         </if>
+        order by a.new_material_cd desc
     </select>
 
     <select id="getNewMaterialInfo">
@@ -109,4 +110,12 @@
         values
             (#{newMaterialCd},#{itemCd},#{ingredientCode},#{inContent},#{outContent},#{userId},#{userId})
     </insert>
+
+    <update id = "updateItemCd">
+        update tb_new_material_mst
+        set    item_cd = #{itemCd}
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where  new_material_cd = #{newMaterialCd}
+    </update>
 </mapper>

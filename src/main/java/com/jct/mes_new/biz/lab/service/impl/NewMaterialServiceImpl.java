@@ -52,7 +52,6 @@ public class NewMaterialServiceImpl implements NewMaterialService {
             if( newMaterialMapper.saveNewMaterialInfo(newMaterialInfo)  <= 0 ) {
                 throw new Exception("신 원료 저장에 실패했습니다.");
             }
-
             if ( !materialMappingList.isEmpty() ){
                 newMaterialMapper.deleteMaterialMappingList(newMaterialInfo.getNewMaterialCd());
 
@@ -70,4 +69,40 @@ public class NewMaterialServiceImpl implements NewMaterialService {
         }
         return newMaterialInfo.getNewMaterialCd();
     }
+
+    public List<IngredientVo> getNewMaterialListMapping(String newMaterialCd){
+        return newMaterialMapper.getMaterialMappingList(newMaterialCd);
+    }
+
+
+    public String saveNewMaterialMapping(NewMaterialVo newMaterialInfo, List<IngredientVo> materialMappingList){
+        String msg = "이관 되었습니다.";
+        String itemCd = newMaterialInfo.getItemCd();
+        String userId = newMaterialInfo.getUserId();
+
+        try {
+            if ( !materialMappingList.isEmpty() ){
+                if ( materialMapper.getItemCdCheck(itemCd)  > 0 ) {
+                    throw new Exception("중복된 품목코드입니다.");
+                }
+                newMaterialMapper.updateItemCd(newMaterialInfo);
+
+                for(IngredientVo ingredient : materialMappingList) {
+                    ingredient.setItemCd(itemCd);
+                    ingredient.setUserId(userId);
+
+                    if(materialMapper.saveMaterialList(ingredient) <= 0){
+                        throw new Exception("성분저장에 실패했습니다.");
+                    }
+                }
+            }
+        }catch(Exception e) {
+            throw new RuntimeException("이관에 실패했습니다.: " + e.getMessage(), e);
+        }
+
+        return msg;
+    }
+
+
+
 }

@@ -9,9 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,8 +27,8 @@ public class ClientServiceImpl implements ClientService {
 
         requestVo.setClientInfo(clientMapper.getClientInfo(clientId));
         requestVo.setClientManagerList(clientMapper.getManagerList(clientId));
-        requestVo.setClinetAddressList(clientMapper.getAddressList(clientId));
-        requestVo.setClinetHistroryList(clientMapper.getHistoryList(clientId));
+        requestVo.setClientAddressList(clientMapper.getAddressList(clientId));
+        requestVo.setClientHistoryList(clientMapper.getHistoryList(clientId));
 
         return requestVo;
     }
@@ -40,8 +38,8 @@ public class ClientServiceImpl implements ClientService {
         String msg = "저장되었습니다.";
         ClientVo clientInfo = vo.getClientInfo();
         List<ClientManagerVo> managerList = vo.getClientManagerList();
-        List<ClientHistoryVo> historyList = vo.getClinetHistroryList();
-        List<ClientAddressVo> addressList = vo.getClinetAddressList();
+        List<ClientHistoryVo> historyList = vo.getClientHistoryList();
+        List<ClientAddressVo> addressList = vo.getClientAddressList();
         String userId = clientInfo.getUserId();
 
         try{

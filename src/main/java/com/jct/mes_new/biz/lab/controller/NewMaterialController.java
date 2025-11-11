@@ -29,6 +29,11 @@ public class NewMaterialController {
         return newMaterialService.getNewMaterialInfo(newMaterialCd);
     }
 
+    @GetMapping("/getNewMaterialListMapping/{id}")
+    public List<IngredientVo> getNewMaterialListMapping (@PathVariable("id") String newMaterialCd){
+        return newMaterialService.getNewMaterialListMapping(newMaterialCd);
+    }
+
     @PostMapping("/saveNewMaterialInfo")
     public ResponseEntity<?> saveNewMaterialInfo(@RequestBody NewMaterialRequestVo request ) throws Exception {
         try {
@@ -42,6 +47,22 @@ public class NewMaterialController {
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail("저장에 실패했습니다.", 400));
+        }
+    }
+
+    @PostMapping("/saveNewMaterialMapping")
+    public ResponseEntity<?> saveNewMaterialMapping(@RequestBody NewMaterialRequestVo request ) throws Exception {
+        try {
+            NewMaterialVo newMaterialInfo = request.getNewMaterialInfo();
+            List<IngredientVo> materialMappingList = request.getMaterialMappingList();
+
+            String result = newMaterialService.saveNewMaterialMapping(newMaterialInfo, materialMappingList);
+
+            Map<String, String> response = Map.of("newMaterialCd", result);
+
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), 400));
         }
     }
 

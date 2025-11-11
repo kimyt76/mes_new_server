@@ -14,6 +14,7 @@ public class AllIngredientVo {
     private String enIngredientName;
     private String cnIngredientName;
 
+    private String itemName;
     private BigDecimal content;
     private BigDecimal composition;
     private BigDecimal InFormula;

@@ -8,6 +8,6 @@ import java.util.List;
 public class ClientRequestVo {
     private ClientVo clientInfo;
     private List<ClientManagerVo> clientManagerList;
-    private List<ClientAddressVo> clinetAddressList;
-    private List<ClientHistoryVo> clinetHistroryList;
+    private List<ClientAddressVo> clientAddressList;
+    private List<ClientHistoryVo> clientHistoryList;
 }
