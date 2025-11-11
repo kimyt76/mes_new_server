@@ -4,7 +4,7 @@ package com.jct.mes_new.biz.order.controller;
 import com.jct.mes_new.biz.order.service.SaleService;
 import com.jct.mes_new.biz.order.vo.SaleItemListVo;
 import com.jct.mes_new.biz.order.vo.SaleRequesstVo;
-import com.jct.mes_new.biz.order.vo.ContractItemListVo;
+import com.jct.mes_new.biz.order.vo.ContractItemVo;
 import com.jct.mes_new.biz.order.vo.SaleVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ public class SaleController {
     }
 
     @GetMapping("/getContractItemList/{ids}")
-    public List<ContractItemListVo> getContractItemList(@PathVariable("ids") String contractIds) {
+    public List<ContractItemVo> getContractItemList(@PathVariable("ids") String contractIds) {
         return saleService.getContractItemList(contractIds);
     }
 

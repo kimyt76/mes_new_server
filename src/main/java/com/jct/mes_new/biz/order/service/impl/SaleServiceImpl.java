@@ -5,7 +5,7 @@ import com.jct.mes_new.biz.order.mapper.SaleMapper;
 import com.jct.mes_new.biz.order.service.SaleService;
 import com.jct.mes_new.biz.order.vo.SaleItemListVo;
 import com.jct.mes_new.biz.order.vo.SaleVo;
-import com.jct.mes_new.biz.order.vo.ContractItemListVo;
+import com.jct.mes_new.biz.order.vo.ContractItemVo;
 import com.jct.mes_new.config.common.CommonUtil;
 import com.jct.mes_new.config.common.Snowflake;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +75,7 @@ public class SaleServiceImpl implements SaleService {
         return msg;
     }
 
-    public List<ContractItemListVo> getContractItemList(String ids){
+    public List<ContractItemVo> getContractItemList(String ids){
         List<String> contractIdList = Arrays.asList(ids.split(","));
         return contractMapper.getContractItemList(contractIdList);
     }

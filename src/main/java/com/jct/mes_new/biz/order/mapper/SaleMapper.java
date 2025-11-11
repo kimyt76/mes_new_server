@@ -1,7 +1,6 @@
 package com.jct.mes_new.biz.order.mapper;
 
 import com.jct.mes_new.biz.order.vo.SaleItemListVo;
-import com.jct.mes_new.biz.order.vo.ContractItemListVo;
 import com.jct.mes_new.biz.order.vo.SaleVo;
 import com.jct.mes_new.biz.order.vo.ShipmentItemListVo;
 import org.apache.ibatis.annotations.Mapper;

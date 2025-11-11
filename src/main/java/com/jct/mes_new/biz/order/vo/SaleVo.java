@@ -26,7 +26,7 @@ public class SaleVo {
     private String statusType;
     private String printYn;
 
-    private List<ContractItemListVo> itemList;
+    private List<ContractItemVo> itemList;
 
     private String contractIds;
     private BigDecimal totPrice;
