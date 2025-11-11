@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.19.1-867c00bf88cd4d784d404379d6c05e1b419e8a4c  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="mat_prod_label" pageWidth="225" pageHeight="283" orientation="Landscape" columnWidth="215" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" uuid="f3bae00d-6742-41fb-9999-4b8fb8ad1929">
+    <property name="net.sf.jasperreports.print.create.bookmarks" value="true"/>
+    <property name="com.jaspersoft.studio.unit." value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+    <property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+    <field name="itemCd" class="java.lang.String"/>
+    <field name="itemName" class="java.lang.String"/>
+    <field name="itemTypeCd" class="java.lang.String"/>
+    <field name="itemCondition" class="java.lang.String"/>
+    <field name="supplyGb" class="java.lang.String"/>
+    <field name="testNo" class="java.lang.String"/>
+    <field name="lotNo" class="java.lang.String"/>
+    <field name="prodNo" class="java.lang.String"/>
+    <field name="strQty" class="java.lang.String"/>
+    <field name="customerName" class="java.lang.String"/>
+    <field name="createDate" class="java.time.LocalDate"/>
+    <field name="expiryDate" class="java.time.LocalDate"/>
+    <field name="shelfLife" class="java.time.LocalDate"/>
+    <field name="passStateName" class="java.lang.String"/>
+    <field name="chargingTestNo" class="java.lang.String"/>
+    <field name="barcodeImage" class="java.awt.Image"/>
+    <background>
+        <band height="1" splitType="Stretch"/>
+    </background>
+    <detail>
+        <band height="273" splitType="Stretch">
+            <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            <property name="com.jaspersoft.studio.layout"/>
+            <staticText>
+                <reportElement x="50" y="0" width="110" height="20" uuid="36ed91aa-5e6e-4aae-8863-1038f4fa0525"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                    <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+                    <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Bottom">
+                    <font fontName="맑은 고딕" size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[부 자 재]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="160" y="0" width="55" height="20" uuid="a85dcce8-c55e-4817-80e5-96693f4b8bef">
+                    <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                </reportElement>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[보관조건]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="20" width="110" height="20" uuid="64bb4ed0-f0aa-4287-adbe-a0e3c024611c"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                    <topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+                    <leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Top">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{itemCd}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="160" y="20" width="55" height="20" uuid="49dbeae3-f8c9-4abc-8487-80bb055371fa">
+                    <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                </reportElement>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{itemCondition}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="40" width="50" height="40" uuid="6ec8e0ef-7972-4ebe-9606-21863757666a"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[제품명]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="40" width="165" height="40" uuid="0dae1709-deb9-40bf-8689-c3a772d36751"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{itemName}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="80" width="50" height="20" uuid="9d03b390-f92d-4e56-83fe-f1ed7d663f19"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[시험번호]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="100" width="50" height="20" uuid="ef2ff3e8-1266-4840-b8f9-62c2411c7c54"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[공급처]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="200" width="50" height="73" uuid="cc7cfe36-94df-4ee6-b3e5-6b67f14861b6">
+                    <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                </reportElement>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[QR코드]]></text>
+            </staticText>
+            <image>
+                <reportElement x="94" y="198" width="75" height="75" uuid="e91812be-758a-4439-bbd0-44249d63e89a">
+                    <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                    <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                </reportElement>
+                <imageExpression><![CDATA[$F{barcodeImage}]]></imageExpression>
+            </image>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="80" width="165" height="20" uuid="e2faa9c8-0322-40aa-b3fb-37852fde5b31"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{testNo}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="100" width="165" height="20" uuid="c2398859-8783-4340-b3e9-4dc42efa7436"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{customerName}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="140" width="50" height="20" uuid="fe838482-066e-4ba3-8698-acda3d153dea"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[입고일자]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="120" width="165" height="20" uuid="e16e5df7-34b0-4eb2-94a1-a56f505ec74b"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{supplyGb}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="160" width="50" height="40" uuid="8fea9719-7bd7-4cbc-872c-e3523bd339cb"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[상  태]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="160" width="165" height="40" uuid="f227f2c6-70a4-495c-9f51-aa711eddc632"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{passStateName}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="110" y="140" width="40" height="20" uuid="ec561ec4-099b-4e05-9eb2-005bc34af35c">
+                    <property name="com.jaspersoft.studio.unit.x" value="px"/>
+                </reportElement>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[입고량]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="150" y="140" width="65" height="20" uuid="04d79872-61a5-49d5-b6e5-62f5d828ff6b"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{strQty}]]></textFieldExpression>
+            </textField>
+            <textField pattern="yyyy/MM/dd" isBlankWhenNull="true">
+                <reportElement x="50" y="140" width="60" height="20" uuid="0e503662-e225-4bad-9851-e77f1572903e">
+                    <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                </reportElement>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{createDate}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="120" width="50" height="20" uuid="9b456754-f39f-4e08-a33a-d2235e933f1e"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+                <text><![CDATA[자급구분]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="200" width="165" height="73" uuid="223f0c81-008f-4706-87d9-1837e6720393"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="9"/>
+                </textElement>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="20" width="50" height="20" uuid="27a91317-e9d0-4f47-b156-6f65df4d40cb"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                    <topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+                    <leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="8"/>
+                </textElement>
+                <text><![CDATA[JPM02-A]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="0" width="50" height="20" uuid="05669d2d-8e8b-45c7-b1d3-3666894668b4"/>
+                <box>
+                    <pen lineWidth="1.0" lineStyle="Solid"/>
+                    <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+                    <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="맑은 고딕" size="8"/>
+                </textElement>
+                <text><![CDATA[㈜진코스텍]]></text>
+            </staticText>
+        </band>
+    </detail>
+</jasperReport>
