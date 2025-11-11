@@ -321,4 +321,31 @@
     <insert id="insertItemDetial">
         insert into tb_item_detail (item_cd, reg_id, upd_id) values (#{itemCd}, #{userId},#{userId})
     </insert>
+
+    <select id="getItemPriceHistory">
+        select item_cd
+              ,price_type
+              ,price
+              ,convert(nvarchar(10), reg_dt, 23) as historyDate
+        from  tb_price_history
+        where item_cd = #{itemCd}
+        order by reg_dt desc
+    </select>
+
+    <insert id="insertPriceHistory">
+        INSERT INTO tb_price_history
+            (item_cd, price_type, price, reg_id)
+        VALUES
+            (#{itemCd}, #{priceType}, #{price}, #{userId})
+    </insert>
+
+    <update id="updateItemPrice">
+        update tb_item_mst
+        set   in_price = #{inPrice}
+              ,out_price = #{outPrice}
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where item_cd = #{itemCd}
+    </update>
+
 </mapper>
