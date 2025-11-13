@@ -96,6 +96,8 @@
             ,category
             ,avg_delivery_date
             ,safe_stock
+            ,expiry_Date
+            ,item_Company
             ,etc
             ,use_yn
             ,reg_id
@@ -121,6 +123,8 @@
             ,#{category}
             ,#{avgDeliveryDate}
             ,#{safeStock}
+            ,#{expiryDate}
+            ,#{itemCompany}
             ,#{etc}
             ,#{useYn}
             ,#{userId}
@@ -144,13 +148,14 @@
             ,category=#{category}
             ,avg_delivery_date=#{avgDeliveryDate}
             ,safe_stock=#{safeStock}
+            ,expiry_date=#{expiryDate}
+            ,item_company=#{itemCompany}
             ,etc=#{etc}
             ,use_yn=#{useYn}
             ,upd_id=#{userId}
             ,upd_dt=getdate()
         where  item_cd = #{itemCd}
     </update>
-
 
     <update id ="saveItemDetailInfo">
         merge into tb_item_detail a

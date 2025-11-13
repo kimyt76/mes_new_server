@@ -35,6 +35,8 @@ public class ItemVo {
     private String category;                 /*유형*/
     private String avgDeliveryDate;     /*평균납품일*/
     private String safeStock;           /* 안전재고*/
+    private String expiryDate;           /* 유효기간*/
+    private String itemCompany;           /* 원료제조사*/
 
     private List<PriceHistoryVo> priceHistory = new ArrayList<>();
 
