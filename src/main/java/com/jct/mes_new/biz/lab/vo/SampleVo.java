@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.lab.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,6 +15,7 @@ public class SampleVo {
 	private String  formulationCd;
 	private String  businessManagerName;
 	private String  labManagerName;
+	@JsonDeserialize(using = DateStringToYmdDeserializer.class)
 	private String  reqDate;
 	private String  prodMgmtNo;
 	private BigDecimal  countQty;

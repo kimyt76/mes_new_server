@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.order.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,6 +11,7 @@ import java.util.List;
 public class SaleVo {
 
     private String saleId;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String saleDate;
     private int seq;
     private String itemName;
@@ -30,6 +33,7 @@ public class SaleVo {
 
     private String contractIds;
     private BigDecimal totPrice;
+    private String poNo;
 
     private String userId;
 }

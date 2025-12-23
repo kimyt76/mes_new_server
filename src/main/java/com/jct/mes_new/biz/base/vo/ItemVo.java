@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.base.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -33,10 +35,7 @@ public class ItemVo {
     private String itemGrp3Name;
     private String useCate;
     private String category;                 /*유형*/
-    private String avgDeliveryDate;     /*평균납품일*/
-    private String safeStock;           /* 안전재고*/
-    private String expiryDate;           /* 유효기간*/
-    private String itemCompany;           /* 원료제조사*/
+    private String gb;                 /*유형*/
 
     private List<PriceHistoryVo> priceHistory = new ArrayList<>();
 
@@ -72,6 +71,7 @@ public class ItemVo {
     private String weighType;/*칭량구분*/
     private String weighFuncType;/*기능구분*/
     private String relatedCustomer;/*관련고객사*/
+    private String relatedCustomerName;/*관련고객사명*/
     private String prodLgType;/*제품유형(대분류)*/
     private String prodMdType;/*제품유형(중분류)*/
     private String sheetSpec;/*시트규격(가로x세로)*/
@@ -89,6 +89,11 @@ public class ItemVo {
     private String halal;/* 할랄  lab*/
     private String rspo; /* rspo lab*/
     private String addtion; /*추가 lab*/
+    private String avgDeliveryDate;     /*평균납품일*/
+    private String safeStock;           /* 안전재고*/
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    private String expiryDate;           /* 유효기간*/
+    private String itemCompany;           /* 원료제조사*/
 
     List<String> prodLList;
     List<String> prodMList;

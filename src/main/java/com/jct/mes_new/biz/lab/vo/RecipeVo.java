@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.lab.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,6 +11,7 @@ public class RecipeVo {
 
     private String recipeId;
     private String prodName;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String regDate;
     private String labNo;
     private String clientId;

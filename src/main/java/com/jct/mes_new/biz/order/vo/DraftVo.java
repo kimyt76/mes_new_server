@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.order.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 @Data
@@ -8,6 +10,7 @@ public class DraftVo {
 
     private String draftId;
     private String draftDateSeq;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String draftDate;
     private String draftStatus;
     private int seq;
@@ -26,7 +29,9 @@ public class DraftVo {
     private String useYn;
     private String statusType;
 
-    private String fromDate;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    private String strDate;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String toDate;
     private String userId;
 

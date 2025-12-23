@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.base.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -16,6 +18,7 @@ public class ClientVo {
     private String tradeType;
     private String regDate;
     private String responSalesBiz;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String establishDate;
     private String president;
     private String businessType;
@@ -39,8 +42,11 @@ public class ClientVo {
     private List<ClientManagerVo> managerList;
     private List<ClientHistoryVo> historyList;
     private List<ClientAddressVo> addressList;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String strDate;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String toDate;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String firstTradeDate;
     private String saleManagerName;
     private String saleManagerNameB;

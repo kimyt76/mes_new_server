@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.lab.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 import org.springframework.core.KotlinReflectionParameterNameDiscoverer;
 
@@ -11,6 +13,7 @@ import java.util.List;
 public class IngredientVo {
 
     private String ingredientCode;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String ingredientDate;
     private String ingredientName;
     private String krIngredientName;
