@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.lab.mapper.BomMapper">
+    <select id="getProductTypeInfo">
+        select usage_ko as usage
+              ,caution_ko as caution
+        from  tb_product_type
+        where  prod_cd = #{prodCd}
+    </select>
+
+    <select id="getBomList">
+        select  a.item_cd
+                ,b.item_name
+                ,c.member_nm as managerName
+                ,a.bom_ver
+                ,(select count(item_cd) from tb_bom_recipe where bom_id = a.bom_id) as itemCnt
+                ,dbo.getCommonName('approval_state', a.approval_state) as approval_state
+                ,a.etc
+                ,a.bom_id
+                ,a.default_yn
+                ,b.unit
+        from   tb_bom_mst a
+            inner join tb_item_mst b
+            on a.item_cd = b.item_cd
+            left outer join tb_users c
+            on c.user_id = a.manager_id
+        where  1=1
+        <if test="defaultYn != null and defaultYn != ''">
+        and  a.default_yn = #{defaultYn}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  b.itemName like '%' + #{itemName} + '%'
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="managerName != null and managerName != ''">
+            AND  c.member_nm LIKE '%' + #{managerName} + '%'
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            AND  b.item_type_cd LIKE '%' + #{itemTypeCd} + '%'
+        </if>
+        order by a.item_cd , a.bom_ver desc
+    </select>
+
+    <select id="getBomInfo">
+        select  a.item_cd
+                 ,b.item_name
+                 ,dbo.getClientName(a.client_id) as clientName
+                 ,dbo.getUserName(a.manager_id) as managerName
+                 ,a.approval_state
+                 ,a.lab_no
+                 ,a.prod_type
+                 ,a.etc
+                 ,a.caution
+                 ,a.usage
+                 ,a.significant
+                 ,a.note
+                 ,a.manager_id
+                 ,a.bom_ver
+                 ,a.qty
+                 ,a.bom_id
+        from   tb_bom_mst a
+               inner join tb_item_mst b
+               on a.item_cd = b.item_cd
+        where  a.bom_id = #{bomId}
+          and  a.default_yn ='Y'
+    </select>
+
+    <select id="getBomRecipeList">
+        select    a.order_dist
+                 ,a.phase
+                 ,a.item_cd as realItemCd
+                 ,dbo.getItemName(a.item_cd) as realItemName
+                 ,a.real_content
+                 ,a.item_cd as stdItemCd
+                 ,dbo.getItemName(a.item_cd) as stdItemName
+                 ,isnull(a.std_content, a.real_content) as std_content
+                 ,a.etc
+                 ,a.qty
+                 ,a.bom_id
+                 ,a.bom_item_id
+        from   tb_bom_recipe a
+        where  bom_id = #{bomId}
+        order by a.phase, a.order_dist
+    </select>
+
+    <select id="getBomProcList">
+        select    a.order_dist
+                 ,a.phase
+                 ,a.proc_gb
+                 ,a.proc_type
+                 ,a.mat_proc
+                 ,a.ho
+                 ,a.pd
+                 ,a.d1
+                 ,a.d2
+                 ,a.t
+                 ,a.m
+                 ,a.etc
+                 ,a.bom_proc_id
+                 ,a.bom_id
+        from     tb_bom_proc a
+        where    a.bom_id = #{bomId}
+        order by a.order_dist
+    </select>
+
+    <update id="saveBomInfo">
+        merge into tb_bom_mst a
+        using  (select #{bomId} as bom_id ) b
+        on     a.bom_id = b.bom_id
+        WHEN MATCHED THEN
+            UPDATE SET
+                     item_cd 	    = #{itemCd}
+                    ,client_id  	= #{clientId}
+                    ,manager_id  	= #{managerId}
+                    ,lab_no 	    = #{labNo}
+                    ,prod_type	    = #{prodType}
+                    ,usage 	        = #{usage}
+                    ,caution 	    = #{caution}
+                    ,note 	        = #{note}
+                    ,significant 	= #{significant}
+                    ,qty 	        = isnull(#{qty}, 0)
+                    ,approval_state = #{approvalState}
+                    ,etc 	        = #{etc}
+                    ,upd_id         = #{userId}
+                    ,upd_dt         = getdate()
+        WHEN NOT MATCHED THEN
+            INSERT (bom_id, bom_ver, item_cd, client_id, manager_id, lab_no, prod_type,  usage,  caution , significant, note,  qty, approval_state, etc, default_yn, reg_id, upd_id)
+            VALUES
+                (#{bomId}, (select convert(nvarchar(10), getdate(), 23)) ,#{itemCd}, #{clientId}, #{managerId}, #{labNo}, #{prodType}, #{usage}, #{caution},#{significant},#{note},isnull(#{qty}, 0),#{approvalState},#{etc}, 'Y', #{userId}, #{userId})
+        ;
+    </update>
+
+    <update id="updateBomVer">
+        update tb_bom_mst
+        set    default_yn = 'N'
+        where  bom_id = #{asBomId}
+    </update>
+
+    <delete id="deleteBomRecipeList">
+        delete from tb_bom_recipe where bom_id = #{bomId}
+    </delete>
+
+    <insert id="saveBomRecipeList">
+        insert into tb_bom_recipe
+        (bom_item_id,bom_id, phase, item_cd,  real_content, std_content, qty, etc, order_dist, reg_id, upd_id)
+        values
+        (#{bomItemId}, #{bomId}, #{phase}, #{realItemCd},#{realContent}, #{stdContent}, #{qty},#{etc},#{orderDist}, #{userId}, #{userId})
+    </insert>
+
+    <delete id="deleteBomProcList">
+        delete from tb_bom_proc where bom_id = #{bomId}
+    </delete>
+
+    <insert id="saveBomProcList">
+        insert into tb_bom_proc
+        (bom_proc_id, bom_id, phase, proc_gb,  proc_type, mat_proc, ho, pd  ,d1 ,d2 ,t , m, etc , order_dist, reg_id, upd_id)
+        values
+           (#{bomProcId}, #{bomId}, #{phase}, #{procGb},#{procType}, #{matProc},  #{ho}, #{pd},#{d1},#{d2},#{t},#{m},#{etc},#{orderDist}, #{userId}, #{userId})
+    </insert>
+
+    <select id="getProdTypeInfo" resultType="hashmap">
+        select   prod_ko_name as prodTypeName
+                ,isnull(prod_en_name, '') as  enProdTypeName
+                ,isnull(efficacy_ko, '')  as krEffect
+                ,isnull(efficacy_en, '')  as enEffect
+                ,isnull(usage_ko, '')  as krUsage
+                ,isnull(usage_en, '')  as enUsage
+                ,isnull(menual_ko, '')  as krUse
+                ,isnull(menual_en, '')  as enUse
+                ,isnull(caution_ko, '')  as krCaution
+                ,isnull(caution_en, '')  as enCaution
+                ,isnull(craftiness_ko, '')  as krCraftiness
+                ,isnull(craftiness_en, '')  as enCraftiness
+        from tb_product_type
+        where (prod_ko_name = #{prodTypeName} or prod_en_name = #{prodTypeName})
+    </select>
+
+    <select id="getItemBomList">
+        select   a.itemCd
+                ,a.item_name
+                ,a.bomVer
+                ,a.realContent
+                ,a.bomId
+        from  (
+            select  a.bom_id as bomId
+                    ,dbo.getItemName(a.item_cd) as item_name
+                    ,a.bom_ver as bomVer
+                    ,b.real_content as realContent
+                    ,a.item_cd as itemCd
+            from   tb_bom_mst a
+            inner join (
+                select bom_id, item_cd ,real_content from tb_bom_recipe where item_cd = #{itemCd}
+            ) b
+            on b.bom_id = a.bom_id
+        where  a.default_yn ='Y'
+        and    (a.item_cd != '삭제' and a.item_cd is not null)
+        ) a
+        where  a.item_name is not null
+    </select>
+
+
+    <select id="getBomMatList">
+        select   a.item_cd
+                ,b.item_name
+                ,c.member_nm as managerName
+                ,a.bom_ver
+                ,(select count(item_cd) from tb_bom_recipe where bom_id = a.bom_id) as itemCnt
+                ,dbo.getCommonName('approval_state', a.approval_state) as approval_state
+                ,a.etc
+                ,a.bom_id
+                ,a.default_yn
+                ,b.unit
+        from   tb_bom_mst a
+        inner join tb_item_mst b
+        on a.item_cd = b.item_cd
+        left outer join tb_users c
+        on c.user_id = a.manager_id
+        where  1=1
+        and  a.default_yn = 'Y'
+        <if test="itemName != null and itemName != ''">
+            and  b.itemName like '%' + #{itemName} + '%'
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="managerName != null and managerName != ''">
+            AND  c.member_nm LIKE '%' + #{managerName} + '%'
+        </if>
+        <choose>
+            <when test="itemTypeCd != null and itemTypeCd != ''">
+                AND  b.item_type_cd = #{itemTypeCd}
+            </when>
+            <otherwise>
+                AND  b.item_type_cd in ('M0', 'M5', 'M6')
+            </otherwise>
+        </choose>
+        order by a.item_cd , a.bom_ver desc
+    </select>
+</mapper>
+
