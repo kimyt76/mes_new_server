@@ -3,214 +3,263 @@
 
 <mapper namespace="com.jct.mes_new.biz.work.mapper.WorkOrderMapper">
 
-    <select id="getContractList">
-        select   b.contract_date +' -'+ CAST(b.seq AS NVARCHAR) AS contractDateSeq
-                ,a.po_no
-                ,a.item_cd
-                ,c.item_name
-                ,b.expected_due_date
-                ,d.client_name
-                ,e.member_nm as managerName
-                ,a.qty
-                ,a.unit_price
-                ,a.supply_price
-                ,a.vat_price
-                ,isnull(a.supply_price, 0)+ isnull(a.vat_price, 0) as totPrice
-                ,dbo.getCommonName('order_type', b.order_type) as orderType
-                ,dbo.getCommonName('status_Type',a.status_type) as statusType
-                ,b.payment_condition
-                ,b.contract_id
-                ,b.contract_date
-        from    tb_contract_item a
-                inner join tb_contract_mst b
-                on b.contract_id = a.contract_id
+    <!-- =========================================================
+         1) 메인 리스트 조회
+         WorkOrderVo getWorkOrderList(WorkOrderVo vo);
+         - 기본: work_order_date, area_cd, client_id, manager_id 등 조건이 있으면 적용
+         ========================================================= -->
+    <select id="getWorkOrderList" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo"
+            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
+        SELECT   a.work_order_date +' -'+ CAST(a.seq AS NVARCHAR) AS workOrderDateSeq
+                ,dbo.getCommonName('area', a.area_cd) as areaName
+                ,a.po_no             AS poNo
+                ,c.item_name         AS itemName
+                ,a.delivery_qty      AS deliveryQty
+                ,(select count(*) from tb_work_order_batch where work_order_id = a.work_order_id) AS batchCnt
+                ,b.client_name       AS clientName
+                ,d.member_nm         AS managerName
+                ,a.work_order_date   AS workOrderDate
+                ,a.seq               AS seq
+                ,a.area_cd           AS areaCd
+                ,a.client_id         AS clientId
+                ,a.manager_id        AS managerId
+                ,a.delivery_date     AS deliveryDate
+                ,a.item_cd           AS itemCd
+                ,a.work_order_id     AS workOrderId
+                ,'' AS etc
+        FROM    TB_WORK_ORDER_MST a
+                inner join tb_client_mst b
+                on b.client_id = a.client_id
                 inner join tb_item_mst c
                 on c.item_cd = a.item_cd
-                inner join tb_client_mst d
-                on d.client_id = b.client_id
-                inner join tb_users e
-                on e.user_id = b.manager_id
-        where  b.contract_date between #{strDate} and #{toDate}
-        <if test='itemCd != "" and itemCd != null'>
-            AND a.item_cd LIKE '%' + #{itemCd} + '%'
+                inner join  tb_users d
+                on d.user_id = a.manager_id
+        WHERE   work_order_date between  #{strDate} and #{toDate}
+        <if test="areaCd != null and areaCd != ''">
+            AND a.area_cd = #{areaCd}
         </if>
-        <if test='itemName != "" and itemName != null'>
-            AND b.item_name LIKE '%' + #{itemName} + '%'
+        <if test="clientName != null and clientName != ''">
+            AND b.clientName = #{clientName}
         </if>
-        <if test='managerName != "" and managerName != null'>
-            AND e.member_nm LIKE '%' + #{managerName} + '%'
+        <if test="managerId != null and managerId != ''">
+            AND d.user_id = #{managerId}
         </if>
-        <if test='clientName != "" and clientName != null'>
-            AND d.client_name LIKE '%' + #{clientName} + '%'
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd = #{itemCd}
         </if>
-        <if test='statusType != "" and statusType != null'>
-            AND a.status_Type =  #{statusType}
-        </if>
-        <if test='orderType != "" and orderType != null'>
-            AND a.order_type =  #{orderType}
-        </if>
-        <if test='vatType != "" and vatType != null'>
-            AND a.vat_type =  #{vatType}
-        </if>
-        order by a.po_no desc
+        ORDER BY work_order_date DESC, seq DESC, work_order_id DESC
+    </select>
+    <!-- =========================================================
+         2) 상세 조회(마스터)
+         WorkOrderVo getWorkOrderMst(String workOrderId);
+         ========================================================= -->
+    <select id="getWorkOrderMst" parameterType="string"
+            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
+        SELECT   a.work_order_date   AS workOrderDate
+                ,a.seq               AS seq
+                ,dbo.getCommonName('area', a.area_cd)  AS areaName
+                ,dbo.getItemName(a.item_cd) AS itemName
+                ,dbo.getUserName(a.manager_id)  AS managerName
+                ,a.area_cd           AS areaCd
+                ,a.item_cd           AS itemCd
+                ,a.manager_id        AS managerId
+                ,a.delivery_qty      AS deliveryQty
+                ,a.delivery_date     AS deliveryDate
+                ,dbo.getClientName(a.client_id ) AS clientName
+                ,a.client_id         AS clientId
+                ,a.po_no             AS poNo
+        FROM    dbo.TB_WORK_ORDER_MST a
+        WHERE   a.work_order_id = #{workOrderId}
     </select>
 
-    <select id="getContractInfo">
-        select a.contract_date
-             ,a.seq
-             ,a.expected_due_date
-             ,a.payment_condition
-             ,dbo.getUserName(a.manager_id) as managerName
-             ,dbo.getClientName(a.client_id) as clientName
-             ,a.order_type
-             ,a.vat_type
-             ,a.attach_file_id
-             ,a.manager_id
-             ,a.client_id
-             ,a.contract_id
-        from   tb_contract_mst a
-        where  a.contract_id = #{contractId}
+    <!-- =========================================================
+         3) 상세 조회(BATCH)
+         List<WorkOrderVo.Batch> getWorkOrderBatch(String workOrderId);
+         ========================================================= -->
+    <select id="getWorkOrderBatch" parameterType="string"
+            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
+        SELECT   work_batch_id  AS workBatchId
+                ,work_order_id  AS workOrderId
+                ,po_no          AS poNo
+                ,mat_no         AS matNo
+                ,lot_no         AS lotNo
+                ,lot_no2        AS lotNo2
+        FROM dbo.TB_WORK_ORDER_BATCH
+        WHERE work_order_id = #{workOrderId}
+        ORDER BY work_batch_id ASC
     </select>
+    <!-- =========================================================
+         4) 상세 조회(ITEM)
+         List<WorkOrderVo.Item> getWorkOrderProc(String workOrderId);
+         ========================================================= -->
+    <select id="getWorkOrderProc" parameterType="string"
+            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
+        SELECT   work_proc_id    AS workProcId
+                ,work_batch_id   AS workBatchId
+                ,po_no           AS poNo
+                ,proc_cd         AS procCd
+                ,item_cd         AS itemCd
+                ,dbo.getItemName(item_cd) AS itemName
+                ,work_order_date AS workOrderDate
+                ,work_qty        AS workQty
+                ,work_status     AS workStatus
+                ,work_order_id   AS workOrderId
+        FROM dbo.TB_WORK_ORDER_PROC
+        WHERE work_order_id = #{workOrderId}
+        ORDER BY work_batch_id ASC, work_proc_id ASC
+    </select>
+    <!-- =========================================================
+         5) 등록/수정 - MST
+         void insertWorkOrderMst(WorkOrderVo vo);
+         void updateWorkOrderMst(WorkOrderVo vo);
+         ========================================================= -->
+    <insert id="insertWorkOrderMst"
+            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo"
+            useGeneratedKeys="true"
+            keyProperty="workOrderId">
+        INSERT INTO dbo.TB_WORK_ORDER_MST
+        (
+            work_order_date, seq, area_cd, client_id, manager_id,
+            delivery_qty, delivery_date, item_cd, po_no,
+            reg_id, upd_id
+        )
+        VALUES
+            (
+            #{workOrderDate}, #{seq}, #{areaCd}, #{clientId}, #{managerId},
+            #{deliveryQty}, #{deliveryDate}, #{itemCd}, #{poNo},
+            #{userId}, #{userId}
+            )
+    </insert>
 
-    <delete id="deleteContractItemList">
-        delete from tb_contract_item where contract_id = #{contractId}
+    <update id="updateWorkOrderMst" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
+        UPDATE dbo.TB_WORK_ORDER_MST
+        SET work_order_date = #{workOrderDate},
+            seq             = #{seq},
+            area_cd         = #{areaCd},
+            client_id       = #{clientId},
+            manager_id      = #{managerId},
+            delivery_qty    = #{deliveryQty},
+            delivery_date   = #{deliveryDate},
+            item_cd         = #{itemCd},
+            po_no           = #{poNo},
+            upd_id          = #{userId},
+            upd_dt          = GETDATE()
+        WHERE work_order_id = #{workOrderId}
+    </update>
+    <!-- =========================================================
+         6) 등록/수정 - BATCH
+         void insertWorkOrderBatch(WorkOrderVo.Batch b);
+         void updateWorkOrderBatch(WorkOrderVo.Batch b);
+         ========================================================= -->
+    <insert id="insertWorkOrderBatch"
+            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch"
+            useGeneratedKeys="true"
+            keyProperty="workBatchId">
+        INSERT INTO dbo.TB_WORK_ORDER_BATCH
+        (
+            work_order_id, po_no, mat_no, lot_no, lot_no2,
+            reg_id, upd_id
+        )
+        VALUES
+            (
+                #{workOrderId}, #{poNo}, #{matNo}, #{lotNo}, #{lotNo2},
+                #{userId}, #{userId}
+            )
+    </insert>
+
+    <update id="updateWorkOrderBatch"
+            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
+        UPDATE dbo.TB_WORK_ORDER_BATCH
+        SET
+            po_no   = #{poNo},
+            mat_no  = #{matNo},
+            lot_no  = #{lotNo},
+            lot_no2 = #{lotNo2},
+            upd_id  = #{userId},
+            upd_dt  = GETDATE()
+        WHERE work_batch_id = #{workBatchId}
+    </update>
+    <!-- =========================================================
+         7) 등록/수정 - ITEM
+         void insertWorkOrderItem(WorkOrderVo.Item i);
+         void updateWorkOrderItem(WorkOrderVo.Item i);
+         ========================================================= -->
+    <insert id="insertWorkOrderProc"
+            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item"
+            useGeneratedKeys="true"
+            keyProperty="workProcId">
+        INSERT INTO dbo.TB_WORK_ORDER_PROC
+        (
+            work_batch_id, po_no, proc_cd,
+            item_cd, work_order_date, work_qty, work_status,
+            work_order_id,
+            reg_id, upd_id
+        )
+        VALUES
+            (
+                #{workBatchId}, #{poNo}, #{procCd},
+                #{itemCd}, #{workOrderDate}, #{workQty}, #{workStatus},
+                #{workOrderId},
+                #{userId}, #{userId}
+            )
+    </insert>
+
+    <update id="updateWorkOrderProc"
+            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
+        UPDATE dbo.TB_WORK_ORDER_PROC
+        SET
+            work_batch_id   = #{workBatchId},
+            po_no           = #{poNo},
+            proc_cd         = #{procCd},
+            item_cd         = #{itemCd},
+            work_order_date = #{workOrderDate},
+            work_qty        = #{workQty},
+            work_status     = #{workStatus},
+            work_order_id   = #{workOrderId},
+            upd_id          = #{userId},
+            upd_dt          = GETDATE()
+        WHERE work_proc_id = #{workProcId}
+    </update>
+
+
+    <!-- =========================================================
+         8) 삭제(요청하신 "니가 만들어줘" 파트)
+         - FK 때문에 ITEM -> BATCH -> MST 순서로 제공
+         ========================================================= -->
+    <!-- ITEM: work_proc_id로 1건 삭제 -->
+    <delete id="deleteWorkOrderItemByProcId" parameterType="long">
+        DELETE FROM dbo.TB_WORK_ORDER_PROC
+        WHERE work_proc_id = #{workProcId}
     </delete>
 
-    <select id="getItemList">
-        select a.po_no
-             ,a.item_cd
-             ,b.item_name
-             ,b.unit
-             ,b.item_grp1
-             ,a.qty
-             ,a.unit_price
-             ,a.supply_price
-             ,a.vat_price
-             ,isnull(a.supply_price, 0)+ isnull(a.vat_price, 0) as totPrice
-             ,(select count(*) from tb_contract_item x where x.item_cd = a.item_cd ) as orderCnt
-             ,a.status_type
-             ,a.etc
-             ,a.contract_id
-             ,a.contract_item_id
-        from  tb_contract_item a
-              inner join tb_item_mst b
-              on b.item_cd = a.item_cd
-        where a.contract_id = #{contractId}
-    </select>
+    <!-- ITEM: work_batch_id 기준 일괄 삭제 -->
+    <delete id="deleteWorkOrderItemByBatchId" parameterType="long">
+        DELETE FROM dbo.TB_WORK_ORDER_PROC
+        WHERE work_batch_id = #{workBatchId}
+    </delete>
 
-    <select id="getContractItemList">
-        select   a.item_cd
-                ,b.item_name
-                ,a.unit
-                ,a.unit_price
-                ,a.supply_price
-                ,a.vat_price
-                ,a.etc
-                ,a.order_dist
-                ,a.contract_item_id
-                ,a.contract_id
-                ,isnull((
-                select isnull(qty, 0)
-                from   tb_sale_item
-                where  contract_item_id = a.contract_item_id
-                ), 0)  as saleQty
-                ,(
-                select qty
-                from   tb_contract_item
-                where   contract_item_id = a.contract_item_id
-                ) -
-                isnull((select isnull(qty, 0)
-                from   tb_sale_item
-                where   contract_item_id = a.contract_item_id
-                ),0) as qty
-        from   tb_contract_item a
-                inner join tb_item_mst b
-                on a.item_cd = b.item_cd
-        where  contract_id in
-        <foreach item="id" collection="contractIdList" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </select>
+    <!-- ITEM: work_order_id 기준 일괄 삭제 -->
+    <delete id="deleteWorkOrderItemByOrderId" parameterType="long">
+        DELETE FROM dbo.TB_WORK_ORDER_PROC
+        WHERE work_order_id = #{workOrderId}
+    </delete>
 
-    <update id="saveContractInfo">
-        merge into tb_contract_mst a
-        using   (select #{contractId} as contract_id ) b
-        on      a.contract_id = b.contract_id
-        when  matched  then
-            update set
-                     expected_due_date = #{expectedDueDate}
-                    ,payment_condition =#{paymentCondition}
-                    ,manager_id=#{managerId}
-                    ,client_id =#{clientId}
-                    ,vat_type = #{vatType}
-                    ,order_type = #{orderType}
-                    ,upd_id =#{userId}
-                    ,upd_dt = getdate()
-        when not matched then
-            insert ( contract_id
-                    ,contract_date
-                    ,seq
-                    ,expected_due_date
-                    ,payment_condition
-                    ,manager_id
-                    ,client_id
-                    ,vat_type
-                    ,order_type
-                    ,attach_file_id
-                    ,reg_id
-                    ,upd_id )
-            values (
-                    #{contractId}
-                   ,#{contractDate}
-                   ,#{seq}
-                   ,#{expectedDueDate}
-                   ,#{paymentCondition}
-                   ,#{managerId}
-                   ,#{clientId}
-                   ,#{vatType}
-                   ,#{orderType}
-                   ,#{attachFileId}
-                   ,#{userId}
-                   ,#{userId}
-                   )
-        ;
-    </update>
+    <!-- BATCH: work_batch_id 1건 삭제 (하위 ITEM 먼저 지운 뒤 호출 권장) -->
+    <delete id="deleteWorkOrderBatchByBatchId" parameterType="long">
+        DELETE FROM dbo.TB_WORK_ORDER_BATCH
+        WHERE work_batch_id = #{workBatchId}
+    </delete>
 
-    <update id="saveItemList">
-        MERGE INTO tb_contract_item a
-        USING (SELECT #{contractItemId} AS contract_item_id ) b
-        ON (a.contract_item_id = b.contract_item_id)
-        WHEN MATCHED THEN
-            UPDATE SET
-                 qty = #{qty}
-                ,unit_price = #{unitPrice}
-                ,supply_price = #{supplyPrice}
-                ,vat_price = #{vatPrice}
-                ,order_cnt = #{orderCnt}
-                ,status_type = #{statusType}
-                ,etc = #{etc}
-                ,order_dist = #{orderDist}
-                ,upd_id = #{userId}
-                ,upd_dt = getDate()
-        WHEN NOT MATCHED THEN
-            INSERT (contract_item_id, contract_id, po_no, item_cd, qty, unit_price, supply_price, vat_price, order_Cnt, status_type ,etc, order_dist, reg_id, upd_id)
-            VALUES (
-                    #{contractItemId}
-                   ,#{contractId}
-                   ,isnull(CAST(#{poNo} AS nvarchar(50)), (select CAST( x.contract_date AS nvarchar)+'-'+CAST(x.seq AS NVARCHAR)+'-'+CAST(#{orderDist} AS nvarchar) from tb_contract_mst x where contract_Id = #{contractId}))
-                   ,#{itemCd}
-                   ,#{qty}
-                   ,#{unitPrice}
-                   ,#{supplyPrice}
-                   ,#{vatPrice}
-                   ,(select count(*)+1 from tb_contract_item where item_cd = #{itemCd})
-                   ,#{statusType}
-                   ,#{etc}
-                   ,#{orderDist}
-                   ,#{userId}
-                   ,#{userId}
-                   )
-        ;
-    </update>
+    <!-- BATCH: work_order_id 기준 일괄 삭제 (하위 ITEM 먼저 지운 뒤 호출 권장) -->
+    <delete id="deleteWorkOrderBatchByOrderId" parameterType="long">
+        DELETE FROM dbo.TB_WORK_ORDER_BATCH
+        WHERE work_order_id = #{workOrderId}
+    </delete>
+
+    <!-- MST: work_order_id 1건 삭제 (하위 ITEM/BATCH 먼저 지운 뒤 호출) -->
+    <delete id="deleteWorkOrderMst" parameterType="long">
+        DELETE FROM dbo.TB_WORK_ORDER_MST
+        WHERE work_order_id = #{workOrderId}
+    </delete>
 
 </mapper>
