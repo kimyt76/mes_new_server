@@ -3,6 +3,8 @@ package com.jct.mes_new.biz.base.controller;
 
 import com.jct.mes_new.biz.base.service.ItemService;
 import com.jct.mes_new.biz.base.vo.ItemVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderVo;
+import com.jct.mes_new.config.common.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,26 +38,15 @@ public class ItemController {
     }
 
     @PostMapping("/saveItemInfo")
-    public ResponseEntity<?> saveItemInfo(@RequestBody ItemVo itemVo){
-        try {
-            String result = itemService.saveItemInfo(itemVo);
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+    public RestResponse<Void> saveItemInfo(@RequestBody ItemVo itemVo){
+        String result = itemService.saveItemInfo(itemVo);
+        return RestResponse.okMessage(result, null);
     }
+
     @PostMapping("/updateItemInfo")
-    public ResponseEntity<?> updateItemInfo(@RequestBody ItemVo itemVo){
-        try {
-            String result = itemService.updateItemInfo(itemVo);
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+    public RestResponse<Void> updateItemInfo(@RequestBody ItemVo itemVo){
+        String result = itemService.updateItemInfo(itemVo);
+        return RestResponse.okMessage(result, null);
     }
 
     @GetMapping("/getItemInfo/{id}")
@@ -78,6 +69,12 @@ public class ItemController {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());  // 사용자에게 오류 메시지 반환
         }
+    }
+
+    @PostMapping("/saveItemAddInfo")
+    public RestResponse<Void> saveItemAddInfo(@RequestBody ItemVo itemVo){
+        String result = itemService.saveItemAddInfo(itemVo);
+        return RestResponse.okMessage(result, null);
     }
 
     @PostMapping("/updatePriceInfo")

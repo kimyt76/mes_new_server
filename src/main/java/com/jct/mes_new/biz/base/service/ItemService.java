@@ -24,4 +24,6 @@ public interface ItemService {
     String saveItemDetailInfo(ItemVo itemVo);
 
     void updatePriceInfoMap(Map<String, Object> paramMap);
+
+    String saveItemAddInfo(ItemVo itemVo);
 }

@@ -24,6 +24,8 @@ public interface ItemMapper {
 
     int getItemCdCheck(String itemCd);
 
+    List<String> getItemCdCheckList(@Param("itemCds") List<String> itemCds);
+
     int saveItemDetailInfo(ItemVo itemVo);
 
     void insertItemDetial(String itemCd, String userId);
