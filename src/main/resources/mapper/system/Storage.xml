@@ -1,52 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.jct.mes_new.biz.base.mapper.StorageMapper">
+<mapper namespace="com.jct.mes_new.biz.system.mapper.StorageMapper">
 
     <select id="getStorageList">
         select   a.storage_cd
                 ,a.storage_name
-                ,a.storage_type
-                ,dbo.getCommonName('storage_type', a.storage_type) as storageTypeName
-                ,dbo.getCommonName('prod_process', a.prod_process_cd) as prodProcessName
-                ,a.prod_process_cd
-                ,b.customer_name as outcustomerName
-                ,a.out_customer_cd
+                ,dbo.getCommonName('area', a.area_cd) as areaName
+                ,a.area_cd
                 ,a.use_yn
-                ,'(주)진코스텍' as companyName
-        from    tb_storage_mst a
-                left outer join tb_customer b
-                on b.customer_cd = a.out_customer_cd
+                ,a.storage_id
+        from   tb_storage_mst a
         where  1=1
-        <if test='storageName != "" and storageName != null'>
-        and    a.storage_name like '%' + #{storageName} + '%'
+        <if test="areaCd != null and areaCd != ''">
+            and   a.area_cd = #{areaCd}
         </if>
-        <if test='outCustomerName != "" and outCustomerName != null'>
-        and    b.customer_name like '%' + #{outCustomerName} + '%'
+        <if test="storageCd != null and storageCd != ''">
+          and   a.storage_cd = #{storageCd}
         </if>
-        <if test='storageType != "" and storageType != null'>
-        and    a.storage_type = #{storageType}
+        <if test="storageName != null and storageName != ''">
+          and   a.storage_name like '%' + #{storageName} + '%'
         </if>
-        <if test='prodProcessCd != "" and prodProcessCd != null'>
-        and    a.prod_process_cd = #{prodProcessCd}
+        <if test="useYn != null and useYn != ''">
+          and   a.use_yn = #{useYn}
         </if>
-
-        order by storage_cd
+        order by a.storage_name
     </select>
 
     <select id="getStorageInfo">
         select    a.storage_cd
                  ,a.storage_name
-                 ,a.storage_type
-                 ,dbo.getCommonName('prod_process', a.prod_process_cd) as prodProcessName
-                 ,a.prod_process_cd
-                 ,b.customer_name as outcustomerName
-                 ,a.out_customer_cd
+                 ,a.area_cd
                  ,a.use_yn
-                 ,'(주)진코스텍' as companyName
-        from     tb_storage_mst a
-                 left outer join tb_customer b
-                 on b.customer_cd = a.out_customer_cd
+                 ,a.storage_id
+        from   tb_storage_mst a
         where  a.storage_cd = #{storageCd}
     </select>
 
