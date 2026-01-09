@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.system.mapper.ScaleMapper">
+
+    <select id="getScaleList">
+        select  dbo.getCommonName('area', a.area_cd) as areaName
+               ,b.storage_name
+               ,a.scale_nickname as scaleNickname
+               ,a.scale_cd
+               ,a.scale_name
+               ,a.etc
+               ,a.scale_id
+        from    tb_scale_mst a
+                left outer join tb_storage_mst b
+                --inner join tb_storage_mst b
+                on b.storage_cd = a.storage_cd
+        where   1=1
+        <if test='useYn != "" and useYn != null'>
+            AND a.use_yn = #{useYn}
+        </if>
+        <if test='areaCd != "" and areaCd != null'>
+            AND a.area_cd = #{areaCd}
+        </if>
+        <if test='storageCd != "" and storageCd != null'>
+            AND a.storage_cd = #{storageCd}
+        </if>
+        <if test='scaleNickname != "" and scaleNickname != null'>
+            AND a.scale_nickname LIKE '%' + #{scaleNickname} + '%'
+        </if>
+        order by a.area_cd
+    </select>
+
+    <select id="getScaleInfo">
+        select  a.area_cd
+               ,a.storage_cd
+               ,a.scale_nickname
+               ,a.scale_cd
+               ,a.scale_name
+               ,a.scale_type
+               ,a.nport_address
+               ,a.serial_port_no
+               ,a.response_port_no
+               ,a.model_name
+               ,a.equip_no
+               ,a.etc
+               ,a.use_yn
+               ,a.scale_id
+        from    tb_scale_mst a
+        where  a.scale_id = #{scaleId}
+    </select>
+
+    <update id="saveScaleInfo">
+        MERGE dbo.tb_scale_mst AS T
+        USING (
+            SELECT #{scaleId} AS scale_id ) AS S
+            ON (T.scale_id = S.scale_id)
+            WHEN MATCHED THEN
+        UPDATE SET
+                T.scale_name       = #{scaleName},
+                T.scale_nickname   = #{scaleNickname},
+                T.scale_type       = #{scaleType},
+                T.area_cd          = #{areaCd},
+                T.storage_cd       = #{storageCd},
+                T.nport_address    = #{nportAddress},
+                T.serial_port_no   = #{serialPortNo},
+                T.response_port_no = #{responsePortNo},
+                T.model_name       = #{modelName},
+                T.equip_no         = #{equipNo},
+                T.etc              = #{etc},
+                T.use_yn           = #{useYn},
+                T.upd_id           = #{userId},
+                T.upd_dt           = getdate()
+        WHEN NOT MATCHED THEN
+        INSERT (
+            scale_cd,
+            scale_name,
+            scale_nickname,
+            scale_type,
+            area_cd,
+            storage_cd,
+            nport_address,
+            serial_port_no,
+            response_port_no,
+            model_name,
+            equip_no,
+            etc,
+            reg_id,
+            upd_id,
+        )
+        VALUES (
+            #{scaleCd},
+            #{scaleName},
+            #{scaleNickname},
+            #{scaleType},
+            #{areaCd},
+            #{storageCd},
+            #{nportAddress},
+            #{serialPortNo},
+            #{responsePortNo},
+            #{modelName},
+            #{equipNo},
+            #{etc},
+            #{userId},
+            #{userId},
+            );
+    </update>
+
+    <update id="updateLastInfo">
+        update tb_scale_mst
+           set last_time = getDate()
+             , last_value = #{lastValue}
+        where  scale_id = #{scaleId}
+    </update>
+</mapper>
