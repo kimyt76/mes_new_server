@@ -1,11 +1,12 @@
 server:
-  port: 8081  # 서버 포트 설정
+  port: 8081
   servlet:
     session:
       store-type: jdbc
       jdbc:
-        initialize-schema: never  # 이미 테이블을 만들었으면 never
-      timeout: 60m
+        initialize-schema: never
+      timeout: 360000
+
 spring:
   application:
     name: MES_NEW
@@ -15,7 +16,7 @@ spring:
     livereload:
       enabled: true
   datasource:
-    url: jdbc:sqlserver://192.168.50.237:1433;databaseName=jct_mes;encrypt=true;trustServerCertificate=true #    Jincostech Server
+    url: jdbc:sqlserver://192.168.50.237:1433;databaseName=jct_mes;encrypt=true;trustServerCertificate=true
     username: jct_admin
     password: jinco!@34
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
@@ -23,47 +24,62 @@ spring:
     multipart:
       enabled: true
       location: d:/mesUploads
+  jackson:
+    time-zone: Asia/Seoul
+  mail:
+    host: smtp.worksmobile.com
+    port: 465
+    username: purchase@jincostech.com
+    password: BFhCbfZAqST2
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+  thymeleaf:
+    prefix: classpath:templates/
+    suffix: .html
+    check-template-location: true
+    mode: HTML
+    cache: false
+    template-resolver-order: 0
+  freemarker:
+    template-loader-path: classpath:/freemarker/
+    suffix: .ftl
+    charset: UTF-8
+    cache: false
+    content-type: text/html
 file:
   upload-dir: d:/mesUploads
-#  jpa:
-#    show-sql: true  # SQL 로그 출력 여부
-#    hibernate:
-#      ddl-auto: update
-#    properties:
-#      hibernate:
-#        format_sql: true                 # 로그, 콘솔의 SQL을 좀 더 이쁘게 출력합니다.
-#    database-platform: org.hibernate.dialect.SQLServerDialect
+
 logging:
   level:
-    org:mybatis: TRACE
-    root: INFO  # 전체 로그 레벨
-    org.springframework: DEBUG  # Spring 관련 로그 레벨
-    com.jct.mes_new: debug  # 내 프로젝트의 패키지 로그 레벨
-    org.hibernate:
-      sql: debug
-      type:
-        descriptor:
-          sql: trace
+    root: INFO           # 기본 로그 레벨
+    p6spy: DEBUG         # p6spy 로거 활성화 (INFO 이상 다 보이게)
+    org.mybatis: INFO    # MyBatis 쿼리 로그는 잠깐 죽여도 됨 (원하면 DEBUG로 다시)
+    org.springframework: DEBUG
+    com.jct.mes_new: DEBUG
 
-mybatis-plus:
+mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-handlers-package: com.jct.mes_new.mapper.typehandler
   type-aliases-package: com.jct.mes_new.entity
   configuration:
     map-underscore-to-camel-case: true
     default-statement-timeout: 30
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-#암호화
-#jasypt:
-#  encryptor:
-#    bean: jasyptStringEncryptor
-#jwt:
-#  secret: qwrmlasfmlqw2491u4291urjeiqowfjkwklfnlksdnfi13fnou3nounf13
+    # log-impl 제거 (p6spy 에게 맡김)
+
 app:
   webclient:
     baseUrl: https://sboapiCD.ecounterp.com/OAPI/V2
-    #baseUrl: https://oapiCD.ecounterp.com/OAPI/V2
   logs:
     fixedRate: false
     save: false
     send: false
+decorator:
+  datasource:
+    enabled: true
+    p6spy:
+      enable-logging: true
+      logging: slf4j
