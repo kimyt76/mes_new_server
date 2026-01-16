@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,14 @@ public class BomController {
     @GetMapping("/getItemBomList/{id}")
     public List<BomRecipeVo> getItemBomList(@PathVariable("id") String itemCd) {
         return bomService.getItemBomList(itemCd);
+    }
+
+    @PostMapping("/getItemsBomList")
+    public Map<String, Object> getItemsBomList(@RequestBody Map<String, String> map) {
+        Map<String, Object> result = new HashMap<>();
+        result = bomService.getItemsBomList(map);
+
+        return result;
     }
 
     @GetMapping("/getBomInfo/{id}")

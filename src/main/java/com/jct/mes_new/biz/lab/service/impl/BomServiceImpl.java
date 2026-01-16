@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.logging.log4j.ThreadContext.isEmpty;
@@ -30,6 +32,20 @@ public class BomServiceImpl implements BomService {
     }
     public List<BomVo> getBomMatList(BomVo bomVo) {
         return bomMapper.getBomMatList(bomVo);
+    }
+    public List<BomRecipeVo> getItemBomList(String itemCd){
+        return bomMapper.getItemBomList(itemCd);
+    }
+    public Map<String, Object> getItemsBomList(Map<String, String> map) {
+        Map<String, Object> result = new HashMap<>();
+
+        String itemCds =   map.get("itemCds");
+        String itemTypeCd =   map.get("itemTypeCd");
+
+        result.put("itemBomList", bomMapper.getItemsBomList(itemCds, itemTypeCd));
+        result.put("itemStockList", bomMapper.getItemStockList( itemCds, itemTypeCd));
+
+        return result;
     }
 
     public BomRequestVo getBomInfo(String bomId) {
@@ -126,10 +142,6 @@ public class BomServiceImpl implements BomService {
             }
         }
         return msg;
-    }
-
-    public List<BomRecipeVo> getItemBomList(String itemCd){
-        return bomMapper.getItemBomList(itemCd);
     }
 
 }

@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.lab.vo.BomProcVo;
 import com.jct.mes_new.biz.lab.vo.BomRecipeVo;
 import com.jct.mes_new.biz.lab.vo.BomVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -34,4 +35,8 @@ public interface BomMapper {
     List<BomRecipeVo> getItemBomList(String itemCd);
 
     List<BomVo> getBomMatList(BomVo bomVo);
+
+    List<BomVo> getItemsBomList(@Param("itemTypeCd") String itemTypeCd, @Param("itemCds") String itemCds);
+
+    Object getItemStockList(@Param("itemTypeCd") String itemTypeCd, @Param("itemCds") String itemCds);
 }

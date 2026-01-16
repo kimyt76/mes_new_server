@@ -195,9 +195,9 @@
                 select bom_id, item_cd ,real_content from tb_bom_recipe where item_cd = #{itemCd}
             ) b
             on b.bom_id = a.bom_id
-        where  a.default_yn ='Y'
-        and    (a.item_cd != '삭제' and a.item_cd is not null)
-        ) a
+            where  a.default_yn ='Y'
+            and    (a.item_cd != '삭제' and a.item_cd is not null)
+            ) a
         where  a.item_name is not null
     </select>
 
@@ -239,5 +239,24 @@
         </choose>
         order by a.item_cd , a.bom_ver desc
     </select>
+
+    <select id="getItemsBomList">
+        select a.item_cd
+              ,b.item_name
+              ,a.bom_ver
+              ,b.unit
+              ,b.spec
+        from tb_bom_mst a
+             inner join tb_item_mst b
+             on b.item_cd = a.item_cd
+             and  b.item_type_cd = #{itemTypeCd}
+        where  a.default_yn ='Y'
+        and    a.sitem_cd in
+        <foreach collection="itemCds" item="cd" open="(" separator="," close=")">
+            #{cd}
+        </foreach>
+    </select>
+
+
 </mapper>
 

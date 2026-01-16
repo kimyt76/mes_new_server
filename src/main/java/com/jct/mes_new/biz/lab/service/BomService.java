@@ -7,6 +7,7 @@ import com.jct.mes_new.biz.lab.vo.BomRequestVo;
 import com.jct.mes_new.biz.lab.vo.BomVo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BomService {
     List<BomVo> getBomList(BomVo bomVo);
@@ -22,4 +23,6 @@ public interface BomService {
     List<BomRecipeVo> getItemBomList(String itemCd);
 
     List<BomVo> getBomMatList(BomVo bomVo);
+
+    Map<String, Object> getItemsBomList(Map<String, String>  map);
 }
