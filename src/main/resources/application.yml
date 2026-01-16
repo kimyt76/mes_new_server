@@ -26,17 +26,6 @@ spring:
       location: d:/mesUploads
   jackson:
     time-zone: Asia/Seoul
-  mail:
-    host: smtp.worksmobile.com
-    port: 465
-    username: purchase@jincostech.com
-    password: BFhCbfZAqST2
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl:
-            enable: true
   thymeleaf:
     prefix: classpath:templates/
     suffix: .html
