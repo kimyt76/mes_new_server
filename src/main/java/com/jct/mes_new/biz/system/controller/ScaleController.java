@@ -2,7 +2,7 @@ package com.jct.mes_new.biz.system.controller;
 
 import com.jct.mes_new.biz.system.service.ScaleService;
 import com.jct.mes_new.biz.system.vo.ScaleVo;
-import com.jct.mes_new.config.common.RestResponse;
+import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
