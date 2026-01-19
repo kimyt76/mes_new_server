@@ -3,7 +3,7 @@ package com.jct.mes_new.biz.system.controller;
 
 import com.jct.mes_new.biz.system.service.StorageService;
 import com.jct.mes_new.biz.system.vo.StorageVo;
-import com.jct.mes_new.config.common.RestResponse;
+import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
