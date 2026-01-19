@@ -4,7 +4,7 @@ package com.jct.mes_new.biz.base.controller;
 import com.jct.mes_new.biz.base.service.ItemService;
 import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
-import com.jct.mes_new.config.common.RestResponse;
+import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

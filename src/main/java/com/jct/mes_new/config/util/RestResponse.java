@@ -16,6 +16,13 @@ public class RestResponse<T> {
         r.data = data;
         return r;
     }
+    public static <T> RestResponse<T> okMessage(String message,T data) {
+        RestResponse<T> r = new RestResponse<>();
+        r.code = 0;
+        r.message = "success";
+        r.data = data;
+        return r;
+    }
 
     public static <T> RestResponse<T> fail(String message) {
         RestResponse<T> r = new RestResponse<>();
