@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.common.mapper.MailConfigMapper">
+    <select id="selectMailConfig">
+        select   smtp_host
+                ,smtp_port
+                ,smtp_username
+                ,smtp_password
+                ,smtp_ssl
+                ,smtp_etc
+                ,from_email
+                ,from_name
+                ,mail_id
+        from  tb_mail_config
+        where  mail_id = #{mailId}
+    </select>
+
+
+</mapper>

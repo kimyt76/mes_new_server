@@ -37,7 +37,15 @@ public class JasperUtil {
     public static byte[] getPdfBinary(InputStream templateStream, Map<String, Object> parameters, Collection<?> dataList ) throws Exception {
         JasperReport jasperReport = JasperCompileManager.compileReport(templateStream);
 
-        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(dataList);
+        //JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(dataList);
+        JRDataSource dataSource;
+        if (dataList == null || dataList.isEmpty()) {
+            // 데이터가 없어도 1페이지짜리 “빈 리포트”를 만들기 위한 datasource
+            dataSource = new JREmptyDataSource(1);
+        } else {
+            dataSource = new JRBeanCollectionDataSource(dataList);
+        }
+
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
 
         return JasperExportManager.exportReportToPdf(jasperPrint);

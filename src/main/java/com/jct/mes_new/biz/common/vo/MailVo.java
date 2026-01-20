@@ -18,6 +18,8 @@ public class MailVo {
     private String memo;
 
     private String toName;
+    private String templatePath;
+    private String mailId;
 
     private List<MultipartFile> files; // 선택 (첨부파일 여러 개)
 }
