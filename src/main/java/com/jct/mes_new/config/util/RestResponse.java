@@ -19,15 +19,15 @@ public class RestResponse<T> {
     public static <T> RestResponse<T> okMessage(String message,T data) {
         RestResponse<T> r = new RestResponse<>();
         r.code = 0;
-        r.message = "success";
+        r.message = message;
         r.data = data;
         return r;
     }
 
-    public static <T> RestResponse<T> fail(String message) {
+    public static <T, obj> RestResponse<T> fail(String message,T data) {
         RestResponse<T> r = new RestResponse<>();
         r.code = -1;
-        r.message = message;
+        r.message = "fail";
         return r;
     }
 
