@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper">
+    <select id="getPurchaseOrderList">
+        select '2026-01-20' as purchaseOrderDate
+               ,pur_Order_Id
+        from   tb_purm_order_mst
+        where  pur_order_id = #{purOrderId}
+    </select>
+
+</mapper>
