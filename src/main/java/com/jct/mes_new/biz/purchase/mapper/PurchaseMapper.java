@@ -8,5 +8,5 @@ import java.util.List;
 
 @Mapper
 public interface PurchaseMapper {
-    List<PurchaseOrderVo> getPurchaseOrderList(@Param("purchaseOrderId") String id);
+
 }
