@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcWeighMapper">
+    <!-- =========================================================
+         1) 메인 리스트 조회
+         WorkOrderVo getWorkOrderList(WorkOrderVo vo);
+         - 기본: work_order_date, area_cd, client_id, manager_id 등 조건이 있으면 적용
+         ========================================================= -->
+    <select id="getWeighList">
+        select   dbo.getCommonName('area', c.area_cd) as areaName
+                ,b.po_no
+                ,a.work_order_date
+                ,b.mat_no
+                ,b.lot_no
+                ,a.item_cd
+                ,d.item_name
+                ,a.order_qty
+                ,a.work_status
+                ,c.area_cd
+                ,a.proc_cd
+                ,c.work_order_id
+                ,b.work_batch_id
+                ,a.work_proc_id
+        from   TB_WORK_ORDER_PROC a
+                inner join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+                inner join TB_WORK_ORDER_MST c
+                on b.work_order_id = c.work_order_id
+                inner join tb_item_mst d
+                on d.item_cd = a.item_cd
+         where  a.proc_cd = 'PRC001'
+        <if test="areaCd != null and areaCd != ''">
+            AND c.area_cd = #{areaCd}
+        </if>
+        <if test="matNo != null and matNo != ''">
+            and  b.mat_no LIKE '%' + #{matNo} + '%'
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  d.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="workStatus != null and workStatus != ''">
+            and  a.work_status = #{workStatus}
+        </if>
+        ORDER BY c.work_order_date DESC, c.seq DESC
+    </select>
+<!--    &lt;!&ndash; =========================================================-->
+<!--         2) 상세 조회-->
+<!--         WorkOrderVo getWorkOrderMst(String workOrderId);-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    <select id="getWeighInfo" parameterType="string"-->
+<!--            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">-->
+<!--        SELECT   a.work_order_date   AS workOrderDate-->
+<!--                ,a.seq               AS seq-->
+<!--                ,dbo.getCommonName('area', a.area_cd)  AS areaName-->
+<!--                ,dbo.getItemName(a.item_cd) AS itemName-->
+<!--                ,dbo.getUserName(a.manager_id)  AS managerName-->
+<!--                ,a.area_cd           AS areaCd-->
+<!--                ,a.item_cd           AS itemCd-->
+<!--                ,a.manager_id        AS managerId-->
+<!--                ,a.delivery_qty      AS deliveryQty-->
+<!--                ,a.delivery_date     AS deliveryDate-->
+<!--                ,dbo.getClientName(a.client_id ) AS clientName-->
+<!--                ,a.client_id         AS clientId-->
+<!--                ,a.po_no             AS poNo-->
+<!--        FROM    dbo.TB_WORK_ORDER_MST a-->
+<!--        WHERE   a.work_order_id = #{workOrderId}-->
+<!--    </select>-->
+
+<!--    &lt;!&ndash; =========================================================-->
+<!--         3) 상세 조회(BATCH)-->
+<!--         List<WorkOrderVo.Batch> getWorkOrderBatch(String workOrderId);-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    <select id="getWorkOrderBatch" parameterType="string"-->
+<!--            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">-->
+<!--        SELECT   work_batch_id  AS workBatchId-->
+<!--                ,work_order_id  AS workOrderId-->
+<!--                ,po_no          AS poNo-->
+<!--                ,mat_no         AS matNo-->
+<!--                ,lot_no         AS lotNo-->
+<!--                ,lot_no2        AS lotNo2-->
+<!--        FROM dbo.TB_WORK_ORDER_BATCH-->
+<!--        WHERE work_order_id = #{workOrderId}-->
+<!--        ORDER BY work_batch_id ASC-->
+<!--    </select>-->
+<!--    &lt;!&ndash; =========================================================-->
+<!--         4) 상세 조회(ITEM)-->
+<!--         List<WorkOrderVo.Item> getWorkOrderProc(String workOrderId);-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    <select id="getWorkOrderProc" parameterType="string"-->
+<!--            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">-->
+<!--        SELECT   work_proc_id    AS workProcId-->
+<!--                ,work_batch_id   AS workBatchId-->
+<!--                ,po_no           AS poNo-->
+<!--                ,proc_cd         AS procCd-->
+<!--                ,item_cd         AS itemCd-->
+<!--                ,dbo.getItemName(item_cd) AS itemName-->
+<!--                ,work_order_date AS workOrderDate-->
+<!--                ,order_qty        AS orderQty-->
+<!--                ,work_status     AS workStatus-->
+<!--                ,work_order_id   AS workOrderId-->
+<!--        FROM dbo.TB_WORK_ORDER_PROC-->
+<!--        WHERE work_order_id = #{workOrderId}-->
+<!--        ORDER BY work_batch_id ASC, work_proc_id ASC-->
+<!--    </select>-->
+<!--    &lt;!&ndash; =========================================================-->
+<!--         5) 등록/수정 - MST-->
+<!--         void insertWorkOrderMst(WorkOrderVo vo);-->
+<!--         void updateWorkOrderMst(WorkOrderVo vo);-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    <insert id="insertWorkOrderMst"-->
+<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo"-->
+<!--            useGeneratedKeys="true"-->
+<!--            keyProperty="workOrderId">-->
+<!--        INSERT INTO dbo.TB_WORK_ORDER_MST-->
+<!--        (-->
+<!--            work_order_date, seq, area_cd, client_id, manager_id,-->
+<!--            delivery_qty, delivery_date, item_cd, po_no,-->
+<!--            reg_id, upd_id-->
+<!--        )-->
+<!--        VALUES-->
+<!--            (-->
+<!--            #{workOrderDate}, #{seq}, #{areaCd}, #{clientId}, #{managerId},-->
+<!--            #{deliveryQty}, #{deliveryDate}, #{itemCd}, #{poNo},-->
+<!--            #{userId}, #{userId}-->
+<!--            )-->
+<!--    </insert>-->
+
+<!--    <update id="updateWorkOrderMst" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo">-->
+<!--        UPDATE dbo.TB_WORK_ORDER_MST-->
+<!--        SET work_order_date = #{workOrderDate},-->
+<!--            seq             = #{seq},-->
+<!--            area_cd         = #{areaCd},-->
+<!--            client_id       = #{clientId},-->
+<!--            manager_id      = #{managerId},-->
+<!--            delivery_qty    = #{deliveryQty},-->
+<!--            delivery_date   = #{deliveryDate},-->
+<!--            item_cd         = #{itemCd},-->
+<!--            po_no           = #{poNo},-->
+<!--            upd_id          = #{userId},-->
+<!--            upd_dt          = GETDATE()-->
+<!--        WHERE work_order_id = #{workOrderId}-->
+<!--    </update>-->
+<!--    &lt;!&ndash; =========================================================-->
+<!--         6) 등록/수정 - BATCH-->
+<!--         void insertWorkOrderBatch(WorkOrderVo.Batch b);-->
+<!--         void updateWorkOrderBatch(WorkOrderVo.Batch b);-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    <insert id="insertWorkOrderBatch"-->
+<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch"-->
+<!--            useGeneratedKeys="true"-->
+<!--            keyProperty="workBatchId">-->
+<!--        INSERT INTO dbo.TB_WORK_ORDER_BATCH-->
+<!--        (-->
+<!--            work_order_id, po_no, mat_no, lot_no, lot_no2,-->
+<!--            reg_id, upd_id-->
+<!--        )-->
+<!--        VALUES-->
+<!--            (-->
+<!--                #{workOrderId}, #{poNo}, #{matNo}, #{lotNo}, #{lotNo2},-->
+<!--                #{userId}, #{userId}-->
+<!--            )-->
+<!--    </insert>-->
+
+<!--    <update id="updateWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">-->
+<!--        UPDATE dbo.TB_WORK_ORDER_BATCH-->
+<!--        SET po_no   = #{poNo},-->
+<!--            mat_no  = #{matNo},-->
+<!--            lot_no  = #{lotNo},-->
+<!--            lot_no2 = #{lotNo2},-->
+<!--            upd_id  = #{userId},-->
+<!--            upd_dt  = GETDATE()-->
+<!--        WHERE work_batch_id = #{workBatchId}-->
+<!--    </update>-->
+<!--    &lt;!&ndash; =========================================================-->
+<!--         7) 등록/수정 - ITEM-->
+<!--         void insertWorkOrderItem(WorkOrderVo.Item i);-->
+<!--         void updateWorkOrderItem(WorkOrderVo.Item i);-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    <insert id="insertWorkOrderProc"-->
+<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item"-->
+<!--            useGeneratedKeys="true"-->
+<!--            keyProperty="workProcId">-->
+<!--        INSERT INTO dbo.TB_WORK_ORDER_PROC-->
+<!--        (-->
+<!--            work_batch_id, po_no, proc_cd,-->
+<!--            item_cd, work_order_date, order_qty, work_status,-->
+<!--            work_order_id,-->
+<!--            reg_id, upd_id-->
+<!--        )-->
+<!--        VALUES-->
+<!--            (-->
+<!--                #{workBatchId}, #{poNo}, #{procCd},-->
+<!--                #{itemCd}, #{workOrderDate}, #{orderQty}, #{workStatus},-->
+<!--                #{workOrderId},-->
+<!--                #{userId}, #{userId}-->
+<!--            )-->
+<!--    </insert>-->
+
+<!--    <update id="updateWorkOrderProc"-->
+<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">-->
+<!--        UPDATE dbo.TB_WORK_ORDER_PROC-->
+<!--        SET-->
+<!--            work_batch_id   = #{workBatchId},-->
+<!--            po_no           = #{poNo},-->
+<!--            proc_cd         = #{procCd},-->
+<!--            item_cd         = #{itemCd},-->
+<!--            work_order_date = #{workOrderDate},-->
+<!--            order_qty       = #{orderQty},-->
+<!--            work_status     = #{workStatus},-->
+<!--            work_order_id   = #{workOrderId},-->
+<!--            upd_id          = #{userId},-->
+<!--            upd_dt          = GETDATE()-->
+<!--        WHERE work_proc_id = #{workProcId}-->
+<!--    </update>-->
+
+
+<!--    &lt;!&ndash; =========================================================-->
+<!--         8) 삭제(요청하신 "니가 만들어줘" 파트)-->
+<!--         - FK 때문에 ITEM -> BATCH -> MST 순서로 제공-->
+<!--         ========================================================= &ndash;&gt;-->
+<!--    &lt;!&ndash; ITEM: work_proc_id로 1건 삭제 &ndash;&gt;-->
+<!--    <delete id="deleteWorkOrderItemByProcId" parameterType="long">-->
+<!--        DELETE FROM dbo.TB_WORK_ORDER_PROC-->
+<!--        WHERE work_proc_id = #{workProcId}-->
+<!--    </delete>-->
+
+<!--    &lt;!&ndash; ITEM: work_batch_id 기준 일괄 삭제 &ndash;&gt;-->
+<!--    <delete id="deleteWorkOrderItemByBatchId" parameterType="long">-->
+<!--        DELETE FROM dbo.TB_WORK_ORDER_PROC-->
+<!--        WHERE work_batch_id = #{workBatchId}-->
+<!--    </delete>-->
+
+<!--    &lt;!&ndash; ITEM: work_order_id 기준 일괄 삭제 &ndash;&gt;-->
+<!--    <delete id="deleteWorkOrderItemByOrderId" parameterType="long">-->
+<!--        DELETE FROM dbo.TB_WORK_ORDER_PROC-->
+<!--        WHERE work_order_id = #{workOrderId}-->
+<!--    </delete>-->
+
+<!--    &lt;!&ndash; BATCH: work_batch_id 1건 삭제 (하위 ITEM 먼저 지운 뒤 호출 권장) &ndash;&gt;-->
+<!--    <delete id="deleteWorkOrderBatchByBatchId" parameterType="long">-->
+<!--        DELETE FROM dbo.TB_WORK_ORDER_BATCH-->
+<!--        WHERE work_batch_id = #{workBatchId}-->
+<!--    </delete>-->
+
+<!--    &lt;!&ndash; BATCH: work_order_id 기준 일괄 삭제 (하위 ITEM 먼저 지운 뒤 호출 권장) &ndash;&gt;-->
+<!--    <delete id="deleteWorkOrderBatchByOrderId" parameterType="long">-->
+<!--        DELETE FROM dbo.TB_WORK_ORDER_BATCH-->
+<!--        WHERE work_order_id = #{workOrderId}-->
+<!--    </delete>-->
+
+<!--    &lt;!&ndash; MST: work_order_id 1건 삭제 (하위 ITEM/BATCH 먼저 지운 뒤 호출) &ndash;&gt;-->
+<!--    <delete id="deleteWorkOrderMst" parameterType="long">-->
+<!--        DELETE FROM dbo.TB_WORK_ORDER_MST-->
+<!--        WHERE work_order_id = #{workOrderId}-->
+<!--    </delete>-->
+
+</mapper>
