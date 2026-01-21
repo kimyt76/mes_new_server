@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.work.mapper.WorkOrderMapper">
-
     <!-- =========================================================
          1) 메인 리스트 조회
          WorkOrderVo getWorkOrderList(WorkOrderVo vo);
@@ -13,6 +12,7 @@
         SELECT   a.work_order_date +' -'+ CAST(a.seq AS NVARCHAR) AS workOrderDateSeq
                 ,dbo.getCommonName('area', a.area_cd) as areaName
                 ,a.po_no             AS poNo
+                ,(select distinct  proc_order_date from  TB_WORK_ORDER_PROC where  proc_cd = 'PRC002'  and work_order_id = a.work_order_id) as matOrderDate
                 ,c.item_name         AS itemName
                 ,a.delivery_qty      AS deliveryQty
                 ,(select count(*) from tb_work_order_batch where work_order_id = a.work_order_id) AS batchCnt
@@ -100,9 +100,10 @@
                 ,proc_cd         AS procCd
                 ,item_cd         AS itemCd
                 ,dbo.getItemName(item_cd) AS itemName
-                ,work_order_date AS workOrderDate
-                ,work_qty        AS workQty
-                ,work_status     AS workStatus
+                ,proc_order_date AS procOrderDate
+                ,order_qty        AS orderQty
+                ,dbo.getCommonName('PROC_STATUS', proc_status) as procStatusName
+                ,proc_status     AS procStatus
                 ,work_order_id   AS workOrderId
         FROM dbo.TB_WORK_ORDER_PROC
         WHERE work_order_id = #{workOrderId}
@@ -167,11 +168,9 @@
             )
     </insert>
 
-    <update id="updateWorkOrderBatch"
-            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
+    <update id="updateWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
         UPDATE dbo.TB_WORK_ORDER_BATCH
-        SET
-            po_no   = #{poNo},
+        SET po_no   = #{poNo},
             mat_no  = #{matNo},
             lot_no  = #{lotNo},
             lot_no2 = #{lotNo2},
@@ -191,14 +190,14 @@
         INSERT INTO dbo.TB_WORK_ORDER_PROC
         (
             work_batch_id, po_no, proc_cd,
-            item_cd, work_order_date, work_qty, work_status,
+            item_cd, proc_order_date, order_qty, proc_status,
             work_order_id,
             reg_id, upd_id
         )
         VALUES
             (
                 #{workBatchId}, #{poNo}, #{procCd},
-                #{itemCd}, #{workOrderDate}, #{workQty}, #{workStatus},
+                #{itemCd}, #{procOrderDate}, #{orderQty}, #{procStatus},
                 #{workOrderId},
                 #{userId}, #{userId}
             )
@@ -212,9 +211,9 @@
             po_no           = #{poNo},
             proc_cd         = #{procCd},
             item_cd         = #{itemCd},
-            work_order_date = #{workOrderDate},
-            work_qty        = #{workQty},
-            work_status     = #{workStatus},
+            proc_order_date = #{procOrderDate},
+            order_qty       = #{orderQty},
+            proc_status     = #{procStatus},
             work_order_id   = #{workOrderId},
             upd_id          = #{userId},
             upd_dt          = GETDATE()

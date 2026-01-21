@@ -23,9 +23,11 @@ public class WorkOrderVo {
         private String itemName;
         private String poNo;
         private String etc;
+        private String workStatus;
 
         private String strDate;
         private String toDate;
+        private String matOrderDate;
 
         private Integer batchCnt;
         private String userId;
@@ -57,9 +59,10 @@ public class WorkOrderVo {
             private String procCd;
             private String itemCd;
             private String itemName;
-            private String workOrderDate;
-            private BigDecimal workQty;
-            private String workStatus;
+            private String procOrderDate;
+            private BigDecimal orderQty;
+            private String procStatus;
+            private String procStatusName;
 
             private String userId;
         }

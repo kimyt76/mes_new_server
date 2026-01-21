@@ -72,6 +72,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
 
             // 3) ITEM upsert
             for (WorkOrderVo.Item i : b.getItems()) {
+                i.setProcStatus("00");
                 i.setWorkBatchId(b.getWorkBatchId());
                 i.setWorkOrderId(vo.getWorkOrderId());
                 i.setUserId(userId);
