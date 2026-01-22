@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCommonMapper">
+    <!-- =========================================================
+         1) 메인 리스트 조회
+         WorkOrderVo getWorkOrderList(WorkOrderVo vo);
+         - 기본: work_order_date, area_cd, client_id, manager_id 등 조건이 있으면 적용
+         ========================================================= -->
+    <select id="getWorkerList">
+        select worker_name
+             ,etc
+             ,worker_id
+        from tb_worker_mst
+        where  a.procecc_cd = #{procCd}
+        order by worker_name
+    </select>
+
+    <select id="getEquipmentList">
+        select equipment_name
+              ,equipment_cd
+              ,equipment_id
+        from tb_equipment_mst
+        where  a.procecc_cd = #{storageCd}
+        order by display_order
+    </select>
+
+</mapper>
