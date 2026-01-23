@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.work.mapper.WorkerMapper">
+    <select id="getWorkerAllList">
+        select dbo.getCommonName('area', a.area_cd) as areaName
+              ,dbo.getCommonName('process_cd', a.process_cd) as processName
+              ,a.worker_name
+              ,a.process_cd
+              ,a.area_cd
+              ,a.etc
+              ,a.worker_id
+              ,isnull(a.use_yn, 'Y') as useYn
+        from   tb_worker_mst a
+        where  1=1
+        <if test="areaCd != null and areaCd != ''">
+          and    a.area_cd = #{areaCd}
+        </if>
+        <if test="processCd != null and processCd != ''">
+          and    a.process_cd = #{processCd}
+        </if>
+        <if test="useYn != null and useYn != ''">
+          and    a.use_yn = #{useYn}
+        </if>
+        <if test="workerName != null and workerName != ''">
+          and    a.worker_name like'%' + #{workerName} + '%'
+        </if>
+        order by a.area_cd
+    </select>
+
+    <select id="getWorkerList">
+        select dbo.getCommonName('area', a.area_cd) as areaName
+                ,dbo.getCommonName('process_cd', a.process_cd) as procName
+                ,a.worker_name
+                ,a.process_cd
+                ,a.area_cd
+                ,a.etc
+                ,a.worker_id
+        from   tb_worker_mst a
+        where  a.area_cd = #{areaCd}
+        and    a.use_yn = 'Y'
+    </select>
+
+    <select id="getWorkerInfo">
+        select   a.worker_name
+                ,a.process_cd
+                ,a.area_cd
+                ,a.etc
+                ,a.worker_id
+        from   tb_worker_mst a
+        where  a.worker_id = #{workerId}
+    </select>
+
+    <update id="saveWorkerInfo">
+        MERGE INTO dbo.tb_worker_mst AS T
+        USING (
+                SELECT #{workerId}    AS worker_id
+            ) AS S
+            ON (T.worker_id = S.worker_id)
+            WHEN MATCHED THEN
+                UPDATE SET
+                    T.worker_name = #{workerName},
+                    T.area_cd     = #{areaCd},
+                    T.process_cd  = #{processCd},
+                    T.etc         = #{etc},
+                    T.use_yn      = #{useYn},
+                    T.upd_id      = #{userId},
+                    T.upd_dt      = GETDATE()
+            WHEN NOT MATCHED BY TARGET THEN
+            INSERT (worker_name,area_cd,process_cd,etc, reg_id,upd_id)
+            VALUES (#{workerName},#{areaCd},#{processCd},#{etc},#{userId},#{userId})
+        ;
+    </update>
+
+</mapper>
