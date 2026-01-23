@@ -15,11 +15,18 @@ public interface WorkOrderMapper {
     WorkOrderVo getWorkOrderMst(@Param("workOrderId") String workOrderId);
     List<WorkOrderVo.Batch> getWorkOrderBatch(@Param("workOrderId") String workOrderId);
     List<WorkOrderVo.Item> getWorkOrderProc(@Param("workOrderId") String workOrderId);
-//등록 및 수정
+
+    //등록 및 수정
     void insertWorkOrderMst(WorkOrderVo vo);
     void updateWorkOrderMst(WorkOrderVo vo);
     void insertWorkOrderBatch(WorkOrderVo.Batch b);
     void updateWorkOrderBatch(WorkOrderVo.Batch b);
     void insertWorkOrderProc(WorkOrderVo.Item i);
     void updateWorkOrderProc(WorkOrderVo.Item i);
+
+    int deleteWorkOrderProcByOrderIds(@Param("workOrderIds") List<Long> workOrderIds);
+
+    int deleteWorkOrderBatchByOrderIds(@Param("workOrderIds") List<Long> workOrderIds);
+
+    int deleteWorkOrderMstByOrderIds(@Param("workOrderIds") List<Long> workOrderIds);
 }

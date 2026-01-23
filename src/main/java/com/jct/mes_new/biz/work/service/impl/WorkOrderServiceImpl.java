@@ -86,4 +86,20 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         return vo;
     }
 
+    @Override
+    @Transactional
+    public int deleteWorkOrders(List<Long> workOrderIds) {
+        List<Long> ids = workOrderIds.stream()
+                .filter(v -> v != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (ids.isEmpty()) return 0;
+
+        // FK 순서: PROC -> BATCH -> MST
+        workOrderMapper.deleteWorkOrderProcByOrderIds(ids);
+        workOrderMapper.deleteWorkOrderBatchByOrderIds(ids);
+        return workOrderMapper.deleteWorkOrderMstByOrderIds(ids); // MST 삭제 건수
+    }
+
 }
