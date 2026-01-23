@@ -27,7 +27,6 @@ public class WorkerServiceImpl implements WorkerService {
     }
 
     public String saveWorkerInfo(WorkerVo vo) {
-        log.info(("========================vo=================" + vo));
         if ( workerMapper.saveWorkerInfo(vo) <= 0 ) {
             throw new RuntimeException(String.valueOf(ErrorCode.FAIL_CREATED));
         }
