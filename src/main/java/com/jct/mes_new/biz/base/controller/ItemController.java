@@ -51,7 +51,6 @@ public class ItemController {
         String result = itemService.updateItemInfo(itemVo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
-
     @GetMapping("/getItemInfo/{id}")
     public ItemVo getItemInfo(@PathVariable("id") String itemCd ){
         return itemService.getItemInfo(itemCd);

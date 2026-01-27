@@ -96,7 +96,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public String saveItemAddInfo(ItemVo itemVo) {
-
         try{
             itemMapper.saveItemInfo(itemVo);
             itemMapper.insertItemDetial(itemVo.getItemCd(), itemVo.getUserId());
@@ -110,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
         String msg ="저장되었습니다.";
         try{
             if ( itemMapper.updateItemInfo(itemVo) <= 0 ) {
-                throw new Exception("저장에 실패했습니다.");
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
         } catch (Exception e) {
             throw new RuntimeException("저장 실패 : " + e.getMessage(), e );
@@ -138,10 +137,10 @@ public class ItemServiceImpl implements ItemService {
         String msg ="저장되었습니다.";
         try{
             if ( itemMapper.saveItemDetailInfo(itemVo) <= 0 ) {
-                throw new Exception("저장에 실패했습니다.");
+                throw new BusinessException(ErrorCode.FAIL_UPDATED);
             }
         } catch (Exception e) {
-            throw new RuntimeException("저장 실패 : " + e.getMessage(), e );
+            throw new BusinessException(ErrorCode.FAIL_UPDATED );
         }
         return msg;
     }
