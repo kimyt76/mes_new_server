@@ -4,6 +4,8 @@ package com.jct.mes_new.biz.base.controller;
 import com.jct.mes_new.biz.base.service.ItemService;
 import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class ItemController {
 
     private final ItemService itemService;
+    private final MessageUtil messageUtil;
 
     @GetMapping("/getProdLList")
     public List<ItemVo> getProdLList(){
@@ -38,15 +41,15 @@ public class ItemController {
     }
 
     @PostMapping("/saveItemInfo")
-    public RestResponse<Void> saveItemInfo(@RequestBody ItemVo itemVo){
+    public ResponseEntity<ApiResponse<Void>> saveItemInfo(@RequestBody ItemVo itemVo){
         String result = itemService.saveItemInfo(itemVo);
-        return RestResponse.okMessage(result, null);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
     @PostMapping("/updateItemInfo")
-    public RestResponse<Void> updateItemInfo(@RequestBody ItemVo itemVo){
+    public ResponseEntity<ApiResponse<Void>> updateItemInfo(@RequestBody ItemVo itemVo){
         String result = itemService.updateItemInfo(itemVo);
-        return RestResponse.okMessage(result, null);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
     @GetMapping("/getItemInfo/{id}")
@@ -60,33 +63,20 @@ public class ItemController {
     }
 
     @PostMapping("/saveItemDetailInfo")
-    public ResponseEntity<?> saveItemDetailInfo(@RequestBody ItemVo itemVo){
-        try {
-            String result = itemService.saveItemDetailInfo(itemVo);
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+    public ResponseEntity<ApiResponse<Void>> saveItemDetailInfo(@RequestBody ItemVo itemVo){
+        String result = itemService.saveItemDetailInfo(itemVo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
-
     @PostMapping("/saveItemAddInfo")
-    public RestResponse<Void> saveItemAddInfo(@RequestBody ItemVo itemVo){
+    public ResponseEntity<ApiResponse<Void>> saveItemAddInfo(@RequestBody ItemVo itemVo){
         String result = itemService.saveItemAddInfo(itemVo);
-        return RestResponse.okMessage(result, null);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
-
     @PostMapping("/updatePriceInfo")
-    public ResponseEntity<?> updatePriceInfo(@RequestBody Map<String, Object> paramMap) {
-       try {
-            // Service로 Map 그대로 전달
-            itemService.updatePriceInfoMap(paramMap);
-            return ResponseEntity.ok("단가 변경 완료");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("단가 변경 실패");
-        }
+    public ResponseEntity<ApiResponse<Void>> updatePriceInfo(@RequestBody Map<String, Object> paramMap) {
+        // Service로 Map 그대로 전달
+        itemService.updatePriceInfoMap(paramMap);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
 

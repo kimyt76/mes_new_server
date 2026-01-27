@@ -55,7 +55,7 @@ public class ItemServiceImpl implements ItemService {
         if (existing != null && !existing.isEmpty()) {
             // existing이 바로 중복된 코드 목록
             // 예외 던지거나 메시지 처리
-            throw new BusinessException(ErrorCode.DUPLICATE_ITEM_CODE,
+            throw new BusinessException(ErrorCode.DUPLICATE,
                     "이미 존재하는 코드가 있습니다: " + String.join(", ", existing),
                     Map.of("duplicateCodes", existing));
         }
@@ -69,7 +69,7 @@ public class ItemServiceImpl implements ItemService {
             }
         } catch (Exception e) {
             log.error("saveItemInfo error. baseItemCd={}, gb={}", baseItemCd, gb, e);
-            throw new BusinessException(ErrorCode.SAVE_FAIL, "저장 중 오류가 발생했습니다.");
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
         return "저장되었습니다.";
     }
@@ -101,7 +101,7 @@ public class ItemServiceImpl implements ItemService {
             itemMapper.saveItemInfo(itemVo);
             itemMapper.insertItemDetial(itemVo.getItemCd(), itemVo.getUserId());
         } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SAVE_FAIL, "저장 중 오류가 발생했습니다.");
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
         return "저장되었습니다.";
     }
