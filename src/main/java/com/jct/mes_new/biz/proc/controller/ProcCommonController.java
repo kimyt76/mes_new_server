@@ -20,7 +20,6 @@ public class ProcCommonController {
 
     private final ProcCommonService procCommonService;
 
-
     @GetMapping("/getWorkerList/{id}")
     public List<ProcCommonVo> getWorkerList(@PathVariable("id") String procCd) {
         return  procCommonService.getWorkerList(procCd);

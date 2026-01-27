@@ -7,8 +7,7 @@ import java.math.BigInteger;
 @Data
 public class ProcCommonVo {
 
-    private BigInteger workerId;
-    private String workerName;
+
 
     private BigInteger equipmentId;
     private String equipmentCd;
