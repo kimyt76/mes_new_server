@@ -7,9 +7,11 @@ import com.jct.mes_new.biz.order.service.ContractService;
 import com.jct.mes_new.biz.order.vo.ContractSaveRequestVo;
 import com.jct.mes_new.biz.order.vo.ContractVo;
 import com.jct.mes_new.biz.order.vo.ContractItemVo;
-import com.jct.mes_new.config.util.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
+import com.jct.mes_new.config.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class ContractController {
 
     private final ContractService contractService;
+    private final MessageUtil messageUtil;
 
     @PostMapping("/getContractList")
     public List<ContractVo> getContractList(@RequestBody ContractVo contractVo) {
@@ -38,41 +41,30 @@ public class ContractController {
     }
 
     @PostMapping("/saveContractInfo")
-    public ResponseEntity<?> saveContractInfo(@RequestPart("contractInfo") String contractInfoJson,
-                                              @RequestPart("itemList") String itemListJson,
-                                              @RequestPart(value = "attachFile" , required = false) List<MultipartFile> attachFileList ) throws Exception {
+    public  ResponseEntity<ApiResponse<Map<String, String>>> saveContractInfo(@RequestPart("contractInfo") String contractInfoJson,
+                                                            @RequestPart("itemList") String itemListJson,
+                                                            @RequestPart(value = "attachFile" , required = false) List<MultipartFile> attachFileList ) throws Exception {
 
-        try {
             ObjectMapper mapper = new ObjectMapper();
-
             ContractVo contractInfo = mapper.readValue(contractInfoJson, ContractVo.class);
             List<ContractItemVo> itemList = mapper.readValue(itemListJson, new TypeReference<List<ContractItemVo>>() {});
-            String result = contractService.saveContractInfo(contractInfo, itemList, attachFileList);
-            Map<String, String> response = Map.of("contractId", result);
+            String contractId  = contractService.saveContractInfo(contractInfo, itemList, attachFileList);
 
-            return ResponseEntity.ok(ApiResponse.success(response));
-            //return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail("저장에 실패했습니다.", 400));
-//            return ResponseEntity
-//                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+        return ResponseEntity.ok(
+                ApiResponse.ok(messageUtil.get("success.created"), Map.of("contractId", contractId))
+        );
     }
 
 
     @PostMapping("/updateContractInfo")
-    public ResponseEntity<?> updateContractInfo(@RequestPart("contractInfo") String contractInfoJson,
+    public ResponseEntity<ApiResponse<Map<String, String>>> updateContractInfo(@RequestPart("contractInfo") String contractInfoJson,
                                                 @RequestPart("itemList") String itemListJson,
                                                 @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles,
                                                 @RequestPart(value = "deleteFiles", required = false) String deleteFilesJson,
                                                 @RequestPart(value = "keptFiles", required = false) String keptFilesJson
                                                 ) throws Exception {
-        try {
             ObjectMapper mapper = new ObjectMapper();
-
             ContractSaveRequestVo vo = new ContractSaveRequestVo();
-
             vo.setContractInfo(mapper.readValue(contractInfoJson, ContractVo.class));
             vo.setItemList(mapper.readValue(itemListJson, new TypeReference<List<ContractItemVo>>() {}));
             vo.setNewFiles(newFiles != null ? newFiles : new ArrayList<>());
@@ -86,12 +78,12 @@ public class ContractController {
                     mapper.readValue(keptFilesJson, new TypeReference<List<FileVo>>() {}) :
                     new ArrayList<>());
 
-            String result = contractService.updateContractInfo(vo);
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+        String contractId  = contractService.updateContractInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated"), Map.of("contractId", contractId)));
     }
+
+
+
+
+
 }

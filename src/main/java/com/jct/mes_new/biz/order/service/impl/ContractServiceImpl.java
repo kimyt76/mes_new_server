@@ -10,10 +10,13 @@ import com.jct.mes_new.biz.order.vo.ContractItemVo;
 import com.jct.mes_new.config.common.CommonUtil;
 import com.jct.mes_new.config.common.FileUpload;
 import com.jct.mes_new.config.common.Snowflake;
+import com.jct.mes_new.config.common.exception.BusinessException;
+import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
@@ -46,97 +49,132 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public String saveContractInfo(ContractVo contractInfo, List<ContractItemVo> itemList, List<MultipartFile> attachFileList) throws Exception {
+    public String saveContractInfo(ContractVo contractInfo,
+                                   List<ContractItemVo> itemList,
+                                   List<MultipartFile> attachFileList) {
+
         Snowflake snowflake = new Snowflake(1, 1);
         String contractId = CommonUtil.generateUUID();
 
-        try{
-            /* 주문서id 채번*/
+        try {
+            // 1) mst key 세팅
             contractInfo.setContractId(contractId);
 
-            /* 첨부파일 정보 저장 및 ID 채번*/
-            if ( attachFileList != null ){
+            // 2) 첨부파일 저장 + attachFileId 세팅
+            if (attachFileList != null && !attachFileList.isEmpty()) {
                 List<FileVo> fileVoList = FileUpload.multiFileUpload(attachFileList);
+                // 업로드 결과가 비정상인 경우 방어
+                if (fileVoList == null || fileVoList.isEmpty() || fileVoList.get(0).getAttachFileId() == null) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
                 contractInfo.setAttachFileId(fileVoList.get(0).getAttachFileId());
 
-                for (FileVo item : fileVoList) {
-                    item.setUserId(contractInfo.getUserId());
-                    if (!fileHandlerMapper.saveFile(item)) {
-                        throw new Exception("첨부 파일 저장 실패");
+                for (FileVo f : fileVoList) {
+                    f.setUserId(contractInfo.getUserId());
+                    if (!fileHandlerMapper.saveFile(f)) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
                 }
             }
-
-            if ( contractMapper.saveContractInfo(contractInfo) <= 0 ) {
-                throw new Exception("주문서 저장에 실패했습니다.");
-            }else{
-                contractMapper.deleteContractItemList(contractInfo.getContractId());
-
+            // 4) mst INSERT
+            int mstIns = contractMapper.insertContractInfo(contractInfo);
+            if (mstIns <= 0) {
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+            // 5) item INSERT(신규)
+            if (itemList != null) {
                 for (ContractItemVo item : itemList) {
                     item.setContractItemId(String.valueOf(snowflake.nextId()));
-                    item.setContractId(contractInfo.getContractId());
+                    item.setContractId(contractId);
                     item.setUserId(contractInfo.getUserId());
 
-                    if ( contractMapper.saveItemList(item)  <= 0 ){
-                        throw new Exception("품목리스트 저장 실패");
+                    int itemIns = contractMapper.insertContractItem(item);
+                    if (itemIns <= 0) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
                 }
             }
-        }catch (Exception e){
-            throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
+
+            return contractId;
+        } catch (BusinessException e) {
+            // 이미 우리가 의도한 예외 -> 그대로 던져서 롤백
+            throw e;
+        } catch (Exception e) {
+            // 예기치 못한 예외도 롤백되게 BusinessException으로 통일
+            log.error("saveContractInfo failed. contractId={}, userId={}", contractId, contractInfo.getUserId(), e);
+            throw e; // 또는 BusinessException으로 감싸되 원인 포함
         }
-        return contractId;
     }
 
-
-    public String updateContractInfo(ContractSaveRequestVo vo) throws Exception {
+    @Transactional(rollbackFor = Exception.class)
+    public String updateContractInfo(ContractSaveRequestVo vo) {
         Snowflake snowflake = new Snowflake(1, 1);
         String msg = "저장되었습니다.";
 
         try {
-            if ( contractMapper.saveContractInfo(vo.getContractInfo()) <= 0 ) {
-                throw new Exception("주문서 저장에 실패했습니다.");
-            }
+            ContractVo contractInfo = vo.getContractInfo();
+            String contractId = contractInfo.getContractId();
+            String userId = contractInfo.getUserId();
 
-            String contractId = vo.getContractInfo().getContractId();
-            String userId = vo.getContractInfo().getUserId();
+            // 2) mst UPDATE
+            int mstUpd = contractMapper.updateContractInfo(contractInfo);
+            if (mstUpd <= 0) {
+                throw new BusinessException(ErrorCode.FAIL_CREATED); // FAIL_UPDATED 있으면 그걸로
+            }
+            // 3) item 전체 재등록(삭제 후 insert)
             contractMapper.deleteContractItemList(contractId);
 
-            for (ContractItemVo item : vo.getItemList()) {
-                item.setContractItemId(String.valueOf(snowflake.nextId()));
-                item.setContractId(contractId);
-                item.setUserId(userId);
+            if (vo.getItemList() != null) {
+                for (ContractItemVo item : vo.getItemList()) {
+                    item.setContractItemId(String.valueOf(snowflake.nextId()));
+                    item.setContractId(contractId);
+                    item.setUserId(userId);
 
-                if ( contractMapper.saveItemList(item)  <= 0 ){
-                    throw new Exception("품목리스트 저장 실패");
+                    int itemIns = contractMapper.insertContractItem(item);
+                    if (itemIns <= 0) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
                 }
             }
-
-            if ( vo.getDeleteFiles() != null && !vo.getDeleteFiles().isEmpty() ) {
-                for (FileVo item : vo.getDeleteFiles()){
-                    fileHandlerMapper.deleteFile(item.getAttachFileId(), item.getSeq() );
+            // 4) 삭제 파일 처리
+            if (vo.getDeleteFiles() != null && !vo.getDeleteFiles().isEmpty()) {
+                for (FileVo f : vo.getDeleteFiles()) {
+                    fileHandlerMapper.deleteFile(f.getAttachFileId(), f.getSeq());
                 }
             }
+            // 5) 신규 파일 업로드/저장
+            if (vo.getNewFiles() != null && !vo.getNewFiles().isEmpty()) {
+                List<FileVo> fileVoList = FileUpload.multiFileUpload(vo.getNewFiles());
 
-            List<FileVo> fileVoList = FileUpload.multiFileUpload(vo.getNewFiles());
-            int nextSeq = fileHandlerMapper.nextSeq( vo.getContractInfo().getAttachFileId());
+                if (fileVoList != null && !fileVoList.isEmpty()) {
+                    // attachFileId 없으면 새로 세팅
+                    if (contractInfo.getAttachFileId() == null) {
+                        contractInfo.setAttachFileId(fileVoList.get(0).getAttachFileId());
+                    }
 
-            if ( vo.getContractInfo().getAttachFileId()  == null ){
-                vo.getContractInfo().setAttachFileId(fileVoList.get(0).getAttachFileId());
-            }
+                    int nextSeq = fileHandlerMapper.nextSeq(contractInfo.getAttachFileId());
 
-            for (FileVo item : fileVoList) {
-                item.setAttachFileId(vo.getContractInfo().getAttachFileId());
-                item.setSeq(nextSeq);
-                item.setUserId(userId);
-                if (!fileHandlerMapper.saveFile(item)) {
-                    throw new Exception("첨부 파일 저장 실패");
+                    for (FileVo f : fileVoList) {
+                        f.setAttachFileId(contractInfo.getAttachFileId());
+                        f.setSeq(nextSeq++);
+                        f.setUserId(userId);
+
+                        if (!fileHandlerMapper.saveFile(f)) {
+                            throw new BusinessException(ErrorCode.FAIL_CREATED);
+                        }
+                    }
+                    // attachFileId가 새로 생긴 케이스면 mst에 반영 필요할 수 있음(선택)
+                    // (현재 updateContractInfo SQL에 attach_file_id가 업데이트에 없으면 아래 추가 필요)
+                    contractMapper.updateAttachFileId(contractId, contractInfo.getAttachFileId());
                 }
-                nextSeq++;
             }
-        }catch (Exception e){
-            throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
+            return msg;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        return msg;
     }
+
+
 }

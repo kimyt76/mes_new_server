@@ -24,6 +24,7 @@ public class ContractVo {
     private String orderType;   /*수주유형 신규, 재발주, 리뉴얼*/
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String expectedDueDate;     /* 납기예정일*/
+
     private String vatType; /*거래유형   과세, 비과세*/
     private String attachFileId;
 

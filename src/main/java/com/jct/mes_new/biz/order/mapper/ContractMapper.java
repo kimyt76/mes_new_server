@@ -15,11 +15,15 @@ public interface ContractMapper {
 
     List<ContractItemVo> getItemList(String contractId);
 
-    int saveContractInfo(ContractVo contractInfo);
+    int insertContractInfo(ContractVo contractInfo);
+    int insertContractItem(ContractItemVo item);
 
-    int saveItemList(ContractItemVo itemListVo);
+    int updateContractInfo(ContractVo contractInfo);
 
     void deleteContractItemList(String contractId);
 
     List<ContractItemVo> getContractItemList(List<String> contractIdList);
+
+
+    void updateAttachFileId(String contractId, String attachFileId);
 }

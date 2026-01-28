@@ -30,7 +30,10 @@
                 on d.client_id = b.client_id
                 inner join tb_users e
                 on e.user_id = b.manager_id
-        where  b.contract_date between #{strDate} and #{toDate}
+        where  1=1
+        <if test='strDate != "" and strDate != null'>
+          and b.contract_date between #{strDate} and #{toDate}
+        </if>
         <if test='itemCd != "" and itemCd != null'>
             AND a.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
@@ -87,7 +90,7 @@
              ,a.supply_price
              ,a.vat_price
              ,isnull(a.supply_price, 0)+ isnull(a.vat_price, 0) as totPrice
-             ,(select count(*) from tb_contract_item x where x.item_cd = a.item_cd ) as orderCnt
+             ,a.degree
              ,a.status_type
              ,a.etc
              ,a.contract_id
@@ -132,85 +135,98 @@
         </foreach>
     </select>
 
-    <update id="saveContractInfo">
-        merge into tb_contract_mst a
-        using   (select #{contractId} as contract_id ) b
-        on      a.contract_id = b.contract_id
-        when  matched  then
-            update set
-                     expected_due_date = #{expectedDueDate}
-                    ,payment_condition =#{paymentCondition}
-                    ,manager_id=#{managerId}
-                    ,client_id =#{clientId}
-                    ,vat_type = #{vatType}
-                    ,order_type = #{orderType}
-                    ,upd_id =#{userId}
-                    ,upd_dt = getdate()
-        when not matched then
-            insert ( contract_id
-                    ,contract_date
-                    ,seq
-                    ,expected_due_date
-                    ,payment_condition
-                    ,manager_id
-                    ,client_id
-                    ,vat_type
-                    ,order_type
-                    ,attach_file_id
-                    ,reg_id
-                    ,upd_id )
-            values (
-                    #{contractId}
-                   ,#{contractDate}
-                   ,#{seq}
-                   ,#{expectedDueDate}
-                   ,#{paymentCondition}
-                   ,#{managerId}
-                   ,#{clientId}
-                   ,#{vatType}
-                   ,#{orderType}
-                   ,#{attachFileId}
-                   ,#{userId}
-                   ,#{userId}
-                   )
-        ;
+    <insert id="insertContractInfo">
+        INSERT INTO tb_contract_mst (
+             contract_id
+            ,contract_date
+            ,seq
+            ,expected_due_date
+            ,payment_condition
+            ,manager_id
+            ,client_id
+            ,vat_type
+            ,order_type
+            ,attach_file_id
+            ,reg_id
+            ,upd_id
+        )
+        VALUES (
+                #{contractId}
+               ,#{contractDate}
+               ,#{seq}
+               ,#{expectedDueDate}
+               ,#{paymentCondition}
+               ,#{managerId}
+               ,#{clientId}
+               ,#{vatType}
+               ,#{orderType}
+               ,#{attachFileId}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
+
+    <update id="updateAttachFileId">
+        UPDATE tb_contract_mst
+        SET    attach_file_id = #{attachFileId}
+        WHERE  contract_id    = #{contractId}
     </update>
 
-    <update id="saveItemList">
-        MERGE INTO tb_contract_item a
-        USING (SELECT #{contractItemId} AS contract_item_id ) b
-        ON (a.contract_item_id = b.contract_item_id)
-        WHEN MATCHED THEN
-            UPDATE SET
-                 qty = #{qty}
-                ,unit_price = #{unitPrice}
-                ,supply_price = #{supplyPrice}
-                ,vat_price = #{vatPrice}
-                ,order_cnt = #{orderCnt}
-                ,status_type = #{statusType}
-                ,etc = #{etc}
-                ,order_dist = #{orderDist}
-                ,upd_id = #{userId}
-                ,upd_dt = getDate()
-        WHEN NOT MATCHED THEN
-            INSERT (contract_item_id, contract_id, po_no, item_cd, qty, unit_price, supply_price, vat_price, order_Cnt, status_type ,etc, order_dist, reg_id, upd_id)
-            VALUES (
-                    #{contractItemId}
-                   ,#{contractId}
-                   ,isnull(CAST(#{poNo} AS nvarchar(50)), (select CAST( x.contract_date AS nvarchar)+'-'+CAST(x.seq AS NVARCHAR)+'-'+CAST(#{orderDist} AS nvarchar) from tb_contract_mst x where contract_Id = #{contractId}))
-                   ,#{itemCd}
-                   ,#{qty}
-                   ,#{unitPrice}
-                   ,#{supplyPrice}
-                   ,#{vatPrice}
-                   ,(select count(*)+1 from tb_contract_item where item_cd = #{itemCd})
-                   ,#{statusType}
-                   ,#{etc}
-                   ,#{orderDist}
-                   ,#{userId}
-                   ,#{userId}
-                   )
-        ;
+    <update id="updateContractInfo">
+        UPDATE tb_contract_mst
+        SET    expected_due_date   = #{expectedDueDate}
+              ,payment_condition   = #{paymentCondition}
+              ,manager_id          = #{managerId}
+              ,client_id           = #{clientId}
+              ,vat_type            = #{vatType}
+              ,order_type          = #{orderType}
+              ,upd_id              = #{userId}
+              ,upd_dt              = GETDATE()
+        WHERE contract_id = #{contractId}
     </update>
+
+    <insert id="insertContractItem">
+        INSERT INTO tb_contract_item (
+            contract_item_id,contract_id,po_no,item_cd,qty,unit_price,supply_price,vat_price,degree,status_type,etc,order_dist,reg_id,upd_id
+        )
+        VALUES (
+                #{contractItemId}
+               ,#{contractId}
+               ,ISNULL(CAST(#{poNo} AS NVARCHAR(50)),
+                         ( SELECT CAST(x.contract_date AS NVARCHAR) + '-' +CAST(x.seq AS NVARCHAR) + '-' +CAST(#{orderDist} AS NVARCHAR)
+                             FROM tb_contract_mst x
+                             WHERE x.contract_id = #{contractId}
+                         )
+                )
+               ,#{itemCd}
+               ,#{qty}
+               ,#{unitPrice}
+               ,#{supplyPrice}
+               ,#{vatPrice}
+               ,(SELECT COUNT(*) + 1 FROM tb_contract_item WHERE item_cd = #{itemCd})
+               ,#{statusType}
+               ,#{etc}
+               ,#{orderDist}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
+
+    <update id="updateContractItem">
+        UPDATE tb_contract_item
+        SET    qty          = #{qty}
+              ,unit_price   = #{unitPrice}
+              ,supply_price = #{supplyPrice}
+              ,vat_price    = #{vatPrice}
+              ,degree       = #{degree}
+              ,status_type  = #{statusType}
+              ,etc          = #{etc}
+              ,order_dist   = #{orderDist}
+              ,upd_id       = #{userId}
+              ,upd_dt       = GETDATE()
+        WHERE contract_item_id = #{contractItemId}
+    </update>
+
+
 
 </mapper>

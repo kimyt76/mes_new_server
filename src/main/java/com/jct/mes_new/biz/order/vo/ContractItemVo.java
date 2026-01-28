@@ -11,8 +11,8 @@ public class ContractItemVo {
     private String poNo;
     private String itemCd;
     private String itemName;
-    private String unit;
-    private String orderCnt;        /*수주차수*/
+    private String spec;
+    private Integer  degree;        /*수주차수*/
     private BigDecimal qty;
     private BigDecimal unitPrice;
     private BigDecimal supplyPrice;
@@ -22,7 +22,7 @@ public class ContractItemVo {
     private String prodType;    /* 제품유형*/
     private String statusType;
     private String etc;
-    private int orderDist;
+    private Integer  orderDist;
 
 
     private String userId;
