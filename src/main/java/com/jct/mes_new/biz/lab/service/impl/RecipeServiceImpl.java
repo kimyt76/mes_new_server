@@ -4,6 +4,8 @@ import com.jct.mes_new.biz.lab.mapper.RecipeMapper;
 import com.jct.mes_new.biz.lab.service.RecipeService;
 import com.jct.mes_new.biz.lab.vo.*;
 import com.jct.mes_new.config.common.CommonUtil;
+import com.jct.mes_new.config.common.exception.BusinessException;
+import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +46,7 @@ public class RecipeServiceImpl implements RecipeService {
                 recipeInfo.setRecipeId(recipe_id);
             }
             if( recipeMapper.saveRecipeInfo(recipeInfo) <= 0 ){
-                throw new Exception("처방정보 저장에 실패했습니다.");
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
             if(!recipeList.isEmpty()){
                 recipeMapper.deleteRecipeList(recipe_id);
@@ -53,7 +55,7 @@ public class RecipeServiceImpl implements RecipeService {
                     recipe.setRecipeId(recipe_id);
                     recipe.setUserId(recipeInfo.getUserId());
                     if( recipeMapper.saveRecipeList(recipe) <= 0 ){
-                        throw new Exception("처방정보 저장에 실패했습니다.");
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
                 }
             }

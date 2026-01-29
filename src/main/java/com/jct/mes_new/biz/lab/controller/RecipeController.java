@@ -6,7 +6,8 @@ import com.jct.mes_new.biz.lab.vo.AllIngredientVo;
 import com.jct.mes_new.biz.lab.vo.RecipeDetailVo;
 import com.jct.mes_new.biz.lab.vo.RecipeRequestVo;
 import com.jct.mes_new.biz.lab.vo.RecipeVo;
-import com.jct.mes_new.config.util.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
+import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.util.ExcelStyleUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class RecipeController {
 
     private final RecipeService recipeService;
+    private final MessageUtil messageUtil;
 
 
     @GetMapping("/getProdTypeList")
@@ -53,21 +55,13 @@ public class RecipeController {
     }
 
     @PostMapping("/saveRecipeInfo")
-    public ResponseEntity<?> saveRecipeInfo(@RequestBody RecipeRequestVo request ) throws Exception {
-
-        try {
+    public ResponseEntity<ApiResponse<Map<String, String>>> saveRecipeInfo(@RequestBody RecipeRequestVo request ) throws Exception {
             RecipeVo recipeInfo = request.getRecipeInfo();
             List<RecipeDetailVo> recipeList = request.getRecipeList();
 
-            String result = recipeService.saveRecipeInfo(recipeInfo, recipeList);
+            String recipeId = recipeService.saveRecipeInfo(recipeInfo, recipeList);
 
-            Map<String, String> response = Map.of("recipeId", result);
-
-            return ResponseEntity.ok(ApiResponse.success(response));
-            //return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail("저장에 실패했습니다.", 400));
-        }
+            return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), Map.of("recipeId", recipeId)));
     }
 
     @PostMapping("/downloadRecipe")
