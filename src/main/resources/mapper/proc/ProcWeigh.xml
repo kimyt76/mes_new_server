@@ -2,6 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcWeighMapper">
+    <select id="checkWeighCnt">
+        select count(*) from tb_weigh_info where work_proc_id = #{workProcId}
+    </select>
     <!-- =========================================================
          1) 메인 리스트 조회
          WorkOrderVo getWorkOrderList(WorkOrderVo vo);
@@ -10,13 +13,14 @@
     <select id="getWeighList">
         select   dbo.getCommonName('area', c.area_cd) as areaName
                 ,b.po_no
-                ,a.work_order_date
+                ,a.proc_order_date
                 ,b.mat_no
                 ,b.lot_no
                 ,a.item_cd
                 ,d.item_name
                 ,a.order_qty
-                ,a.work_status
+                ,a.proc_status
+                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatusName
                 ,c.area_cd
                 ,a.proc_cd
                 ,c.work_order_id
@@ -42,11 +46,87 @@
         <if test="itemName != null and itemName != ''">
             and  d.item_name LIKE '%' + #{itemName} + '%'
         </if>
-        <if test="workStatus != null and workStatus != ''">
-            and  a.work_status = #{workStatus}
+        <if test="procStatus != null and procStatus != ''">
+            and  a.proc_status = #{procStatus}
         </if>
         ORDER BY c.work_order_date DESC, c.seq DESC
     </select>
+
+    <select id="getWeighHeadInfo">
+        select  b.mat_no
+                 ,a.item_cd
+                 ,dbo.getItemName(a.item_cd)  as itemName
+                 ,a.proc_order_date
+                 ,a.order_qty
+                 ,(select storage_name from tb_storage_mst where storage_cd = a.storage_cd) as storage_name
+                 ,a.prod_date
+                 ,a.storage_cd
+                 ,a.memo
+                 ,a.etc
+                 ,b.po_no
+                 ,a.end_yn
+        from    TB_WORK_ORDER_PROC a
+                inner join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+        where   a.proc_cd = 'PRC001'
+          and   a.work_proc_id = #{workProcId}
+    </select>
+
+    <select id="getBomWeighList">
+        select b.item_cd
+             ,dbo.getItemName(b.item_cd) as item_name
+             ,isnull(d.phase, b.phase ) as phase
+             ,c.appearance
+             ,b.real_content as orderQty
+             ,d.weigh_qty
+             ,d.bag_weight
+             ,d.test_no
+             ,d.weigh_yn
+             ,d.weigher
+             ,d.confirmer
+             ,d.weigh_id
+             ,d.work_proc_id
+        from  tb_bom_mst a
+                  inner join tb_bom_recipe b
+                             on b.bom_id = a.bom_id
+                                 and  a.item_cd = #{itemCd}
+                  inner join tb_item_detail c
+                             on c.item_cd = b.item_cd
+                  left outer join tb_weigh_info d
+                                  on b.item_cd = d.item_cd
+        where a.default_yn = 'Y'
+        order by d.dist_order
+    </select>
+
+
+    <select id="getRealBomWeighList">
+        select b.item_cd
+             ,dbo.getItemName(b.item_cd) as item_name
+             ,isnull(c.phase, b.phase ) as phase
+             ,(select  appearance from tb_item_detail where item_cd = b.item_cd ) as appearance
+             ,b.real_content as orderQty
+             ,c.weigh_qty
+             ,c.bag_weight
+             ,c.test_no
+             ,c.weigh_yn
+             ,c.weigher
+             ,c.confirmer
+             ,c.weigh_id
+             ,c.work_proc_id
+        from  tb_bom_mst a
+              inner join tb_bom_recipe b
+              on b.bom_id = a.bom_id
+              and  a.item_cd = #{itemCd}
+              inner join tb_weigh_info c
+              on b.item_cd = c.item_cd
+        where c.work_proc_id = #{workProcId}
+          and   a.default_yn = 'Y'
+        order by c.dist_order
+
+
+    </select>
+
+
 <!--    &lt;!&ndash; =========================================================-->
 <!--         2) 상세 조회-->
 <!--         WorkOrderVo getWorkOrderMst(String workOrderId);-->
