@@ -12,7 +12,7 @@ import java.util.Map;
 public interface DraftService {
     public List<DraftVo> getDraftList(DraftVo orderVo);
 
-    String saveDraftInfo(DraftVo draftVo, ApprovalVo approvalVo, MultipartFile orderFile, MultipartFile prodFile) throws Exception;;
+    String saveDraftInfo(DraftVo draftVo, ApprovalVo approvalVo, List<MultipartFile> attachFileList);
     //String saveOrderInfo(OrderVo orderVo, ApprovalVo approvalVo, BoardVo boardVo, MultipartFile orderFile, MultipartFile prodFile) throws Exception;;
 
     int getSeq();

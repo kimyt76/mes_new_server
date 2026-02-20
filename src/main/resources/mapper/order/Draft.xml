@@ -5,7 +5,7 @@
     <select id="getDraftList">
         select   a.draft_date+'-'+ convert(nvarchar, seq) as draftDateSeq
                 ,a.item_name
-                ,a.customer_name
+                ,a.client_name
                 ,a.draft_date
                 ,b.member_nm as draftUserName
                 ,a.status_Type
@@ -15,8 +15,8 @@
                inner join tb_users b
                on b.user_id = a.draft_user_id
         where 1=1
-        <if test='customerName != "" and customerName != null'>
-        AND a.customer_nm LIKE '%' + #{customerName} + '%'
+        <if test='clientName != "" and clientName != null'>
+        AND a.client_name LIKE '%' + #{clientName} + '%'
         </if>
         <if test='itemName != "" and itemName != null'>
             AND a.item_name LIKE '%' + #{itemName} + '%'
@@ -31,15 +31,14 @@
         select   a.draft_date+'-'+ convert(nvarchar, seq) as draftDateSeq
                  ,a.seq
                  ,a.item_name
-                 ,a.customer_name
+                 ,a.client_name
                  ,a.draft_date
                  ,dbo.getUserName(a.draft_user_id) as draftUserName
                  ,a.draft_user_id
                  ,a.draft_dept
                  ,a.due_date
                  ,a.order_qty
-                 ,a.order_attach_file_id
-                 ,a.prod_attach_file_id
+                 ,a.attach_file_id
                  ,a.approval_id
                  ,a.board_id
                  ,a.draft_id
@@ -58,19 +57,18 @@
             and   a.draft_date = b.draft_date
             and   a.seq = b.seq
         when matched then
-            update  set  customer_name = #{customerName}
+            update  set  client_Name = #{clientName}
                         ,item_name = #{itemName}
                         ,order_qty = #{orderQty}
                         ,due_date = #{dueDate}
-                        ,order_attach_file_id = #{orderAttachFileId}
-                        ,prod_attach_file_id = #{prodAttachFileId}
+                        ,attach_file_id = #{attachFileId}
                         ,upd_Id = #{userId}
                         ,upd_Dt = getdate()
         when not matched then
-            insert (  draft_id ,draft_date,seq,draft_Dept, draft_user_id,customer_name,item_name,order_qty,due_date,board_id, approval_id
-                      ,status_Type  ,order_attach_file_id ,prod_attach_file_id ,reg_id ,upd_id )
-            values ( #{draftId} ,#{draftDate},#{seq},#{draftDept},#{draftUserId},#{customerName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
-                    ,#{statusType},#{orderAttachFileId} ,#{prodAttachFileId} ,#{userId} ,#{userId} )
+            insert (  draft_id ,draft_date,seq,draft_Dept, draft_user_id,client_Name,item_name,order_qty,due_date,board_id, approval_id
+                      ,status_Type  ,attach_file_id ,reg_id ,upd_id )
+            values ( #{draftId} ,#{draftDate},#{seq},#{draftDept},#{draftUserId},#{clientName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
+                    ,#{statusType},#{attachFileId} ,#{userId} ,#{userId} )
         ;
     </update>
 

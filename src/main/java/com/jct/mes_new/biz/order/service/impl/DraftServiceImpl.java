@@ -6,10 +6,13 @@ import com.jct.mes_new.biz.order.mapper.DraftMapper;
 import com.jct.mes_new.biz.order.service.DraftService;
 import com.jct.mes_new.biz.order.vo.ApprovalVo;
 import com.jct.mes_new.biz.order.vo.BoardVo;
+import com.jct.mes_new.biz.order.vo.ContractItemVo;
 import com.jct.mes_new.biz.order.vo.DraftVo;
 import com.jct.mes_new.config.common.CommonUtil;
 import com.jct.mes_new.config.common.FileUpload;
 import com.jct.mes_new.config.common.UserUtil;
+import com.jct.mes_new.config.common.exception.BusinessException;
+import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,51 +42,49 @@ public class DraftServiceImpl implements DraftService {
      * 발주서 정보 등록
      * @param draftVo  발주정보
      * @param approvalVo  결재정보
-     * @param orderFile  첨부파일
-     * @param prodFile  첨부파일
+     * @param attachFileList  첨부파일
      * @return
      * @throws Exception
      */
     @Transactional(rollbackFor = Exception.class)
-    public String saveDraftInfo(DraftVo draftVo,
-                                ApprovalVo approvalVo,
-                                MultipartFile orderFile,
-                                MultipartFile prodFile) throws Exception {
+    public String saveDraftInfo(DraftVo draftVo, ApprovalVo approvalVo, List<MultipartFile> attachFileList) {
 
         String msg = "저장되었습니다.";
         draftVo.setUserId(UserUtil.getUserId());
-
+        log.info("======================draftVo===========: " + draftVo);
         try {
             if (draftVo.getDraftId() == null) {
                 draftVo.setDraftId(CommonUtil.createUUId());
                 draftVo.setApprovalId(CommonUtil.createUUId());
+                log.info("======================approvalVo===========: " + approvalVo);
                 //결재정보 저장
                 if (!draftMapper.saveApprovalInfo(draftVo.getApprovalId(), approvalVo.getLabUserId())) {
-                    throw new Exception("결재정보 등록 오류 발생");
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
             }else{
                 if (!draftMapper.updateApprovalInfo(draftVo.getApprovalId(), approvalVo.getLabUserId())) {
-                    throw new Exception("결재정보 수정 오류 발생");
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
             }
 
-            if (orderFile != null) {
-                FileVo order = FileUpload.singleFileUpload(orderFile);
-                draftVo.setOrderAttachFileId(order.getAttachFileId());
 
-                // 첨부파일 저장
-                if (!fileHandlerMapper.saveFile(order)) {
-                    throw new Exception("발주서 파일 저장 실패");
+            log.info("======================attachFileList===========: " + attachFileList);
+            if (attachFileList != null && !attachFileList.isEmpty()) {
+                List<FileVo> fileVoList = FileUpload.multiFileUpload(attachFileList);
+                // 업로드 결과가 비정상인 경우 방어
+                if (fileVoList == null || fileVoList.isEmpty() || fileVoList.get(0).getAttachFileId() == null) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+                draftVo.setAttachFileId(fileVoList.get(0).getAttachFileId());
+
+                for (FileVo f : fileVoList) {
+                    f.setUserId(draftVo.getUserId());
+                    if (!fileHandlerMapper.saveFile(f)) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
                 }
             }
-            if (prodFile != null) {
-                FileVo prod = FileUpload.singleFileUpload(prodFile);
-                draftVo.setProdAttachFileId(prod.getAttachFileId());
-
-                if (!fileHandlerMapper.saveFile(prod)) {
-                    throw new Exception("제품사양서 파일 저장 실패");
-                }
-            }
+            log.info("======================draftVo===========: " + draftVo);
             // 발주서 저장
             if (!draftMapper.saveDraftInfo(draftVo)) {
                 throw new Exception("발주서 정보 저장 실패");

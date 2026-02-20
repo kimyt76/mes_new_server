@@ -18,12 +18,14 @@ public class DraftVo {
     private String draftUserName;
 
     private String draftDept;
-    private String customerName;
+    private String clientName;
     private String itemName;
     private String orderQty;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String dueDate;
     private String approvalId;
     private String boardId;
+    private String attachFileId;
     private String orderAttachFileId;
     private String prodAttachFileId;
     private String useYn;
