@@ -35,6 +35,7 @@ public class ContractVo {
     private BigDecimal unitPrice;
     private BigDecimal vatPrice;
     private BigDecimal supplyPrice;
+    private BigDecimal reQty;
     private String statusType;
     private String prodType;
 

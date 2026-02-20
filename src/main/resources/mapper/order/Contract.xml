@@ -20,7 +20,9 @@
                 ,dbo.getCommonName('status_Type',a.status_type) as statusType
                 ,b.payment_condition
                 ,b.contract_id
+                ,a.contract_item_id
                 ,b.contract_date
+                ,a.qty- (select avg(order_qty) from TB_WORK_ORDER_PROC where po_no = a.po_no) as reQty
         from    tb_contract_item a
                 inner join tb_contract_mst b
                 on b.contract_id = a.contract_id
