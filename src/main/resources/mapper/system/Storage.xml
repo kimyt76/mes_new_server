@@ -8,6 +8,15 @@
                 ,a.storage_name
                 ,dbo.getCommonName('area', a.area_cd) as areaName
                 ,a.area_cd
+                ,a.m0_yn
+                ,a.m1_yn
+                ,a.m2_yn
+                ,a.m3_yn
+                ,a.m5_yn
+                ,a.m6_yn
+                ,a.m7_yn
+                ,a.prod_yn
+                ,a.rack_id
                 ,a.use_yn
                 ,a.storage_id
         from   tb_storage_mst a
@@ -29,8 +38,16 @@
 
     <select id="getStorageInfo">
         select    a.storage_cd
-                 ,a.storage_name
                  ,a.area_cd
+                 ,a.m0_yn
+                 ,a.m1_yn
+                 ,a.m2_yn
+                 ,a.m3_yn
+                 ,a.m5_yn
+                 ,a.m6_yn
+                 ,a.m7_yn
+                 ,a.prod_yn
+                 ,a.rack_id
                  ,a.use_yn
                  ,a.storage_id
         from   tb_storage_mst a

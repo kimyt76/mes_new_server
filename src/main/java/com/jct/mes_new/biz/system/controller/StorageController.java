@@ -3,10 +3,11 @@ package com.jct.mes_new.biz.system.controller;
 
 import com.jct.mes_new.biz.system.service.StorageService;
 import com.jct.mes_new.biz.system.vo.StorageVo;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class StorageController {
 
     private final StorageService storageService;
+    private final MessageUtil messageUtil;
 
     @PostMapping("/getStorageList")
     public List<StorageVo> getStorageList(@RequestBody StorageVo vo) {
@@ -31,9 +33,9 @@ public class StorageController {
     }
 
     @PostMapping("/saveStorageInfo")
-    public RestResponse saveStorageInfo (@RequestBody StorageVo vo) {
+    public ResponseEntity<ApiResponse<Void>> saveStorageInfo (@RequestBody StorageVo vo) {
         String result = storageService.saveStorageInfo(vo);
-        return RestResponse.ok(result);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
 }
