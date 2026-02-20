@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.qc.mapper.ProcTestTypeMapper">
+
+    <select id="getProcTestTypeList">
+        SELECT   PROC_TEST_TYPE_ID
+                ,TEST_TYPE
+                ,TEST_TYPE_NAME
+                ,etc
+        FROM    tb_proc_test_type
+    </select>
+
+    <select id="getProcTestTypeMethod">
+        SELECT    PROC_TEST_TYPE_METHOD_ID
+                 ,TEST_TYPE
+                 ,dist_order
+                 ,TEST_ITEM
+                 ,TEST_METHOD
+                 ,TEST_TIMING
+                 ,TEST_TIME
+        FROM    tb_proc_test_type_method
+        WHERE   test_type = #{testType}
+        ORDER BY dist_order ASC
+    </select>
+
+    <select id="getProcTestTypeMethodInfo">
+        SELECT    PROC_TEST_TYPE_METHOD_ID
+                 ,TEST_TYPE
+                 ,dist_order
+                 ,TEST_ITEM
+                 ,TEST_METHOD
+                 ,TEST_TIMING
+                 ,TEST_TIME
+        FROM    tb_proc_test_type_method
+        WHERE   PROC_TEST_TYPE_METHOD_ID = #{procTestTypeMethodId}
+    </select>
+
+    <update id="saveProcTestTypeMethod">
+        update tb_proc_test_type_method
+        set    test_method  = #{testMethod}
+              ,test_item    = #{testItem}
+              ,test_timing  = #{testTiming}
+              ,test_time    = #{testTime}
+              ,upd_dt       = getdate()
+              ,upd_id       = #{userId}
+        where  proc_test_type_method_id = #{procTestTypeMethodId}
+    </update>
+
+
+</mapper>
