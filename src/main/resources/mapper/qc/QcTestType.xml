@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.qc.mapper.QcTestTypeMapper">
+
+    <select id="getQcTestTypeList">
+        SELECT    a.item_cd
+                , a.item_name
+                , (SELECT code_nm FROM tb_common_code WHERE com_type_cd = 'item_type_cd' AND code = a.item_type_cd) AS item_type_name
+                , x.test_item_join
+                , CASE  WHEN x.cnt IS NULL OR x.cnt = 0 THEN NULL
+                        WHEN x.cnt = 1 THEN x.first_test_item ELSE CONCAT(x.first_test_item, ' 외 ', (x.cnt - 1), '건') END AS test_item_summary
+                , CASE WHEN x.cnt IS NULL OR x.cnt = 0 THEN '미등록' ELSE '등록' END AS regYn
+                ,a.item_type_cd
+        FROM tb_item_mst a
+            OUTER APPLY (
+                SELECT    cnt = COUNT(*)
+                        , first_test_item =
+                            (SELECT TOP (1) t.test_item
+                             FROM tb_test_type_method t
+                             WHERE t.item_cd = a.item_cd
+        <![CDATA[
+                             AND ISNULL(t.test_item,'') <> ''
+        ]]>
+                             ORDER BY t.test_item)
+                        , test_item_join =
+                            STUFF((
+                                SELECT ',' + t2.test_item
+                                FROM tb_test_type_method t2
+                                WHERE t2.item_cd = a.item_cd
+        <![CDATA[
+                                AND ISNULL(t2.test_item,'') <> ''
+        ]]>
+                                FOR XML PATH('')
+                                ), 1, 1, '')
+                        , any_test_type_method_id =
+                                (SELECT TOP (1) t3.test_type_method_id
+                                FROM tb_test_type_method t3
+                                WHERE t3.item_cd = a.item_cd
+                                ORDER BY t3.test_type_method_id)
+                FROM tb_test_type_method t0
+                WHERE t0.item_cd = a.item_cd
+                ) x
+        where  1=1
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            AND a.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND a.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="regYn == 'Y'">
+            <![CDATA[
+            AND ISNULL(x.cnt,0) < 0
+           ]]>
+        </if>
+        <if test="regYn == 'N'">
+            <![CDATA[
+            AND ISNULL(x.cnt,0) = 0
+           ]]>
+        </if>
+        order by a.item_cd
+    </select>
+
+    <delete id="deleteQcTestTypeMethod">
+        delete from tb_test_type_method where item_cd = #{itemCe}
+    </delete>
+
+    <select id="getQcTestTypeMethod">
+        SELECT  test_item
+               ,test_method
+               ,test_spec
+               ,test_result
+               ,dist_order
+               ,item_cd
+               ,test_type_method_id
+        FROM    tb_test_type_method
+        WHERE   item_cd = #{itemCe}
+        ORDER BY dist_order ASC
+    </select>
+
+    <insert id="saveQcTestTypeMethod">
+        INSERT INTO tb_test_type_method (
+            item_cd,
+            test_item,
+            test_method,
+            test_spec,
+            test_result,
+            dist_order,
+            reg_id,
+            upd_id
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.itemCd},
+            #{item.testItem},
+            #{item.testMethod},
+            #{item.testSpec},
+            #{item.testResult},
+            #{item.distOrder},
+            #{item.userId},
+            #{item.userId}
+            )
+        </foreach>
+    </insert>
+
+</mapper>
