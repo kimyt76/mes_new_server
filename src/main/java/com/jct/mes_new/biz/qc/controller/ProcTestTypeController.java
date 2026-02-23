@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/qc")
+@RequestMapping("/procTestType")
 public class ProcTestTypeController {
 
     private final ProcTestTypeService procTestTypeService;

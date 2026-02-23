@@ -7,10 +7,12 @@ import com.jct.mes_new.biz.qc.vo.ProcTestTypeVo;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ProcTestTypeServiceImpl implements ProcTestTypeService {
