@@ -38,10 +38,16 @@ public class StorageController {
         String result = storageService.saveStorageInfo(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
-
-    @GetMapping("/@GetMapping")
+    @GetMapping("/@getStorageCodeList")
     public List<CommonVo> getStorageCodeList() {
         return storageService.getStorageCodeList();
     }
+
+    @GetMapping("/@useCheck/{id}")
+    public String useCheck(@PathVariable("id") String storageCd) {
+        return storageService.useCheck(storageCd);
+    }
+
+
 
 }

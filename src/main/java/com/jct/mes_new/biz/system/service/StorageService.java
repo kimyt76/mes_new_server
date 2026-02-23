@@ -13,4 +13,6 @@ public interface StorageService {
     String saveStorageInfo(StorageVo vo);
 
     List<CommonVo> getStorageCodeList();
+
+    String useCheck(String storageCd);
 }

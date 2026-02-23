@@ -6,6 +6,7 @@ import java.math.BigInteger;
 
 @Data
 public class StorageVo {
+    private BigInteger storageId;
     private String storageCd;
     private String storageName;
     private String areaCd;
@@ -20,6 +21,7 @@ public class StorageVo {
     private String m6Yn;
     private String m7Yn;
     private String prodYn;
+    private String procCd;
     private String useYn;
 
     private String userId;

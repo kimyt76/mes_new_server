@@ -14,5 +14,11 @@ public interface StorageMapper {
 
     List<CommonVo> getStorageCodeList();
 
-    String saveStorageInfo(StorageVo vo);
+    int saveStorageInfo(StorageVo vo);
+
+    int useCheck(String storageCd);
+
+    int insertStorageInfo(StorageVo vo);
+
+    int updateStorageInfo(StorageVo vo);
 }

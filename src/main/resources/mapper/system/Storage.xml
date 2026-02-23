@@ -16,7 +16,7 @@
                 ,a.m6_yn
                 ,a.m7_yn
                 ,a.prod_yn
-                ,a.rack_id
+               -- ,a.rack_id
                 ,a.use_yn
                 ,a.storage_id
         from   tb_storage_mst a
@@ -38,6 +38,7 @@
 
     <select id="getStorageInfo">
         select    a.storage_cd
+                 ,a.storage_name
                  ,a.area_cd
                  ,a.m0_yn
                  ,a.m1_yn
@@ -47,45 +48,45 @@
                  ,a.m6_yn
                  ,a.m7_yn
                  ,a.prod_yn
-                 ,a.rack_id
+                 ,a.proc_cd
+               --  ,a.rack_id
                  ,a.use_yn
                  ,a.storage_id
         from   tb_storage_mst a
         where  a.storage_cd = #{storageCd}
     </select>
 
-    <update id="saveStorageInfo">
-        merge into tb_storage_mst a
-        using  (select #{storageCd} as storage_Cd ) b
-        on     a.storage_Cd = b.storage_Cd
-        when matched then
-            update set
-                 storage_name = #{storageName}
-                ,storage_type = #{storageType}
-                ,prod_process_cd = #{prodProcessCd}
-                ,out_customer_cd = #{outCustomerCd}
-                ,upd_id = #{userId}
-                ,upd_dt = getdate()
-        when not matched then
-            insert (
-                   storage_cd
-                  ,storage_name
-                  ,storage_type
-                  ,prod_process_cd
-                  ,out_customer_cd
-                  ,reg_id
-                  ,upd_id
-                  )
-            values (
-                     #{storageCd}
-                    ,#{storageName}
-                    ,#{storageType}
-                    ,#{prodProcessCd}
-                    ,#{outCustomerCd}
-                    ,#{userId}
-                    ,#{userId}
-                    )
-            ;
+    <insert id="insertStorageInfo">
+        INSERT INTO tb_storage_mst (
+            storage_cd, storage_name, area_cd, use_yn, proc_cd, prod_yn,
+            m0_yn, m1_yn, m2_yn, m3_yn, m5_yn, m6_yn, m7_yn,
+            reg_id, upd_id
+        )
+        VALUES (
+               #{storageCd}, #{storageName}, #{areaCd}, #{useYn}, #{procCd}, #{prodYn},
+               #{m0Yn}, #{m1Yn}, #{m2Yn}, #{m3Yn}, #{m5Yn}, #{m6Yn}, #{m7Yn},
+               COALESCE(#{userId}, 'SYSTEM'),
+               COALESCE(#{userId}, 'SYSTEM')
+               );
+    </insert>
+
+    <update id="updateStorageInfo">
+        UPDATE tb_storage_mst WITH (UPDLOCK)
+        SET storage_name = #{storageName},
+            area_cd      = #{areaCd},
+            use_yn       = #{useYn},
+            proc_cd      = #{procCd},
+            prod_yn      = #{prodYn},
+            m0_yn        = #{m0Yn},
+            m1_yn        = #{m1Yn},
+            m2_yn        = #{m2Yn},
+            m3_yn        = #{m3Yn},
+            m5_yn        = #{m5Yn},
+            m6_yn        = #{m6Yn},
+            m7_yn        = #{m7Yn},
+            upd_id       = COALESCE(#{userId}, 'SYSTEM'),
+            upd_dt       = GETDATE()
+        WHERE storage_cd   = #{storageCd};
     </update>
 
     <select id="getStorageCodeList">
@@ -94,4 +95,9 @@
         from   tb_storage_mst
         where  m2_yn = 'Y'
     </select>
+
+    <select id="useCheck">
+        select coutn(storage_cd) cnt from tb_storage_mst where storage_cd = #{storageCd}
+    </select>
+
 </mapper>
