@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.system.controller;
 
 
+import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.system.service.StorageService;
 import com.jct.mes_new.biz.system.vo.StorageVo;
 import com.jct.mes_new.config.common.ApiResponse;
@@ -36,6 +37,11 @@ public class StorageController {
     public ResponseEntity<ApiResponse<Void>> saveStorageInfo (@RequestBody StorageVo vo) {
         String result = storageService.saveStorageInfo(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+    @GetMapping("/@GetMapping")
+    public List<CommonVo> getStorageCodeList() {
+        return storageService.getStorageCodeList();
     }
 
 }

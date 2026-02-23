@@ -88,4 +88,10 @@
             ;
     </update>
 
+    <select id="getStorageCodeList">
+        select storage_cd as code
+             ,storage_name as codeNm
+        from   tb_storage_mst
+        where  m2_yn = 'Y'
+    </select>
 </mapper>

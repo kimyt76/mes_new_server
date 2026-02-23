@@ -30,7 +30,7 @@
         and  a.default_yn = #{defaultYn}
         </if>
         <if test="itemName != null and itemName != ''">
-            and  b.itemName like '%' + #{itemName} + '%'
+            and  b.item_name like '%' + #{itemName} + '%'
         </if>
         <if test="itemCd != null and itemCd != ''">
             and  a.item_cd like '%' + #{itemCd} + '%'
@@ -39,7 +39,7 @@
             AND  c.member_nm LIKE '%' + #{managerName} + '%'
         </if>
         <if test="itemTypeCd != null and itemTypeCd != ''">
-            AND  b.item_type_cd LIKE '%' + #{itemTypeCd} + '%'
+            AND  b.item_type_cd =#{itemTypeCd}
         </if>
         order by a.item_cd , a.bom_ver desc
     </select>
@@ -251,10 +251,18 @@
              on b.item_cd = a.item_cd
              and  b.item_type_cd = #{itemTypeCd}
         where  a.default_yn ='Y'
-        and    a.sitem_cd in
+        and    a.item_cd in
         <foreach collection="itemCds" item="cd" open="(" separator="," close=")">
             #{cd}
         </foreach>
+        <if test="itemNames != null and itemNames.size() > 0">
+            AND (
+            <foreach collection="itemNames" item="word" separator=" OR ">
+                item_name LIKE CONCAT('%', #{word}, '%')
+            </foreach>
+            )
+        </if>
+
     </select>
 
 

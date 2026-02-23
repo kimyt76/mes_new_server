@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.system.service.impl;
 
+import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.system.mapper.StorageMapper;
 import com.jct.mes_new.biz.system.service.StorageService;
 import com.jct.mes_new.biz.system.vo.StorageVo;
@@ -26,6 +27,10 @@ public class StorageServiceImpl implements StorageService {
     }
 
     public String saveStorageInfo(StorageVo vo){
-        return  "저장되었습니다.";
+        return  storageMapper.saveStorageInfo(vo);
+    }
+
+    public List<CommonVo> getStorageCodeList() {
+        return storageMapper.getStorageCodeList();
     }
 }
