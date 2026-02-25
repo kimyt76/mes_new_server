@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCoatingMapper">
+    <select id="getCoatingList">
+        select   dbo.getCommonName('area', c.area_cd) as areaName
+                ,b.po_no
+                ,a.proc_order_date
+                ,b.mat_no
+                ,b.lot_no
+                ,a.item_cd
+                ,d.item_name
+                ,a.order_qty
+                ,dbo.getCommonName('PROC_STATUS',
+                                                ( SELECT TOP 1 proc_status
+                                                    FROM TB_WORK_ORDER_PROC t
+                                                    WHERE t.po_no = a.po_no
+                                                    ORDER BY
+                                                    CASE
+                                                    WHEN t.proc_status = '00' THEN 0   -- 00은 제일 낮은 우선순위
+                                                    ELSE 1                             -- 공정 진행건은 우선
+                                                    END DESC,
+                                                    t.work_proc_id DESC
+                                                )
+                ) as processState
+                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatus
+                ,c.area_cd
+                ,a.proc_cd
+                ,c.work_order_id
+                ,b.work_batch_id
+                ,a.work_proc_id
+        from   TB_WORK_ORDER_PROC a
+                inner join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+                inner join TB_WORK_ORDER_MST c
+                on b.work_order_id = c.work_order_id
+                inner join tb_item_mst d
+                on d.item_cd = a.item_cd
+         where  a.proc_cd = 'PRC003'
+        <if test="strDate != null and strDate != ''">
+            AND a.proc_order_date between #{strDate} and #{toDate}
+        </if>
+        <if test="areaCd != null and areaCd != ''">
+            AND c.area_cd = #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  d.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="procStatus != null and procStatus != ''">
+            and  a.proc_status = #{procStatus}
+        </if>
+        ORDER BY c.work_order_date DESC, c.seq DESC
+    </select>
+
+    <select id="getCoatingHeadInfo">
+        select  b.mat_no
+                 ,a.item_cd
+                 ,dbo.getItemName(a.item_cd)  as itemName
+                 ,a.proc_order_date
+                 ,a.order_qty
+                 ,(select storage_name from tb_storage_mst where storage_cd = a.storage_cd) as storage_name
+                 ,a.prod_date
+                 ,a.storage_cd
+                 ,a.memo
+                 ,a.etc
+                 ,b.po_no
+                 ,a.end_yn
+        from    TB_WORK_ORDER_PROC a
+                inner join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+        where   a.proc_cd = 'PRC003'
+          and   a.work_proc_id = #{workProcId}
+    </select>
+
+
+</mapper>
