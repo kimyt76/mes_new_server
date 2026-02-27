@@ -35,8 +35,4 @@ public interface BomMapper {
     List<BomRecipeVo> getItemBomList(String itemCd);
 
     List<BomVo> getBomMatList(BomVo bomVo);
-
-    List<BomVo> getItemsBomList(@Param("itemTypeCd") String itemTypeCd, @Param("itemCds") String itemCds);
-
-    Object getItemStockList(@Param("itemTypeCd") String itemTypeCd, @Param("itemCds") String itemCds);
 }

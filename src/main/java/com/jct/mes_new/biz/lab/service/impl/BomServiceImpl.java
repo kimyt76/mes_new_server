@@ -36,18 +36,6 @@ public class BomServiceImpl implements BomService {
     public List<BomRecipeVo> getItemBomList(String itemCd){
         return bomMapper.getItemBomList(itemCd);
     }
-    public Map<String, Object> getItemsBomList(Map<String, String> map) {
-        Map<String, Object> result = new HashMap<>();
-
-        String itemCds =   map.get("itemCds");
-        String itemTypeCd =   map.get("itemTypeCd");
-
-        result.put("itemBomList", bomMapper.getItemsBomList(itemCds, itemTypeCd));
-        result.put("itemStockList", bomMapper.getItemStockList( itemCds, itemTypeCd));
-
-        return result;
-    }
-
     public BomRequestVo getBomInfo(String bomId) {
         BomRequestVo vo = new BomRequestVo();
 

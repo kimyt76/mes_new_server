@@ -240,30 +240,6 @@
         order by a.item_cd , a.bom_ver desc
     </select>
 
-    <select id="getItemsBomList">
-        select a.item_cd
-              ,b.item_name
-              ,a.bom_ver
-              ,b.unit
-              ,b.spec
-        from tb_bom_mst a
-             inner join tb_item_mst b
-             on b.item_cd = a.item_cd
-             and  b.item_type_cd = #{itemTypeCd}
-        where  a.default_yn ='Y'
-        and    a.item_cd in
-        <foreach collection="itemCds" item="cd" open="(" separator="," close=")">
-            #{cd}
-        </foreach>
-        <if test="itemNames != null and itemNames.size() > 0">
-            AND (
-            <foreach collection="itemNames" item="word" separator=" OR ">
-                item_name LIKE CONCAT('%', #{word}, '%')
-            </foreach>
-            )
-        </if>
-
-    </select>
 
 
 </mapper>

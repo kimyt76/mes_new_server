@@ -23,6 +23,4 @@ public interface BomService {
     List<BomRecipeVo> getItemBomList(String itemCd);
 
     List<BomVo> getBomMatList(BomVo bomVo);
-
-    Map<String, Object> getItemsBomList(Map<String, String>  map);
 }
