@@ -32,8 +32,6 @@ public class MatPlanServiceImpl implements MatPlanService {
 
         for (MatPlanVo vo : voList) {
             vo.setUserId(userId);
-log.info("=================getUserId===================== : " + vo.getUserId());
-log.info("===================getMatPlanId=================== : " + vo.getMatPlanId());
             if ( "".equals(vo.getMatPlanId()) || vo.getMatPlanId() == null ) {
                 if (matPlanMapper.saveMatPlanList(vo) <= 0) {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
@@ -46,5 +44,9 @@ log.info("===================getMatPlanId=================== : " + vo.getMatPlan
         }
     }
 
+
+    public List<MatPlanVo> getBomStockList(MatPlanVo vo){
+        return matPlanMapper.getBomStockList(vo);
+    }
 
 }

@@ -40,5 +40,9 @@ public class MatPlanController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
     }
 
+    @PostMapping("/getBomStockList")
+    public List<MatPlanVo> getBomStockList(@RequestBody MatPlanVo vo) {
+        return matPlanService.getBomStockList(vo);
+    }
 
 }

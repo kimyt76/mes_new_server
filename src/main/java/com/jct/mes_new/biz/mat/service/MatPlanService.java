@@ -10,4 +10,6 @@ public interface MatPlanService {
     List<MatPlanVo> getMatPlanDetailList(String matPlanId);
 
     void saveMatPlanList(List<MatPlanVo> voList);
+
+    List<MatPlanVo> getBomStockList(MatPlanVo vo);
 }
