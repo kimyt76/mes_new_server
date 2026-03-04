@@ -20,6 +20,7 @@
                 ,a.bom_id
                 ,a.default_yn
                 ,b.unit
+                ,b.item_type_cd
         from   tb_bom_mst a
             inner join tb_item_mst b
             on a.item_cd = b.item_cd
