@@ -35,5 +35,6 @@ public class BomVo {
     private String asBomId;
     private String itemTypeCd;
     private String unit;
+    private String spec;
     private String userId;
 }
