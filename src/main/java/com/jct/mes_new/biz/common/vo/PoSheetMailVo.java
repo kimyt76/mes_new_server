@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class PoSheetMailVo {
-
     String customerName;
     String orderNo;
     String orderDate;

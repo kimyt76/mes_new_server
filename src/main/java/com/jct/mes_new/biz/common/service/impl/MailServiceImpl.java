@@ -27,15 +27,12 @@ public class MailServiceImpl implements MailService {
     private final MailSenderFactory mailSenderFactory;
     private final FreemarkerBodyRenderer freemarkerBodyRenderer;
 
-    @Override
     public String sendMail(MailVo vo, Map<String, DataSource> files) {
         return sendMail(vo, files, Map.of());
     }
 
-    @Override
     public String sendMail(MailVo vo, Map<String, DataSource> files, Map<String, Object> model) {
         Objects.requireNonNull(vo, "vo is null");
-
         // 0) 계정 조회/메일 sender 준비
         var acc = mailConfigMapper.selectMailConfig(vo.getMailId());
         if (acc == null) {

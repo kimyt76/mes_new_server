@@ -118,17 +118,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     /**
      *  이건 메일용
      */
-    public List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemList(MailVo vo) {
-        Long purOrderId = vo.getId();
-        if ( "M1".equals(vo.getItemTypeCd()) ){
-            return purchaseOrderMapper.getPurchaseOrderItemListM1(purOrderId);
-        }else{
-            return purchaseOrderMapper.getPurchaseOrderItemListM2(purOrderId);
-        }
-    }
-
     public List<PurchaseOrderVo> getPurchaseOrderList(String id) {
             return purchaseOrderMapper.getPurchaseOrderList(id);
     }
 
+    public Map<String, Object> getPurchaseOrderMailInfo(Map<String, Object> map){
+        String itemTypeCd = map.get("itemTypeCd")==null?null:map.get("itemTypeCd").toString();
+        Long purOrderId = Long.valueOf(map.get("purOrderId").toString());
+
+        return purchaseOrderMapper.getPurchaseOrderMailInfo(itemTypeCd, purOrderId);
+    }
 }

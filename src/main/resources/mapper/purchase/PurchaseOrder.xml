@@ -322,7 +322,17 @@
             end_yn = COALESCE(#{endYn}, end_yn),
             upd_id = #{userId},
             upd_dt = GETDATE()
-        WHERE pur_order_id = #{purOrderId};
+        WHERE pur_order_id = #{purOrderId}
     </update>
 
+    <select id="getPurchaseOrderMailInfo">
+        select a.pur_order_id
+                 ,sum(a.qty) as totOrderQty
+                 ,sum(a.supply_price) as  totSupplyAmt
+                 ,sum(a.vat_price) as  totVat
+                 ,sum(a.supply_price)+sum(a.vat_price) as totAmt
+        from   tb_purm_order_mst a
+        where  a.pur_order_id = #{purOrderId}
+        group by a.pur_order_id
+    </select>
 </mapper>

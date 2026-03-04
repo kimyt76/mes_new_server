@@ -19,12 +19,11 @@ public interface PurchaseOrderService {
 
     String updatePurchaseOrder(PurchaseOrderRequestVo vo);
 
-
     /**
      * 메일용
-     * @param vo
+     * @param map
      * @return
      */
-    List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemList(MailVo vo);
+    Map<String, Object> getPurchaseOrderMailInfo(Map<String, Object> map);
 }
 

@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface PurchaseOrderMapper {
@@ -53,4 +54,11 @@ public interface PurchaseOrderMapper {
     void deleteItemList(Long purOrderId);
     int updatePurOrderMst(PurchaseOrderVo purchaseOrderInfo);
     int updatePurOrderBatch(PurchaseOrderRequestVo vo);
+
+    /**
+     * 메일룡
+     * @param itemTypeCd, purOrderId
+     * @return
+     */
+    Map<String, Object> getPurchaseOrderMailInfo(@Param("itemTypeCd") String itemTypeCd, @Param("purOrderId") Long purOrderId);
 }

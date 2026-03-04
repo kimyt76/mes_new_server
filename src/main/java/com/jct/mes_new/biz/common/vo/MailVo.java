@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class MailVo {
-    private String id;
+    private Long id;
     private String from;
     private String to;
     private String cc;      // 선택
@@ -20,6 +20,7 @@ public class MailVo {
     private String toName;
     private String templatePath;
     private String mailId;
+    private String itemTypeCd;
 
     private List<MultipartFile> files; // 선택 (첨부파일 여러 개)
 }
