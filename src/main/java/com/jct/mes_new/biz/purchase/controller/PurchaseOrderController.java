@@ -5,7 +5,10 @@ import com.jct.mes_new.biz.common.vo.MailVo;
 import com.jct.mes_new.biz.common.vo.PoSheetMailVo;
 import com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper;
 import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
+import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.mail.MailTemplates;
 import com.jct.mes_new.config.util.JasperUtil;
 import com.jct.mes_new.config.util.RestResponse;
@@ -18,10 +21,8 @@ import net.sf.jasperreports.engine.JasperReport;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
@@ -38,13 +39,38 @@ public class PurchaseOrderController {
 
     private final PurchaseOrderService purchaseOrderService;
     private final MailService mailService;
+    private final MessageUtil messageUtil;
+
+    @PostMapping("/getPurchaseOrderList")
+    public List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderList(@RequestBody PurchaseOrderVo vo) {
+        return purchaseOrderService.getPurchaseOrderList(vo);
+    }
+
+    @PostMapping("/getPurchaseOrderInfo")
+    public PurchaseOrderRequestVo getPurchaseOrderInfo(@RequestBody Map<String, Object> map) {
+        return purchaseOrderService.getPurchaseOrderInfo(map);
+    }
+
+    @PostMapping("/savePurchaseOrder")
+    public ResponseEntity<ApiResponse<Void>> savePurchaseOrder(@RequestBody PurchaseOrderRequestVo vo) {
+        String result = purchaseOrderService.savePurchaseOrder(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+    @PostMapping("/updatePurchaseOrder")
+    public ResponseEntity<ApiResponse<Void>> updatePurchaseOrder(@RequestBody PurchaseOrderRequestVo vo) {
+        String result = purchaseOrderService.updatePurchaseOrder(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+
+
 
 
     @PostMapping("/orderMail")
     public RestResponse<T> orderMail(@RequestBody MailVo vo) throws Exception {
-        vo.setId("1");
+        final int PO_ITEM_MAX_ROWS = 11;
 
-        List<PurchaseOrderVo> poSheetList = purchaseOrderService.getPurchaseOrderList(vo.getId());
+        List<PurchaseOrderVo.PurchaseOrderItemVo> poSheetList = purchaseOrderService.getPurchaseOrderItemList(vo);
 
         try {
             Map<String, Object> parameters = new HashMap<>();
@@ -76,10 +102,6 @@ public class PurchaseOrderController {
 
             Map<String, Object> model = new HashMap<>();
             model.put("vo", psVo);
-
-            log.info("SENDMAIL start to={}, subject={}, mailId={}, template={}",
-                    vo.getTo(), vo.getSubject(), vo.getMailId(), vo.getTemplatePath());
-
             String result = mailService.sendMail(vo, files, model);
 
             return RestResponse.okMessage(result, null);
@@ -89,11 +111,9 @@ public class PurchaseOrderController {
             log.error("메일 발송 실패: {}", e.getMessage(), e);
             // 프로젝트에 맞게 fail 응답 함수 사용
             return RestResponse.fail(e.getMessage(), null);
-
             // 만약 failMessage가 없으면 예:
             // return RestResponse.errorMessage(e.getMessage(), null);
             // 또는 throw e; (전역 예외처리로 500/400 만들기)
-
         } catch (Exception e) {
             log.error("메일발송 중 오류발생!", e);
             throw new Exception("메일발송 중 오류발생!", e);

@@ -1,24 +1,134 @@
 package com.jct.mes_new.biz.purchase.service.impl;
 
+import com.jct.mes_new.biz.common.vo.MailVo;
 import com.jct.mes_new.biz.purchase.mapper.PurchaseMapper;
 import com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper;
 import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
+import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
+import com.jct.mes_new.config.common.UserUtil;
+import com.jct.mes_new.config.common.exception.BusinessException;
+import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     private final PurchaseOrderMapper purchaseOrderMapper;
 
+    public List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderList(PurchaseOrderVo vo){
+        if( "M1".equals(vo.getItemTypeCd())) {
+            return purchaseOrderMapper.getPurchaseOrderListM1(vo);
+        }else{
+            return purchaseOrderMapper.getPurchaseOrderListM2(vo);
+        }
 
-    public List<PurchaseOrderVo> getPurchaseOrderList(String id) {
-        return purchaseOrderMapper.getPurchaseOrderList(id);
     }
 
+    public PurchaseOrderRequestVo getPurchaseOrderInfo(Map<String, Object> map) {
+        PurchaseOrderRequestVo vo = new PurchaseOrderRequestVo();
+        Long purOrderId = map.get("purOrderId")==null?null:Long.valueOf(map.get("purOrderId").toString());
+
+        if ( "M1".equals(map.get("itemTypeCd"))) {
+            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM1(purOrderId));
+            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM1(purOrderId));
+        }else{
+            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM2(purOrderId));
+            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM2(purOrderId));
+        }
+        return vo;
+    }
+
+    @Transactional
+    public String savePurchaseOrder(PurchaseOrderRequestVo vo){
+        String msg = "저장되었습니다.";
+        PurchaseOrderVo purchaseOrder = new PurchaseOrderVo();
+        vo.getPurchaseOrderInfo().setUserId(UserUtil.getUserId());
+
+        if ("M1".equals(vo.getPurchaseOrderInfo().getItemTypeCd() ) ){
+            if ( purchaseOrderMapper.insertPurOrderBatch(vo) <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }else{
+            PurchaseOrderVo mst = vo.getPurchaseOrderInfo();
+            Long cnt = purchaseOrderMapper.insertPurOrderMst(mst);
+            if ( cnt <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+            for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
+                d.setPurOrderId(mst.getPurOrderId());
+            }
+            // 3. 품목리스트 저장
+            if (!vo.getPurchaseOrderItemList().isEmpty()) {
+                String userId = UserUtil.getUserId();
+                if ( purchaseOrderMapper.insertPurOrderItem(vo.getPurchaseOrderItemList(), userId) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }
+        }
+        return msg;
+    }
+    
+    @Transactional
+    public String updatePurchaseOrder(PurchaseOrderRequestVo vo){
+        String msg = "수정되었습니다.";
+        PurchaseOrderVo purchaseOrder = new PurchaseOrderVo();
+        vo.getPurchaseOrderInfo().setUserId(UserUtil.getUserId());
+
+        if ("M1".equals(vo.getPurchaseOrderInfo().getItemTypeCd() ) ){
+            if ( purchaseOrderMapper.updatePurOrderBatch(vo) <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_UPDATED);
+            }
+
+        }else{
+            Long purOrderId = vo.getPurchaseOrderInfo().getPurOrderId();
+
+            if ( purchaseOrderMapper.updatePurOrderMst(vo.getPurchaseOrderInfo()) <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_UPDATED);
+            }
+            for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
+                d.setPurOrderId(purOrderId);
+            }
+            purchaseOrderMapper.deleteItemList(purOrderId);
+            // 3. 품목리스트 저장
+            if (!vo.getPurchaseOrderItemList().isEmpty()) {
+                String userId = UserUtil.getUserId();
+                if ( purchaseOrderMapper.insertPurOrderItem(vo.getPurchaseOrderItemList(), userId) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                }
+            }
+        }
+        return msg;
+    }
+
+
+
+
+
+    /**
+     *  이건 메일용
+     */
+    public List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemList(MailVo vo) {
+        Long purOrderId = vo.getId();
+        if ( "M1".equals(vo.getItemTypeCd()) ){
+            return purchaseOrderMapper.getPurchaseOrderItemListM1(purOrderId);
+        }else{
+            return purchaseOrderMapper.getPurchaseOrderItemListM2(purOrderId);
+        }
+    }
+
+    public List<PurchaseOrderVo> getPurchaseOrderList(String id) {
+            return purchaseOrderMapper.getPurchaseOrderList(id);
+    }
 
 }
