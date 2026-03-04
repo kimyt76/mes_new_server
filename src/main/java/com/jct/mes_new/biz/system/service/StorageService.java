@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.system.vo.StorageVo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface StorageService {
     List<StorageVo> getStorageList(StorageVo vo);
@@ -12,7 +13,7 @@ public interface StorageService {
 
     String saveStorageInfo(StorageVo vo);
 
-    List<CommonVo> getStorageCodeList();
+    List<Map<String, Object>> getStorageCodeList();
 
     String useCheck(String storageCd);
 }

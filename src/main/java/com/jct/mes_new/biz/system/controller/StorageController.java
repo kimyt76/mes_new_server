@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -38,12 +39,12 @@ public class StorageController {
         String result = storageService.saveStorageInfo(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
-    @GetMapping("/@getStorageCodeList")
-    public List<CommonVo> getStorageCodeList() {
+    @GetMapping("/getStorageCodeList")
+    public List<Map<String, Object>> getStorageCodeList() {
         return storageService.getStorageCodeList();
     }
 
-    @GetMapping("/@useCheck/{id}")
+    @GetMapping("/useCheck/{id}")
     public String useCheck(@PathVariable("id") String storageCd) {
         return storageService.useCheck(storageCd);
     }

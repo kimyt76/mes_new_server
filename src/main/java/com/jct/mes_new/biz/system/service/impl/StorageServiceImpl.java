@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -46,7 +47,7 @@ public class StorageServiceImpl implements StorageService {
         return msg;
     }
 
-    public List<CommonVo> getStorageCodeList() {
+    public List<Map<String, Object>> getStorageCodeList() {
         return storageMapper.getStorageCodeList();
     }
 
