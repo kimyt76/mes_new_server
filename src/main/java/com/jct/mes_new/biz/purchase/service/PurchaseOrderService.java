@@ -32,7 +32,7 @@ public interface PurchaseOrderService {
 
     /**
      * print용
-     * @param map
+     * @param purOrderIds, String itemTypeCd
      */
     void updatePrintYn(List<Long> purOrderIds, String itemTypeCd);
 }
