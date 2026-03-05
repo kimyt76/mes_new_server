@@ -21,9 +21,19 @@ public interface PurchaseOrderService {
 
     /**
      * 메일용
-     * @param map
+     * @param itemTypeCd, purOrderId
      * @return
      */
-    Map<String, Object> getPurchaseOrderMailInfo(Map<String, Object> map);
+    Map<String, Object> getPurchaseOrderMailInfo(String itemTypeCd, Long purOrderId);
+
+    void updateMailYn(Map<String, Object> map);
+
+    PurchaseOrderRequestVo getPurchaseOrderInfoPrint(Long purOrderId, String itemTypeCd);
+
+    /**
+     * print용
+     * @param map
+     */
+    void updatePrintYn(List<Long> purOrderIds, String itemTypeCd);
 }
 

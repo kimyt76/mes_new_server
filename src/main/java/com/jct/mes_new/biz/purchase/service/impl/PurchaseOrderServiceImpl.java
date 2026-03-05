@@ -114,18 +114,44 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
 
 
-
     /**
      *  이건 메일용
      */
     public List<PurchaseOrderVo> getPurchaseOrderList(String id) {
             return purchaseOrderMapper.getPurchaseOrderList(id);
     }
-
-    public Map<String, Object> getPurchaseOrderMailInfo(Map<String, Object> map){
-        String itemTypeCd = map.get("itemTypeCd")==null?null:map.get("itemTypeCd").toString();
-        Long purOrderId = Long.valueOf(map.get("purOrderId").toString());
-
+    public Map<String, Object> getPurchaseOrderMailInfo(String itemTypeCd, Long purOrderId){
         return purchaseOrderMapper.getPurchaseOrderMailInfo(itemTypeCd, purOrderId);
     }
+    public void updateMailYn(Map<String, Object> map){
+        Long purOrderId = Long.valueOf(map.get("purOrderId").toString());
+
+        if ("M1".equals(map.get("itemTypeCd"))) {
+            purchaseOrderMapper.updateMailYnM1(purOrderId);
+        }else{
+            purchaseOrderMapper.updateMailYnM2(purOrderId);
+        }
+    }
+
+    /**
+     *  이건 인쇄용
+     */
+    public PurchaseOrderRequestVo getPurchaseOrderInfoPrint(Long purOrderId, String itemTypeCd){
+        PurchaseOrderRequestVo vo = new PurchaseOrderRequestVo();
+
+        if ("M1".equals(itemTypeCd)) {
+            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM1(purOrderId));
+            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM1(purOrderId));
+        }else{
+            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM2(purOrderId));
+            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM2(purOrderId));
+        }
+        return vo;
+    }
+
+    public void updatePrintYn(List<Long> purOrderIds, String itemTypeCd){
+        purchaseOrderMapper.updatePrintYn(purOrderIds, itemTypeCd);
+    }
+
+
 }

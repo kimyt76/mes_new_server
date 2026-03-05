@@ -61,4 +61,8 @@ public interface PurchaseOrderMapper {
      * @return
      */
     Map<String, Object> getPurchaseOrderMailInfo(@Param("itemTypeCd") String itemTypeCd, @Param("purOrderId") Long purOrderId);
+    void updateMailYnM1(@Param("purOrderId") Long purOrderId);
+    void updateMailYnM2(@Param("purOrderId") Long purOrderId);
+
+    void updatePrintYn(@Param("purOrderIds") List<Long> purOrderIds, @Param("itemTypeCd") String itemTypeCd);
 }

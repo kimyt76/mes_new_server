@@ -27,7 +27,9 @@ import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,10 +96,121 @@ public class PurchaseOrderController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
+    /**
+     * 발주 pdf 인쇄
+     */
+    @PostMapping("/printOut")
+    public ResponseEntity<Resource>  printOut(@RequestBody Map<String, Object> map) throws  Exception {
 
+        final int PO_ITEM_MAX_ROWS = 11;
 
+        Object idsObj = map.get("purOrderIds");
+        List<Long> purOrderIds = ((List<?>) idsObj).stream().map(v -> ((Number) v).longValue()).toList();
+        String itemTypeCd = map.get("itemTypeCd").toString();
 
+        List<PurchaseOrderSheet> poSheetList = new ArrayList<>();
 
+        List<CommonVo> commonList = commonService.getCodeList("appr_line");
+        String line1 = commonList.get(0).getCodeNm();
+        String line2 = commonList.get(1).getCodeNm();
+        String line3 = commonList.get(2).getCodeNm();
+        String line4 = commonList.get(3).getCodeNm();
+
+        for(int i = 0; i < purOrderIds.size(); i++) {
+            Long purOrderId = purOrderIds.get(i);
+            PurchaseOrderRequestVo reqVo = purchaseOrderService.getPurchaseOrderInfoPrint(purOrderId, itemTypeCd);
+            PurchaseOrderVo poVo = reqVo.getPurchaseOrderInfo();
+            PurchaseOrderVo.PurchaseOrderItemVo poItemVo = new PurchaseOrderVo.PurchaseOrderItemVo();
+
+            PurchaseOrderSheet poSheet = new PurchaseOrderSheet();
+
+            poSheet.setMemberName(poVo.getManagerName());
+            poSheet.setOrderDate(poVo.getPurOrderDate());
+            poSheet.setDeliveryDate(poVo.getDeliveryDate());
+
+            CustomerVo customer = customerService.getCustomerInfo(poVo.getCustomerCd() );
+            poSheet.setCustomerManager(customer.getCustomerManager());
+            poSheet.setCustomerName(customer.getCustomerName());
+            poSheet.setEmail(customer.getEmail());
+            poSheet.setTel(customer.getTel());
+            poSheet.setFax(customer.getFax());
+            poSheet.setAddress(customer.getAddress());
+            poSheet.setLine1(line1);
+            poSheet.setLine2(line2);
+            poSheet.setLine3(line3);
+            poSheet.setLine4(line4);
+
+            Map<String, Object> orderInfo = new HashMap<>();
+
+            orderInfo = purchaseOrderService.getPurchaseOrderMailInfo(itemTypeCd, purOrderId);
+
+            DecimalFormat df = new DecimalFormat("#,##0");
+            BigDecimal amount = new BigDecimal(orderInfo.get("totAmt").toString());
+            poSheet.setHanAmount(AmountUtil.amtToKor(orderInfo.get("totAmt").toString()) + "원 정");
+            poSheet.setNumAmount("(\\ " + df.format(amount.doubleValue()) + " )");
+            poSheet.setTotOrderQty((BigDecimal)orderInfo.get("totOrderQty"));
+            poSheet.setTotSupplyAmt((BigDecimal)orderInfo.get("totSupplyAmt"));
+            poSheet.setTotVat((BigDecimal)orderInfo.get("totVat"));
+            poSheet.setTotAmt(amount);
+
+            int rowCount = 0;
+            List<PurchaseOrderMailVo> poItemList = new ArrayList<>();
+            for (PurchaseOrderVo.PurchaseOrderItemVo moItem: reqVo.getPurchaseOrderItemList()) {
+                rowCount++;
+
+                PurchaseOrderMailVo poItem = new PurchaseOrderMailVo();
+
+                poItem.setItemCd(moItem.getItemCd());
+                poItem.setItemName(moItem.getItemName());
+                poItem.setSpec(moItem.getSpec());
+                poItem.setOrderQty(moItem.getQty());
+                poItem.setPrice(moItem.getInPrice());
+                poItem.setSupplyAmt(moItem.getSupplyPrice());
+                poItem.setVat(moItem.getVatPrice());
+                poItem.setMemo(moItem.getEtc());
+                poItemList.add(poItem);
+            }
+            while(rowCount < PO_ITEM_MAX_ROWS) {
+                rowCount++;
+                PurchaseOrderMailVo poItem = new PurchaseOrderMailVo();
+                poItemList.add(poItem);
+            }
+            poSheet.setOrderItems(poItemList);
+            poSheetList.add(poSheet);
+
+        }   // first for
+
+        try {
+            Map<String, Object> parameters = new HashMap<>();
+            // 로고이미지
+            InputStream logoStream = getClass().getResourceAsStream("/static/images/logo1.png");
+            parameters.put("logo", logoStream);
+
+            // subReport 셋팅
+            InputStream inputStream = getClass().getResourceAsStream("/report/purchase_order_sub.jrxml");
+            JasperReport subReport = JasperCompileManager.compileReport(inputStream);
+            parameters.put("subReport", subReport);
+
+            InputStream reportStream = getClass().getResourceAsStream("/report/purchase_order_sheet_v2.jrxml");
+            byte[] pdfContent = JasperUtil.getPdfBinary(reportStream, parameters, poSheetList);
+            ByteArrayResource resource = new ByteArrayResource(pdfContent);
+            HttpHeaders header = JasperUtil.getHeader("poSheet_list", pdfContent.length);
+
+            purchaseOrderService.updatePrintYn(purOrderIds, itemTypeCd);
+            return new ResponseEntity<Resource>(resource, header, HttpStatus.OK);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new Exception("리포트 생성중 에러발생!");
+        }
+    }
+
+    /**
+     * 발주 메일 발송
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/orderMail")
     public RestResponse<T> orderMail(@RequestBody MailVo vo) throws Exception {
         final int PO_ITEM_MAX_ROWS = 11;
@@ -136,7 +249,7 @@ public class PurchaseOrderController {
         poSheet.setLine4(line4);
 
         Map<String, Object> orderInfo = new HashMap<>();
-        orderInfo = purchaseOrderService.getPurchaseOrderMailInfo(map);
+        orderInfo = purchaseOrderService.getPurchaseOrderMailInfo(map.get("itemTypeCd").toString(),  purOrderId);
         DecimalFormat df = new DecimalFormat("#,##0");
         BigDecimal amount = new BigDecimal(orderInfo.get("totAmt").toString());
         poSheet.setHanAmount(AmountUtil.amtToKor(orderInfo.get("totAmt").toString()) + "원 정");
@@ -202,7 +315,7 @@ public class PurchaseOrderController {
             Map<String, Object> model = new HashMap<>();
             model.put("vo", psVo);
             String result = mailService.sendMail(vo, files, model);
-
+            purchaseOrderService.updateMailYn(map);
             return RestResponse.okMessage(result, null);
 
         } catch (com.jct.mes_new.config.common.exception.MailSendException e) {

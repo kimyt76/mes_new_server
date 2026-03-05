@@ -331,8 +331,48 @@
                  ,sum(a.supply_price) as  totSupplyAmt
                  ,sum(a.vat_price) as  totVat
                  ,sum(a.supply_price)+sum(a.vat_price) as totAmt
-        from   tb_purm_order_mst a
+
+        from
+        <choose>
+            <when test="itemTypeCd == 'M1'">
+                tb_purm_order_mst a
+            </when>
+            <otherwise>
+                tb_purp_order_item a
+            </otherwise>
+        </choose>
         where  a.pur_order_id = #{purOrderId}
         group by a.pur_order_id
     </select>
+
+    <update id="updateMailYnM1">
+        update tb_purm_order_mst
+        set    mail_yn ='Y'
+        where  pur_order_id = #{purOrderId}
+    </update>
+
+    <update id="updateMailYnM2">
+        update tb_purp_order_mst
+        set    mail_yn ='Y'
+        where  pur_order_id = #{purOrderId}
+    </update>
+
+
+    <update id="updatePrintYn">
+        <choose>
+            <when test="itemTypeCd == 'M1'">
+                update tb_purm_order_mst
+            </when>
+            <otherwise>
+                update tb_purp_order_mst
+            </otherwise>
+        </choose>
+                set mail_yn = 'Y'
+                where pur_order_id in
+        <foreach collection="purOrderIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
 </mapper>
