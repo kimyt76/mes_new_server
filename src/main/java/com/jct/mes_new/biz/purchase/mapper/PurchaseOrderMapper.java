@@ -65,4 +65,6 @@ public interface PurchaseOrderMapper {
     void updateMailYnM2(@Param("purOrderId") Long purOrderId);
 
     void updatePrintYn(@Param("purOrderIds") List<Long> purOrderIds, @Param("itemTypeCd") String itemTypeCd);
+
+    List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(@Param("purOrderIds") List<Long> purOrderIds);
 }

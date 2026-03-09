@@ -98,6 +98,19 @@ public class PurchaseOrderController {
     }
 
     /**
+     *
+     * @param purOrderIds
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/getSubItemList")
+    public List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(@RequestBody List<Long> purOrderIds) throws  Exception {
+        return purchaseOrderService.getSubItemList(purOrderIds);
+    }
+
+
+
+    /**
      * 발주 pdf 인쇄
      */
     @PostMapping("/printOut")

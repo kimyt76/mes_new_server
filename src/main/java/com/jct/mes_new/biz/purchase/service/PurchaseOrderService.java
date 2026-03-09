@@ -35,5 +35,12 @@ public interface PurchaseOrderService {
      * @param purOrderIds, String itemTypeCd
      */
     void updatePrintYn(List<Long> purOrderIds, String itemTypeCd);
+
+    /**
+     * 발주(구매에서 조회 용)
+     * @param purOrderIds
+     * @return
+     */
+    List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(List<Long> purOrderIds);
 }
 

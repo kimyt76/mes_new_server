@@ -153,5 +153,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         purchaseOrderMapper.updatePrintYn(purOrderIds, itemTypeCd);
     }
 
+    /**
+     *
+     */
+    public List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(List<Long> purOrderIds){
+        return purchaseOrderMapper.getSubItemList(purOrderIds);
+    }
 
 }

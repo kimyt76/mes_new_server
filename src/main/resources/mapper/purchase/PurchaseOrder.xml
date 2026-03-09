@@ -15,6 +15,9 @@
                 ,(select sum(qty) from tb_purm_order_mst where pur_order_id = a.pur_order_id) as totQty
                 ,0 as inQty
                 ,a.supply_price
+                ,a.in_price
+                ,a.vat_price
+                ,a.item_type_cd
                 ,case when a.in_yn = 'Y' then '입고완료'else '미입고' end inYn
                 ,case when a.end_yn = 'Y' then '종결'else '진행중' end endYn
                 ,case when a.mail_yn = 'Y' then '발송'else '미발송' end mailYn
@@ -89,6 +92,29 @@
         </if>
         GROUP BY a.pur_order_date, a.seq, a.customer_cd, a.delivery_date, a.storage_cd, a.end_yn, a.mail_yn, a.manager_id, a.pur_order_id
         order by a.pur_order_date desc, a.seq desc
+    </select>
+
+    <select id="getSubItemList">
+        select    a.item_cd
+                 ,a.item_name
+                 ,a.item_type_cd
+                 ,a.spec
+                 ,a.qty
+                 ,a.in_price
+                 ,a.supply_price
+                 ,a.vat_price
+                 ,a.etc
+                 ,a.pur_order_id
+                 ,a.pur_order_item_id
+        from    tb_purp_order_item a
+        WHERE a.pur_order_id IN
+        <foreach collection="purOrderIds"
+                 item="id"
+                 open="("
+                 separator=","
+                 close=")">
+            #{id}
+        </foreach>
     </select>
 
     <select id="getPurchaseOrderInfoM1">
@@ -361,7 +387,6 @@
         set    mail_yn ='Y'
         where  pur_order_id = #{purOrderId}
     </update>
-
 
     <update id="updatePrintYn">
         <choose>
