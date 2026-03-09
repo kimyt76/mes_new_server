@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.purchase.mapper.PurchaseMapper">
+    <select id="getPurchaseList">
+        select   a.pur_id
+                ,a.pur_date+'-'+ CAST(a.seq AS NVARCHAR) AS purDateSeq
+                ,dbo.getCustomerName(a.customer_cd) as customer_name
+                ,CASE WHEN COUNT(b.pur_item_id) = 1 THEN MIN(b.item_name)
+                      ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.pur_item_id) - 1 AS VARCHAR) + '건' END AS item_name
+                ,sum(isnull(b.qty, 0)) as totQty
+                ,sum(isnull(b.supply_price,0)-isnull(b.vat_price,0)) as totPrice
+                ,dbo.getStorageName(a.storage_cd) as storage_name
+                ,a.order_type
+                ,dbo.getUserName(a.manager_id) as manager_name
+        from   tb_pur_mst a
+                inner join tb_pur_item b
+                on a.pur_id = b.pur_id
+        where   a.pur_date between #{strDate} and #{toDate}
+        <if test="areaCd != null and areaCd != ''">
+          and    a.area_cd = #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+          and    b.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+          and    b.item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="endYn != null and endYn != ''">
+          and    a.end_yn = #{endYn}
+        </if>
+        <if test="customerName != null and customerName != ''">
+            and  dbo.getCustomerName(a.customer_cd) like '%' + #{customerName} + '%'
+        </if>
+        group by  a.pur_id, a.pur_date,a.seq, a.storage_cd, a.order_type, a.customer_cd , a.manager_id
+        order by a.pur_date desc, a.seq desc
+    </select>
+
+    <select id="getPurchaseInfo">
+        select    a.pur_date
+                 ,a.seq
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name
+                 ,a.customer_cd
+                 ,a.area_cd
+                 ,a.storage_cd
+                 ,dbo.getStorageName(a.storage_cd) as storageName
+                 ,a.remark
+                 ,a.manager_id
+                 ,a.vat_type
+                 ,a.order_type
+                 ,dbo.getUserName(a.manager_id) as manager_name
+                 ,a.pur_id
+        from   tb_pur_mst a
+        where   a.pur_id = #{purId}
+    </select>
+
+    <select id="getPurchaseItemList">
+        select    a.item_cd
+                 ,a.item_name
+                 ,a.spec
+                 ,a.qty
+                 ,a.in_price
+                 ,a.supply_price
+                 ,a.vat_price
+                 ,a.lot_No
+                 ,a.expira_date
+                 ,a.test_no
+                 ,a.etc
+                 ,a.pur_id
+                 ,a.pur_item_id
+                 ,a.pur_order_id
+        from     tb_pur_item a
+        where   a.pur_id = #{purId}
+    </select>
+
+    <!--    구매 마스터 등록 -->
+    <insert id="savePurchaseMst" parameterType="com.jct.mes_new.biz.purchase.vo.PurchaseVo"  useGeneratedKeys="true" keyProperty="purId">
+        INSERT INTO dbo.tb_pur_mst (
+            pur_date, seq, area_cd, storage_cd, customer_cd, manager_id, remark, order_type, vat_type,
+            reg_id, upd_id
+        )
+        VALUES (
+            #{purDate}, #{seq}, #{areaCd}, #{storageCd}, #{customerCd},#{managerId}, #{remark}, #{orderType}, #{vatType},
+            #{userId}, #{userId}
+               )
+    </insert>
+
+    <!--    구매 목록 등록 -->
+    <insert id="savePurchaseItemList" >
+        INSERT INTO tb_pur_item (
+                 pur_id
+                ,pur_order_id
+                ,item_cd
+                ,item_name
+                ,item_type_cd
+                ,spec
+                ,qty
+                ,in_price
+                ,supply_price
+                ,vat_price
+                ,lot_no
+                ,test_no
+                ,expira_date
+                ,etc
+                ,in_yn
+                ,qc_status
+                ,reg_id
+                ,upd_id
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+             #{item.purId}
+            ,#{item.purOrderId}
+            ,#{item.itemCd}
+            ,#{item.itemName}
+            ,#{item.itemTypeCd}
+            ,#{item.spec}
+            ,#{item.qty}
+            ,#{item.inPrice}
+            ,#{item.supplyPrice}
+            ,#{item.vatPrice}
+            ,#{item.lotNo}
+            ,#{item.testNo}
+            ,#{item.expiraDate}
+            ,#{item.etc}
+            ,#{item.inYn}
+            ,#{item.qcStatus}
+            ,#{item.userId}
+            ,#{item.userId}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updatePurchaseMst">
+        UPDATE dbo.tb_pur_mst
+        SET    pur_date   = #{purDate}
+              ,seq        = #{seq}
+              ,area_cd    = #{areaCd}
+              ,storage_cd = #{storageCd}
+              ,customer_cd= #{customerCd}
+              ,manager_id = #{managerId}
+              ,remark     = #{remark}
+              ,order_type = #{orderType}
+              ,vat_type   = #{vatType}
+              ,end_yn     = isnull(#{endYn}, 'N')
+              ,upd_id     = #{userId}
+              ,upd_dt     = GETDATE()
+        WHERE  pur_id     = #{purId}
+    </update>
+
+    <update id="updatePurchaseItemList">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE  tb_pur_item
+            SET      pur_id       = #{item.purId}
+                    ,pur_order_id = #{item.purOrderId}
+                    ,item_cd      = #{item.itemCd}
+                    ,item_name    = #{item.itemName}
+                    ,item_type_cd = #{item.itemTypeCd}
+                    ,spec         = #{item.spec}
+                    ,qty          = #{item.qty}
+                    ,in_price     = #{item.inPrice}
+                    ,supply_price = #{item.supplyPrice}
+                    ,vat_price    = #{item.vatPrice}
+                    ,lot_no       = #{item.lotNo}
+                    ,test_no      = #{item.testNo}
+                    ,expira_date  = #{item.expiraDate}
+                    ,etc          = #{item.etc}
+                    ,in_yn        = #{item.inYn}
+                    ,qc_status    = #{item.qcStatus}
+                    ,upd_id       = #{item.userId}
+                    ,upd_dt       = GETDATE()
+            WHERE pur_item_id  = #{item.purItemId}
+        </foreach>
+    </update>
+
+    <delete id="deletePurchaseItemList">
+        delete tb_pur_item where pur_id = #{purId}
+    </delete>
+    <delete id="deletePurMst">
+        delete tb_pur_mst where pur_id = #{purId}
+    </delete>
+
+
+
+</mapper>
