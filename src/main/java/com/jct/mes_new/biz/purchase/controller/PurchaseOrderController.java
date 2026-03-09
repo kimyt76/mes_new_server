@@ -7,7 +7,6 @@ import com.jct.mes_new.biz.common.service.MailService;
 import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.common.vo.MailVo;
 import com.jct.mes_new.biz.common.vo.PoSheetMailVo;
-import com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper;
 import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderMailVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
@@ -31,12 +30,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -184,6 +185,7 @@ public class PurchaseOrderController {
             Map<String, Object> parameters = new HashMap<>();
             // 로고이미지
             InputStream logoStream = getClass().getResourceAsStream("/static/images/logo1.png");
+            //InputStream logoStream = getClass().getResourceAsStream("/static/images/jct_logo_new.png");
             parameters.put("logo", logoStream);
 
             // subReport 셋팅
@@ -288,6 +290,7 @@ public class PurchaseOrderController {
             Map<String, Object> parameters = new HashMap<>();
 
             InputStream logoStream = getClass().getResourceAsStream("/static/images/logo1.png");
+            //InputStream logoStream = getClass().getResourceAsStream("/static/images/jct_logo_new.png");
             parameters.put("logo", logoStream);
 
             InputStream subStream = getClass().getResourceAsStream("/report/purchase_order_sub.jrxml");

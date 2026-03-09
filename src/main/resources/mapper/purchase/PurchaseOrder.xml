@@ -11,6 +11,8 @@
                 ,a.item_name
                 ,dbo.getStorageName(a.storage_cd) as storageName
                 ,a.qty
+                ,a.spec
+                ,(select sum(qty) from tb_purm_order_mst where pur_order_id = a.pur_order_id) as totQty
                 ,0 as inQty
                 ,a.supply_price
                 ,case when a.in_yn = 'Y' then '입고완료'else '미입고' end inYn
@@ -19,7 +21,10 @@
                 ,dbo.getUserName(a.manager_id) as manager_name
                 ,a.pur_order_id
         from   tb_purm_order_mst a
-        where  pur_order_date between #{strDate} and #{toDate}
+        where 1=1
+        <if test="strDate != null and strDate != ''">
+          and   a.pur_order_date between #{strDate} and #{toDate}
+        </if>
         <if test="areaCd != null and areaCd != ''">
           and    b.area_cd = #{areaCd}
         </if>
@@ -47,8 +52,8 @@
     <select id="getPurchaseOrderListM2">
         SELECT  a.pur_order_date + ' -' + CAST(a.seq AS NVARCHAR) AS purOrderDateSeq
                 ,a.pur_order_date
-                ,CASE WHEN COUNT(b.pur_order_item_id) = 1 THEN MIN(b.item_name)
-                      ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.pur_order_item_id) - 1 AS VARCHAR) + '건' END AS item_name
+                ,CASE WHEN COUNT(b.item_cd) = 1 THEN MIN(b.item_name)
+                      ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.item_cd) - 1 AS VARCHAR) + '건' END AS item_name
                 ,dbo.getCustomerName(a.customer_cd) AS customer_Name
                 ,a.storage_cd
                 ,SUM(b.qty) AS totQty
@@ -63,12 +68,12 @@
         FROM tb_purp_order_mst a
             INNER JOIN tb_purp_order_item b
             ON a.pur_order_id = b.pur_order_id
-        where  pur_order_date between #{strDate} and #{toDate}
+        where  1=1
+        <if test="strDate != null and strDate != ''">
+            and    a.pur_order_date between #{strDate} and #{toDate}
+        </if>
         <if test="areaCd != null and areaCd != ''">
             and    b.area_cd = #{areaCd}
-        </if>
-        <if test="itemTypeCd != null and itemTypeCd != ''">
-            and    b.item_type_cd = #{itemTypeCd}
         </if>
         <if test="itemCd != null and itemCd != ''">
             and    a.item_cd = #{itemCd}
