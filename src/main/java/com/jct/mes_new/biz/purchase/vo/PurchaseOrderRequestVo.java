@@ -9,4 +9,5 @@ public class PurchaseOrderRequestVo {
 
     private PurchaseOrderVo purchaseOrderInfo;
     private List<PurchaseOrderVo.PurchaseOrderItemVo> purchaseOrderItemList;
+    private List<Long> deletePurchaseOrderItems;
 }

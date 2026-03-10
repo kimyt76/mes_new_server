@@ -30,7 +30,7 @@ public interface PurchaseOrderMapper {
     long insertPurOrderMst(PurchaseOrderVo vo);
 
     /**
-     * 부래죠 item 등록
+     * 부래죠 item 일괄 등록
      * @param purchaseOrderItemList
      * @return
      */
@@ -51,9 +51,16 @@ public interface PurchaseOrderMapper {
      * @param
      * @return
      */
-    void deleteItemList(Long purOrderId);
-    int updatePurOrderMst(PurchaseOrderVo purchaseOrderInfo);
+    void deleteItemList(@Param("purOrderId") Long purOrderId,
+                        @Param("deletedItemIds") List<Long> deletedItemIds);
     int updatePurOrderBatch(PurchaseOrderRequestVo vo);
+
+    /* 발주 부자재 리스트 신규*/
+    int insertPurchaseOrderItem(PurchaseOrderVo.PurchaseOrderItemVo vo);
+    /* 발주 부자재 마스터 업데이트*/
+    int updatePurOrderMst(PurchaseOrderVo purchaseOrderInfo);
+    /* 발주 부자재 item 리스트 업데이트*/
+    int updatePurOrderItem(PurchaseOrderVo.PurchaseOrderItemVo item);
 
     /**
      * 메일룡
@@ -67,4 +74,6 @@ public interface PurchaseOrderMapper {
     void updatePrintYn(@Param("purOrderIds") List<Long> purOrderIds, @Param("itemTypeCd") String itemTypeCd);
 
     List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(@Param("purOrderIds") List<Long> purOrderIds);
+
+
 }

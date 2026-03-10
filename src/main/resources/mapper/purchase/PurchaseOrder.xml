@@ -190,6 +190,7 @@
                  ,a.vat_price
                  ,a.etc
                  ,a.pur_order_id
+                 ,a.pur_order_item_id
         from    tb_purp_order_item a
         where   a.pur_order_id = #{purOrderId}
     </select>
@@ -331,16 +332,53 @@
         WHERE pur_order_id      = #{purchaseOrderInfo.purOrderId}
     </update>
 
+    <insert id="insertPurchaseOrderItem">
+        INSERT INTO dbo.tb_purp_order_item (
+            pur_order_id,
+            item_cd,
+            item_name,
+            item_type_cd,
+            spec,
+            qty,
+            in_price,
+            supply_price,
+            vat_price,
+            end_yn,
+            etc,
+            reg_id,
+            upd_id
+        )VALUES
+            (
+            #{purOrderId},
+            #{itemCd},
+            #{itemName},
+            #{itemTypeCd},
+            #{spec},
+            #{qty},
+            #{inPrice},
+            #{supplyPrice},
+            #{vatPrice},
+            COALESCE(#{endYn}, 'N'),
+            #{etc},
+            #{userId},
+            #{userId}
+            )
+    </insert>
 
     <delete id="deleteItemList">
-        delete tb_purp_order_item where pur_order_id = #{purOrderId}
+        DELETE FROM tb_purp_order_item
+        WHERE pur_order_id = #{purOrderId}
+        AND pur_order_item_id IN
+        <foreach collection="deletedItemIds" item="itemId" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
     </delete>
 
     <update id="updatePurOrderMst">
         UPDATE dbo.tb_purp_order_mst
         SET pur_order_date = #{purOrderDate},
             seq = #{seq},
-            area_cd = #{areaCd},
+            area_cd     = #{areaCd},
             storage_cd = #{storageCd},
             customer_cd = #{customerCd},
             manager_id = #{managerId},
@@ -356,13 +394,30 @@
         WHERE pur_order_id = #{purOrderId}
     </update>
 
+    <update id="updatePurOrderItem" >
+        UPDATE tb_purp_order_item
+            SET item_cd         = #{itemCd}
+              , item_name       = #{itemName}
+              , item_type_cd    = #{itemTypeCd}
+              , spec            = #{spec}
+              , qty             = #{qty}
+              , in_price        = #{inPrice}
+              , supply_price    = #{supplyPrice}
+              , vat_price       = #{vatPrice}
+              , end_yn          = #{endYn}
+              , etc             = #{etc}
+              , upd_id          = #{userId}
+              , upd_dt          = getDate()
+        WHERE pur_order_item_id = #{purOrderItemId}
+          AND pur_order_id      = #{purOrderId}
+    </update>
+
     <select id="getPurchaseOrderMailInfo">
         select a.pur_order_id
                  ,sum(a.qty) as totOrderQty
                  ,sum(a.supply_price) as  totSupplyAmt
                  ,sum(a.vat_price) as  totVat
                  ,sum(a.supply_price)+sum(a.vat_price) as totAmt
-
         from
         <choose>
             <when test="itemTypeCd == 'M1'">

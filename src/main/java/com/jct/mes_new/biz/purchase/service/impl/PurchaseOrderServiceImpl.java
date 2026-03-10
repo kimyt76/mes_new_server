@@ -82,6 +82,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Transactional
     public String updatePurchaseOrder(PurchaseOrderRequestVo vo){
         String msg = "수정되었습니다.";
+        String userId = UserUtil.getUserId();
+
         PurchaseOrderVo purchaseOrder = new PurchaseOrderVo();
         vo.getPurchaseOrderInfo().setUserId(UserUtil.getUserId());
 
@@ -89,7 +91,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             if ( purchaseOrderMapper.updatePurOrderBatch(vo) <= 0 ){
                 throw new BusinessException(ErrorCode.FAIL_UPDATED);
             }
-
         }else{
             Long purOrderId = vo.getPurchaseOrderInfo().getPurOrderId();
 
@@ -99,12 +100,30 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
                 d.setPurOrderId(purOrderId);
             }
-            purchaseOrderMapper.deleteItemList(purOrderId);
-            // 3. 품목리스트 저장
-            if (!vo.getPurchaseOrderItemList().isEmpty()) {
-                String userId = UserUtil.getUserId();
-                if ( purchaseOrderMapper.insertPurOrderItem(vo.getPurchaseOrderItemList(), userId) <= 0 ){
-                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+            // 2. 삭제 처리
+            List<Long> deletedItemIds = vo.getDeletePurchaseOrderItems();
+            if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
+                purchaseOrderMapper.deleteItemList(purOrderId,deletedItemIds);
+            }
+
+            List<PurchaseOrderVo.PurchaseOrderItemVo> itemList = vo.getPurchaseOrderItemList();
+            if (itemList != null && !itemList.isEmpty()) {
+                for (PurchaseOrderVo.PurchaseOrderItemVo item : itemList) {
+                    item.setPurOrderId(purOrderId);
+                    item.setUserId(userId);
+                    if (item.getPurOrderItemId() == null) {
+                        // 신규 등록
+                        int insertCnt = purchaseOrderMapper.insertPurchaseOrderItem(item);
+                        if (insertCnt <= 0) {
+                            throw new BusinessException(ErrorCode.FAIL_CREATED);
+                        }
+                    } else {
+                        // 기존 수정
+                        int updateCnt = purchaseOrderMapper.updatePurOrderItem(item);
+                        if (updateCnt <= 0) {
+                            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                        }
+                    }
                 }
             }
         }

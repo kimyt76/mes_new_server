@@ -60,6 +60,7 @@ public class PurchaseOrderVo {
         public String orderState;
         public String endYn;
         public String etc;
+        public String userId;
     }
 
     @Data
