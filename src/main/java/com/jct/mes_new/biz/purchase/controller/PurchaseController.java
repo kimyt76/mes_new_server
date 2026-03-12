@@ -50,6 +50,16 @@ public class PurchaseController {
     }
 
     /**
+     * 구매현황조회
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getPurchaseDetailList")
+    public List<PurchaseVo.searchPurchaseListVo > getPurchaseDetailList(@RequestBody PurchaseVo vo) {
+        return purchaseService.getPurchaseDetailList(vo);
+    }
+
+    /**
      * 구매 상세
      * @param purId
      * @return
@@ -65,9 +75,9 @@ public class PurchaseController {
      * @return
      */
     @PostMapping("/savePurchaseInfo")
-    public ResponseEntity<ApiResponse<Void>> savePurchaseInfo (@RequestBody PurchaseRequestVo vo) {
-        String result = purchaseService.savePurchaseInfo(vo);
-        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    public ResponseEntity<ApiResponse<Long>> savePurchaseInfo (@RequestBody PurchaseRequestVo vo) {
+        Long result = purchaseService.savePurchaseInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
 
     /**

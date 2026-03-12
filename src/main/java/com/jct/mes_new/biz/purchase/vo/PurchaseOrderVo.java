@@ -57,8 +57,6 @@ public class PurchaseOrderVo {
         public BigDecimal supplyPrice;
         public BigDecimal vatPrice;
         public String inYn;
-        public String orderState;
-        public String endYn;
         public String etc;
         public String userId;
     }

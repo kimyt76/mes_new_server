@@ -32,48 +32,45 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }else{
             return purchaseOrderMapper.getPurchaseOrderListM2(vo);
         }
-
     }
 
+    //발주서 상세 조회
     public PurchaseOrderRequestVo getPurchaseOrderInfo(Map<String, Object> map) {
         PurchaseOrderRequestVo vo = new PurchaseOrderRequestVo();
-        Long purOrderId = map.get("purOrderId")==null?null:Long.valueOf(map.get("purOrderId").toString());
+        String itemTypeCd = (String) map.get("itemTypeCd");
+        Long purOrderId = map.get("purOrderId") == null ? null : ((Number) map.get("purOrderId")).longValue();
+        Long purOrderItemId = map.get("purOrderItemId") == null ? null : ((Number) map.get("purOrderItemId")).longValue();
 
-        if ( "M1".equals(map.get("itemTypeCd"))) {
-            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM1(purOrderId));
-            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM1(purOrderId));
+        vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfo(purOrderId));
+
+        if ( "M1".equals(itemTypeCd)) {
+            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemList(purOrderItemId, itemTypeCd));
         }else{
-            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM2(purOrderId));
-            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM2(purOrderId));
+            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemList(purOrderId, itemTypeCd));
         }
+
         return vo;
     }
 
     @Transactional
     public String savePurchaseOrder(PurchaseOrderRequestVo vo){
         String msg = "저장되었습니다.";
-        PurchaseOrderVo purchaseOrder = new PurchaseOrderVo();
-        vo.getPurchaseOrderInfo().setUserId(UserUtil.getUserId());
+        String userId = UserUtil.getUserId();
+        PurchaseOrderVo mst = vo.getPurchaseOrderInfo();
+        mst.setUserId(userId);
 
-        if ("M1".equals(vo.getPurchaseOrderInfo().getItemTypeCd() ) ){
-            if ( purchaseOrderMapper.insertPurOrderBatch(vo) <= 0 ){
+        //mst  저장
+        Long cnt = purchaseOrderMapper.insertPurOrderMst(mst);
+        if ( cnt <= 0 ){
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
+        for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
+            d.setPurOrderId(mst.getPurOrderId());
+        }
+        // 3. 품목리스트 저장
+        if (!vo.getPurchaseOrderItemList().isEmpty()) {
+            if ( purchaseOrderMapper.insertPurOrderItem(vo.getPurchaseOrderItemList(), userId) <= 0 ){
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
-            }
-        }else{
-            PurchaseOrderVo mst = vo.getPurchaseOrderInfo();
-            Long cnt = purchaseOrderMapper.insertPurOrderMst(mst);
-            if ( cnt <= 0 ){
-                throw new BusinessException(ErrorCode.FAIL_CREATED);
-            }
-            for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
-                d.setPurOrderId(mst.getPurOrderId());
-            }
-            // 3. 품목리스트 저장
-            if (!vo.getPurchaseOrderItemList().isEmpty()) {
-                String userId = UserUtil.getUserId();
-                if ( purchaseOrderMapper.insertPurOrderItem(vo.getPurchaseOrderItemList(), userId) <= 0 ){
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
-                }
             }
         }
         return msg;
@@ -84,45 +81,39 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         String msg = "수정되었습니다.";
         String userId = UserUtil.getUserId();
 
-        PurchaseOrderVo purchaseOrder = new PurchaseOrderVo();
-        vo.getPurchaseOrderInfo().setUserId(UserUtil.getUserId());
+        PurchaseOrderVo purchaseOrder = vo.getPurchaseOrderInfo();
+        purchaseOrder.setUserId(userId);
 
-        if ("M1".equals(vo.getPurchaseOrderInfo().getItemTypeCd() ) ){
-            if ( purchaseOrderMapper.updatePurOrderBatch(vo) <= 0 ){
-                throw new BusinessException(ErrorCode.FAIL_UPDATED);
-            }
-        }else{
-            Long purOrderId = vo.getPurchaseOrderInfo().getPurOrderId();
+        if ( purchaseOrderMapper.updatePurOrderMst(purchaseOrder) <= 0 ){
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
 
-            if ( purchaseOrderMapper.updatePurOrderMst(vo.getPurchaseOrderInfo()) <= 0 ){
-                throw new BusinessException(ErrorCode.FAIL_UPDATED);
-            }
-            for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
-                d.setPurOrderId(purOrderId);
-            }
-            // 2. 삭제 처리
-            List<Long> deletedItemIds = vo.getDeletePurchaseOrderItems();
-            if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
-                purchaseOrderMapper.deleteItemList(purOrderId,deletedItemIds);
-            }
+        Long purOrderId = purchaseOrder.getPurOrderId();
 
-            List<PurchaseOrderVo.PurchaseOrderItemVo> itemList = vo.getPurchaseOrderItemList();
-            if (itemList != null && !itemList.isEmpty()) {
-                for (PurchaseOrderVo.PurchaseOrderItemVo item : itemList) {
-                    item.setPurOrderId(purOrderId);
-                    item.setUserId(userId);
-                    if (item.getPurOrderItemId() == null) {
-                        // 신규 등록
-                        int insertCnt = purchaseOrderMapper.insertPurchaseOrderItem(item);
-                        if (insertCnt <= 0) {
-                            throw new BusinessException(ErrorCode.FAIL_CREATED);
-                        }
-                    } else {
-                        // 기존 수정
-                        int updateCnt = purchaseOrderMapper.updatePurOrderItem(item);
-                        if (updateCnt <= 0) {
-                            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-                        }
+        // 2. 삭제 처리
+        List<Long> deletedItemIds = vo.getDeletePurchaseOrderItems();
+        if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
+            purchaseOrderMapper.deleteItemList(purOrderId,deletedItemIds);
+        }
+
+        //3. 발주 품목 처리
+        List<PurchaseOrderVo.PurchaseOrderItemVo> itemList = vo.getPurchaseOrderItemList();
+
+        if (itemList != null && !itemList.isEmpty()) {
+            for (PurchaseOrderVo.PurchaseOrderItemVo item : itemList) {
+                item.setPurOrderId(purOrderId);
+                item.setUserId(userId);
+                if (item.getPurOrderItemId() == null) {
+                    // 신규 등록
+                    int insertCnt = purchaseOrderMapper.insertPurchaseOrderItem(item);
+                    if (insertCnt <= 0) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
+                } else {
+                    // 기존 수정
+                    int updateCnt = purchaseOrderMapper.updatePurOrderItem(item);
+                    if (updateCnt <= 0) {
+                        throw new BusinessException(ErrorCode.FAIL_UPDATED);
                     }
                 }
             }
@@ -144,12 +135,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
     public void updateMailYn(Map<String, Object> map){
         Long purOrderId = Long.valueOf(map.get("purOrderId").toString());
-
-        if ("M1".equals(map.get("itemTypeCd"))) {
-            purchaseOrderMapper.updateMailYnM1(purOrderId);
-        }else{
-            purchaseOrderMapper.updateMailYnM2(purOrderId);
-        }
+        purchaseOrderMapper.updateMailYn(purOrderId);
     }
 
     /**
@@ -158,13 +144,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     public PurchaseOrderRequestVo getPurchaseOrderInfoPrint(Long purOrderId, String itemTypeCd){
         PurchaseOrderRequestVo vo = new PurchaseOrderRequestVo();
 
-        if ("M1".equals(itemTypeCd)) {
-            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM1(purOrderId));
-            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM1(purOrderId));
-        }else{
-            vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfoM2(purOrderId));
-            vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemListM2(purOrderId));
-        }
+        vo.setPurchaseOrderInfo(purchaseOrderMapper.getPurchaseOrderInfo(purOrderId));
+        vo.setPurchaseOrderItemList(purchaseOrderMapper.getPurchaseOrderItemList(purOrderId, itemTypeCd));
         return vo;
     }
 

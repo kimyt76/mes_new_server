@@ -132,7 +132,7 @@ public class PurchaseOrderController {
 
         for(int i = 0; i < purOrderIds.size(); i++) {
             Long purOrderId = purOrderIds.get(i);
-            PurchaseOrderRequestVo reqVo = purchaseOrderService.getPurchaseOrderInfoPrint(purOrderId, itemTypeCd);
+            PurchaseOrderRequestVo reqVo = purchaseOrderService.getPurchaseOrderInfoPrint(purOrderId, "M2");
             PurchaseOrderVo poVo = reqVo.getPurchaseOrderInfo();
             PurchaseOrderVo.PurchaseOrderItemVo poItemVo = new PurchaseOrderVo.PurchaseOrderItemVo();
 

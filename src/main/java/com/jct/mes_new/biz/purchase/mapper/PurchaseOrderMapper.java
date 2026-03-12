@@ -17,20 +17,16 @@ public interface PurchaseOrderMapper {
 
     List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderListM2(PurchaseOrderVo vo);
 
+   
     /**
-     * 원재료 등록
-     */
-    int insertPurOrderBatch(PurchaseOrderRequestVo vo);
-
-    /**
-     * 부재료 마스터 등록
+     * 발주 마스터 등록
      * @param vo
      * @return
      */
     long insertPurOrderMst(PurchaseOrderVo vo);
 
     /**
-     * 부래죠 item 일괄 등록
+     * 발주 item 일괄 등록
      * @param purchaseOrderItemList
      * @return
      */
@@ -41,10 +37,8 @@ public interface PurchaseOrderMapper {
      * @param purOrderId
      * @return
      */
-    PurchaseOrderVo getPurchaseOrderInfoM1(@Param("purOrderId") Long purOrderId);
-    List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemListM1(@Param("purOrderId") Long purOrderId);
-    PurchaseOrderVo getPurchaseOrderInfoM2(@Param("purOrderId") Long purOrderId);
-    List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemListM2(@Param("purOrderId") Long purOrderId);
+    PurchaseOrderVo getPurchaseOrderInfo(@Param("purOrderId") Long purOrderId);
+    List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemList(@Param("purOrderId") Long purOrderId, @Param("itemTypeCd") String itemTypeCd);
 
     /**
      * 발주 업데이트
@@ -53,14 +47,13 @@ public interface PurchaseOrderMapper {
      */
     void deleteItemList(@Param("purOrderId") Long purOrderId,
                         @Param("deletedItemIds") List<Long> deletedItemIds);
-    int updatePurOrderBatch(PurchaseOrderRequestVo vo);
-
-    /* 발주 부자재 리스트 신규*/
+    /* 발주 item 리스트 신규*/
     int insertPurchaseOrderItem(PurchaseOrderVo.PurchaseOrderItemVo vo);
-    /* 발주 부자재 마스터 업데이트*/
+    /* 발주 마스터 업데이트*/
     int updatePurOrderMst(PurchaseOrderVo purchaseOrderInfo);
-    /* 발주 부자재 item 리스트 업데이트*/
+    /* 발주 item 리스트 업데이트*/
     int updatePurOrderItem(PurchaseOrderVo.PurchaseOrderItemVo item);
+
 
     /**
      * 메일룡
@@ -68,8 +61,7 @@ public interface PurchaseOrderMapper {
      * @return
      */
     Map<String, Object> getPurchaseOrderMailInfo(@Param("itemTypeCd") String itemTypeCd, @Param("purOrderId") Long purOrderId);
-    void updateMailYnM1(@Param("purOrderId") Long purOrderId);
-    void updateMailYnM2(@Param("purOrderId") Long purOrderId);
+    void updateMailYn(@Param("purOrderId") Long purOrderId);
 
     void updatePrintYn(@Param("purOrderIds") List<Long> purOrderIds, @Param("itemTypeCd") String itemTypeCd);
 

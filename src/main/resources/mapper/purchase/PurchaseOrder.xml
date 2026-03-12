@@ -4,50 +4,52 @@
 <mapper namespace="com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper">
     <select id="getPurchaseOrderListM1">
         select   a.pur_order_date +' -'+ CAST(a.seq AS NVARCHAR) AS purOrderDateSeq
-                 ,a.pur_order_date
+                ,a.pur_order_date
                 ,a.delivery_date
                 ,dbo.getCustomerName(a.customer_cd) as customer_name
-                ,a.item_cd
-                ,a.item_name
+                ,b.item_cd
+                ,b.item_name
                 ,dbo.getStorageName(a.storage_cd) as storageName
-                ,a.qty
-                ,a.spec
-                ,(select sum(qty) from tb_purm_order_mst where pur_order_id = a.pur_order_id) as totQty
+                ,b.qty
+                ,b.spec
                 ,0 as inQty
-                ,a.supply_price
-                ,a.in_price
-                ,a.vat_price
-                ,a.item_type_cd
-                ,case when a.in_yn = 'Y' then '입고완료'else '미입고' end inYn
+                ,b.supply_price
+                ,b.in_price
+                ,b.vat_price
+                ,b.item_type_cd
+                ,case when b.in_yn = 'Y' then '입고완료'else '미입고' end inYn
                 ,case when a.end_yn = 'Y' then '종결'else '진행중' end endYn
                 ,case when a.mail_yn = 'Y' then '발송'else '미발송' end mailYn
                 ,dbo.getUserName(a.manager_id) as manager_name
                 ,a.pur_order_id
-        from   tb_purm_order_mst a
+                ,b.pur_order_item_id
+        from   tb_pur_order_mst a
+        inner join tb_pur_order_item b
+        on a.pur_order_id = b.pur_order_id
         where 1=1
         <if test="strDate != null and strDate != ''">
           and   a.pur_order_date between #{strDate} and #{toDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
-          and    b.area_cd = #{areaCd}
+          and   a.area_cd = #{areaCd}
         </if>
         <if test="itemTypeCd != null and itemTypeCd != ''">
-          and    a.item_type_cd = #{itemTypeCd}
+          and   b.item_type_cd = #{itemTypeCd}
         </if>
         <if test="itemCd != null and itemCd != ''">
-          and    a.item_cd = #{itemCd}
+          and   b.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-          and    a.item_name like '%' + #{itemName} + '%'
+          and   b.item_name like '%' + #{itemName} + '%'
         </if>
         <if test="customerName != null and customerName != ''">
-          and    f.customer_name like '%' + #{customerName} + '%'
+          and   dbo.getCustomerName(a.customer_cd)  like '%' + #{customerName} + '%'
         </if>
         <if test="inYn != null and inYn != ''">
-          and    a.in_yn = #{inYn}
+          and   b.in_yn = #{inYn}
         </if>
         <if test="endYn != null and endYn != ''">
-          and    a.end_yn = #{endYn}
+          and   a.end_yn = #{endYn}
         </if>
         order by a.pur_order_date desc, a.seq desc
     </select>
@@ -68,10 +70,10 @@
                 ,CASE WHEN a.mail_yn = 'Y' THEN '발송' ELSE '미발송' END AS mailYn
                 ,dbo.getUserName(a.manager_id) AS manager_name
                 ,a.pur_order_id
-        FROM tb_purp_order_mst a
-            INNER JOIN tb_purp_order_item b
+        FROM tb_pur_order_mst a
+            INNER JOIN tb_pur_order_item b
             ON a.pur_order_id = b.pur_order_id
-        where  1=1
+        where  b.item_type_cd in ('M2', 'M7')
         <if test="strDate != null and strDate != ''">
             and    a.pur_order_date between #{strDate} and #{toDate}
         </if>
@@ -103,10 +105,10 @@
                  ,a.in_price
                  ,a.supply_price
                  ,a.vat_price
-                 ,a.etc
+                 ,a.in_yn
                  ,a.pur_order_id
                  ,a.pur_order_item_id
-        from    tb_purp_order_item a
+        from    tb_pur_order_item a
         WHERE a.pur_order_id IN
         <foreach collection="purOrderIds"
                  item="id"
@@ -117,7 +119,8 @@
         </foreach>
     </select>
 
-    <select id="getPurchaseOrderInfoM1">
+    <!--   발주 상세 조회 mst -->
+    <select id="getPurchaseOrderInfo">
         select    a.pur_order_date
                  ,a.seq
                  ,a.delivery_date
@@ -135,13 +138,13 @@
                  ,isnull(a.mail_yn, 'N') as mail_yn
                  ,isnull(a.print_yn, 'N') as print_yn
                  ,isnull(a.end_yn, 'N') as end_yn
-                 ,isnull(a.in_yn, 'N') as in_yn
                  ,a.pur_order_id
-        from   tb_purm_order_mst a
+        from   tb_pur_order_mst a
         where   a.pur_order_id = #{purOrderId}
     </select>
 
-    <select id="getPurchaseOrderItemListM1">
+    <!--   발주 상세 조회 item -->
+    <select id="getPurchaseOrderItemList">
         select    a.item_cd
                  ,a.item_name
                  ,a.item_type_cd
@@ -151,112 +154,30 @@
                  ,a.supply_price
                  ,a.vat_price
                  ,a.etc
-                 ,a.pur_order_id
-        from     tb_purm_order_mst a
-        where   a.pur_order_id = #{purOrderId}
-    </select>
-
-    <select id="getPurchaseOrderInfoM2">
-        select    a.pur_order_date
-                 ,a.seq
-                 ,a.delivery_date
-                 ,dbo.getCustomerName(a.customer_cd) as customer_name
-                 ,a.item_type_cd
-                 ,a.customer_cd
-                 ,a.area_cd
-                 ,a.storage_cd
-                 ,dbo.getStorageName(a.storage_cd) as storageName
-                 ,a.remark
-                 ,a.manager_id
-                 ,a.customer_manager_name
-                 ,a.vat_type
-                 ,dbo.getUserName(a.manager_id) as manager_name
-                 ,isnull(a.mail_yn, 'N') as mail_yn
-                 ,isnull(a.print_yn, 'N') as print_yn
-                 ,isnull(a.end_yn, 'N') as end_yn
-                 ,a.pur_order_id
-        from   tb_purp_order_mst a
-        where   a.pur_order_id = #{purOrderId}
-
-    </select>
-    <select id="getPurchaseOrderItemListM2">
-        select    a.item_cd
-                 ,a.item_name
-                 ,a.item_type_cd
-                 ,a.spec
-                 ,a.qty
-                 ,a.in_price
-                 ,a.supply_price
-                 ,a.vat_price
-                 ,a.etc
+                 ,a.in_yn
                  ,a.pur_order_id
                  ,a.pur_order_item_id
-        from    tb_purp_order_item a
-        where   a.pur_order_id = #{purOrderId}
+        from     tb_pur_order_item a
+        where
+        <choose>
+            <when test="itemTypeCd == 'M1'">
+                    a.pur_order_item_id = #{purOrderId}
+            </when>
+            <otherwise>
+                   a.pur_order_id = #{purOrderId}
+            </otherwise>
+        </choose>
+
+        <if test="itemTypeCd == 'M1'">
+
+        </if>
     </select>
 
-<!--    원재료 등록 -->
-    <insert id="insertPurOrderBatch" parameterType="com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo">
-            INSERT INTO tb_purm_order_mst (
-                    pur_order_date,
-                    seq,
-                    area_cd,
-                    storage_cd,
-                    customer_cd,
-                    manager_id,
-                    delivery_date,
-                    customer_manager_name,
-                    remark,
-                    item_type_cd,
-                    item_cd,
-                    item_name,
-                    spec,
-                    qty,
-                    in_price,
-                    supply_price,
-                    vat_price,
-                    vat_type,
-                    mail_yn,
-                    print_yn,
-                    etc,
-                    reg_id,
-                    upd_id
-            )
-            VALUES
-            <foreach collection="purchaseOrderItemList" item="item" separator=",">
-                (
-                    #{purchaseOrderInfo.purOrderDate},
-                    #{purchaseOrderInfo.seq},
-                    #{purchaseOrderInfo.areaCd},
-                    #{purchaseOrderInfo.storageCd},
-                    #{purchaseOrderInfo.customerCd},
-                    #{purchaseOrderInfo.managerId},
-                    #{purchaseOrderInfo.deliveryDate},
-                    #{purchaseOrderInfo.customerManagerName},
-                    #{purchaseOrderInfo.remark},
-
-                    #{purchaseOrderInfo.itemTypeCd},
-                    #{item.itemCd},
-                    #{item.itemName},
-                    #{item.spec},
-                    #{item.qty},
-                    #{item.inPrice},
-                    #{item.supplyPrice},
-                    #{item.vatPrice},
-                    #{purchaseOrderInfo.vatType},
-                    #{purchaseOrderInfo.mailYn},
-                    #{purchaseOrderInfo.printYn},
-                    #{item.etc},
-                    isnull(#{purchaseOrderInfo.userId}, 'SYSTEM'),
-                    isnull(#{purchaseOrderInfo.userId}, 'SYSTEM')
-                )
-            </foreach>
-    </insert>
-
+    <!--    발주 등록 -->
     <insert id="insertPurOrderMst" parameterType="com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo"  useGeneratedKeys="true"
             keyProperty="purOrderId"
             keyColumn="pur_order_id">
-        INSERT INTO dbo.tb_purp_order_mst (
+        INSERT INTO dbo.tb_pur_order_mst (
             pur_order_date, seq, area_cd, storage_cd, customer_cd, item_type_cd,
             manager_id, delivery_date, customer_manager_name,
             remark, vat_type,reg_id, reg_dt, upd_id, upd_dt
@@ -269,7 +190,7 @@
     </insert>
 
     <insert id="insertPurOrderItem">
-        INSERT INTO dbo.tb_purp_order_item (
+        INSERT INTO dbo.tb_pur_order_item (
                     pur_order_id,
                     item_cd,
                     item_name,
@@ -279,7 +200,7 @@
                     in_price,
                     supply_price,
                     vat_price,
-                    end_yn,
+                    in_yn,
                     etc,
                     reg_id,
                     upd_id
@@ -295,7 +216,7 @@
             #{item.inPrice},
             #{item.supplyPrice},
             #{item.vatPrice},
-            COALESCE(#{item.endYn}, 'N'),
+            COALESCE(#{item.inYn}, 'N'),
             #{item.etc},
             #{userId},
             #{userId}
@@ -303,37 +224,9 @@
         </foreach>
     </insert>
 
-    <update id="updatePurOrderBatch" parameterType="com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo">
-        UPDATE tb_purm_order_mst
-        SET     pur_order_date  = #{purchaseOrderInfo.purOrderDate},
-                seq             = #{purchaseOrderInfo.seq},
-                area_cd         = #{purchaseOrderInfo.areaCd},
-                storage_cd      = #{purchaseOrderInfo.storageCd},
-                customer_cd     = #{purchaseOrderInfo.customerCd},
-                manager_id      = #{purchaseOrderInfo.managerId},
-                delivery_date   = #{purchaseOrderInfo.deliveryDate},
-                customer_manager_name = #{purchaseOrderInfo.customerManagerName},
-                remark          = #{purchaseOrderInfo.remark},
-                vat_type        = #{purchaseOrderInfo.vatType},
-                mail_yn         = isnull(#{purchaseOrderInfo.mailYn}, 'N'),
-                print_yn        = isnull(#{purchaseOrderInfo.printYn}, 'N'),
-                in_yn           = isnull(#{purchaseOrderInfo.inYn}, 'N'),
-                end_yn          = isnull(#{purchaseOrderInfo.endYn}, 'N'),
-                item_type_cd    = #{purchaseOrderInfo.itemTypeCd},
-                item_cd         = #{purchaseOrderItemList[0].itemCd},
-                item_name       = #{purchaseOrderItemList[0].itemName},
-                spec            = #{purchaseOrderItemList[0].spec},
-                qty             = #{purchaseOrderItemList[0].qty},
-                in_price        = #{purchaseOrderItemList[0].inPrice},
-                supply_price    = #{purchaseOrderItemList[0].supplyPrice},
-                vat_price       = #{purchaseOrderItemList[0].vatPrice},
-                etc             = #{purchaseOrderItemList[0].etc},
-                upd_id          = isnull(#{purchaseOrderInfo.userId}, 'SYSTEM')
-        WHERE pur_order_id      = #{purchaseOrderInfo.purOrderId}
-    </update>
-
+    <!--   업데이트 시 신규 건이 있을 경우 -->
     <insert id="insertPurchaseOrderItem">
-        INSERT INTO dbo.tb_purp_order_item (
+        INSERT INTO dbo.tb_pur_order_item (
             pur_order_id,
             item_cd,
             item_name,
@@ -343,7 +236,7 @@
             in_price,
             supply_price,
             vat_price,
-            end_yn,
+            in_yn,
             etc,
             reg_id,
             upd_id
@@ -358,7 +251,7 @@
             #{inPrice},
             #{supplyPrice},
             #{vatPrice},
-            COALESCE(#{endYn}, 'N'),
+            COALESCE(#{inYn}, 'N'),
             #{etc},
             #{userId},
             #{userId}
@@ -366,7 +259,7 @@
     </insert>
 
     <delete id="deleteItemList">
-        DELETE FROM tb_purp_order_item
+        DELETE FROM tb_pur_order_item
         WHERE pur_order_id = #{purOrderId}
         AND pur_order_item_id IN
         <foreach collection="deletedItemIds" item="itemId" open="(" separator="," close=")">
@@ -375,27 +268,27 @@
     </delete>
 
     <update id="updatePurOrderMst">
-        UPDATE dbo.tb_purp_order_mst
-        SET pur_order_date = #{purOrderDate},
-            seq = #{seq},
-            area_cd     = #{areaCd},
-            storage_cd = #{storageCd},
-            customer_cd = #{customerCd},
-            manager_id = #{managerId},
-            delivery_date = #{deliveryDate},
+        UPDATE dbo.tb_pur_order_mst
+        SET pur_order_date  = #{purOrderDate},
+            seq             = #{seq},
+            area_cd         = #{areaCd},
+            storage_cd      = #{storageCd},
+            customer_cd     = #{customerCd},
+            manager_id      = #{managerId},
+            delivery_date   = #{deliveryDate},
             customer_manager_name = #{customerManagerName},
-            remark = #{remark},
-            vat_type = #{vatType},
-            mail_yn = COALESCE(#{mailYn}, mail_yn),
-            print_yn = COALESCE(#{printYn}, print_yn),
-            end_yn = COALESCE(#{endYn}, end_yn),
-            upd_id = #{userId},
-            upd_dt = GETDATE()
+            remark          = #{remark},
+            vat_type        = #{vatType},
+            mail_yn         = COALESCE(#{mailYn}, mail_yn),
+            print_yn        = COALESCE(#{printYn}, print_yn),
+            end_yn          = COALESCE(#{endYn}, end_yn),
+            upd_id          = #{userId},
+            upd_dt          = GETDATE()
         WHERE pur_order_id = #{purOrderId}
     </update>
 
     <update id="updatePurOrderItem" >
-        UPDATE tb_purp_order_item
+        UPDATE tb_pur_order_item
             SET item_cd         = #{itemCd}
               , item_name       = #{itemName}
               , item_type_cd    = #{itemTypeCd}
@@ -404,7 +297,6 @@
               , in_price        = #{inPrice}
               , supply_price    = #{supplyPrice}
               , vat_price       = #{vatPrice}
-              , end_yn          = #{endYn}
               , etc             = #{etc}
               , upd_id          = #{userId}
               , upd_dt          = getDate()
@@ -418,42 +310,21 @@
                  ,sum(a.supply_price) as  totSupplyAmt
                  ,sum(a.vat_price) as  totVat
                  ,sum(a.supply_price)+sum(a.vat_price) as totAmt
-        from
-        <choose>
-            <when test="itemTypeCd == 'M1'">
-                tb_purm_order_mst a
-            </when>
-            <otherwise>
-                tb_purp_order_item a
-            </otherwise>
-        </choose>
+        from  tb_pur_order_item a
         where  a.pur_order_id = #{purOrderId}
         group by a.pur_order_id
     </select>
 
-    <update id="updateMailYnM1">
-        update tb_purm_order_mst
-        set    mail_yn ='Y'
-        where  pur_order_id = #{purOrderId}
-    </update>
-
-    <update id="updateMailYnM2">
-        update tb_purp_order_mst
+    <update id="updateMailYn">
+        update tb_pur_order_mst
         set    mail_yn ='Y'
         where  pur_order_id = #{purOrderId}
     </update>
 
     <update id="updatePrintYn">
-        <choose>
-            <when test="itemTypeCd == 'M1'">
-                update tb_purm_order_mst
-            </when>
-            <otherwise>
-                update tb_purp_order_mst
-            </otherwise>
-        </choose>
-                set mail_yn = 'Y'
-                where pur_order_id in
+        update tb_pur_order_mst
+        set mail_yn = 'Y'
+        where pur_order_id in
         <foreach collection="purOrderIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
