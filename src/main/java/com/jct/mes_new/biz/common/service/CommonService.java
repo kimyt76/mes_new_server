@@ -1,6 +1,8 @@
 package com.jct.mes_new.biz.common.service;
 
+import com.jct.mes_new.biz.common.vo.BarCodeVo;
 import com.jct.mes_new.biz.common.vo.CommonVo;
+import com.jct.mes_new.biz.common.vo.ReqPrinting;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,4 +21,6 @@ public interface CommonService {
     String saveCommonInfo(CommonVo commonVo);
 
     int getNextSeq(String itemTypeCd, String cd, String date);
+
+    byte[] createQrCodeLabels(ReqPrinting[] vo) throws Exception;
 }

@@ -43,6 +43,7 @@ public class ItemVo {
     private String useSafeStockYn;     /*안전재고여부*/
     private BigDecimal safeStockQty;   /*안전재고량*/
     private String itemCondition; /*보관조건*/
+    private String itemConditionName; /*보관조건*/
     private String appearance;/*성상*/
     private String searchText;/*사용안함*/
     private String cosTypeCd;/*사용안함*/
@@ -97,6 +98,8 @@ public class ItemVo {
 
     List<String> prodLList;
     List<String> prodMList;
+
+    private String orderType;
 
     private String codeNm;
     private String code;
