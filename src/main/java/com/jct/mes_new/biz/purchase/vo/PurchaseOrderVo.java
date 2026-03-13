@@ -1,24 +1,26 @@
 package com.jct.mes_new.biz.purchase.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
 public class PurchaseOrderVo {
     private Long purOrderId;
     private Long purOrderItemId;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String purOrderDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate purOrderDate;
     private Integer seq;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String strDate;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String toDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate strDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate toDate;
     private String storageCd;
     private String storageName;
     private String areaCd;
@@ -26,8 +28,8 @@ public class PurchaseOrderVo {
     private String customerName ;
     private String managerId;
     private String managerName;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String deliveryDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate deliveryDate;
     private String customerManagerName;
     private String remark;
     private String vatType;
@@ -67,8 +69,10 @@ public class PurchaseOrderVo {
         public Long purOrderId;
         public String itemTypeCd;
         private String purOrderDateSeq;
-        private String purOrderDate;
-        private String deliveryDate;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate purOrderDate;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate deliveryDate;
         private String customerName;
         public String itemTypeName;
         private String storageName;

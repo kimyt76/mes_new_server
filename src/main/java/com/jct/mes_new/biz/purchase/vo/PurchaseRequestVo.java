@@ -8,4 +8,5 @@ import java.util.List;
 public class PurchaseRequestVo {
     private PurchaseVo purchaseInfo;
     private List<PurchaseVo.PurchaseListVo> purchaseItemList;
+    private List<Long> deletePurchaseItems;
 }

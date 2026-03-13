@@ -3,7 +3,7 @@
 
 <mapper namespace="com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper">
     <select id="getPurchaseOrderListM1">
-        select   a.pur_order_date +' -'+ CAST(a.seq AS NVARCHAR) AS purOrderDateSeq
+        select   CONCAT(CONVERT(varchar(10),a.pur_order_date,23),' - ',a.seq) AS purOrderDateSeq
                 ,a.pur_order_date
                 ,a.delivery_date
                 ,dbo.getCustomerName(a.customer_cd) as customer_name
@@ -27,7 +27,7 @@
         inner join tb_pur_order_item b
         on a.pur_order_id = b.pur_order_id
         where 1=1
-        <if test="strDate != null and strDate != ''">
+        <if test="strDate != null">
           and   a.pur_order_date between #{strDate} and #{toDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
@@ -55,7 +55,7 @@
     </select>
 
     <select id="getPurchaseOrderListM2">
-        SELECT  a.pur_order_date + ' -' + CAST(a.seq AS NVARCHAR) AS purOrderDateSeq
+        SELECT  CONCAT(CONVERT(varchar(10),a.pur_order_date,23),' - ',a.seq) AS purOrderDateSeq
                 ,a.pur_order_date
                 ,CASE WHEN COUNT(b.item_cd) = 1 THEN MIN(b.item_name)
                       ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.item_cd) - 1 AS VARCHAR) + '건' END AS item_name
@@ -74,7 +74,7 @@
             INNER JOIN tb_pur_order_item b
             ON a.pur_order_id = b.pur_order_id
         where  b.item_type_cd in ('M2', 'M7')
-        <if test="strDate != null and strDate != ''">
+        <if test="strDate != null">
             and    a.pur_order_date between #{strDate} and #{toDate}
         </if>
         <if test="areaCd != null and areaCd != ''">

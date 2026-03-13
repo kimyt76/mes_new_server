@@ -13,6 +13,7 @@
                 ,dbo.getStorageName(a.storage_cd) as storage_name
                 ,a.order_type
                 ,dbo.getUserName(a.manager_id) as manager_name
+                ,a.erp_yn
         from   tb_pur_mst a
                 inner join tb_pur_item b
                 on a.pur_id = b.pur_id
@@ -32,7 +33,7 @@
         <if test="customerName != null and customerName != ''">
             and  dbo.getCustomerName(a.customer_cd) like '%' + #{customerName} + '%'
         </if>
-        group by  a.pur_id, a.pur_date,a.seq, a.storage_cd, a.order_type, a.customer_cd , a.manager_id
+        group by  a.pur_id, a.pur_date,a.seq, a.storage_cd, a.order_type, a.customer_cd , a.manager_id,a.erp_yn
         order by a.pur_date desc, a.seq desc
     </select>
 
@@ -63,7 +64,7 @@
                  ,a.supply_price
                  ,a.vat_price
                  ,a.lot_No
-                 ,a.expira_date
+                 ,a.expiry_date
                  ,a.test_no
                  ,a.etc
                  ,a.pur_id
@@ -100,7 +101,7 @@
                 ,vat_price
                 ,lot_no
                 ,test_no
-                ,expira_date
+                ,expiry_date
                 ,etc
                 ,in_yn
                 ,qc_status
@@ -122,7 +123,7 @@
             ,#{item.vatPrice}
             ,#{item.lotNo}
             ,#{item.testNo}
-            ,#{item.expiraDate}
+            ,#{item.expiryDate}
             ,#{item.etc}
             ,#{item.inYn}
             ,#{item.qcStatus}
@@ -164,7 +165,7 @@
                     ,vat_price    = #{item.vatPrice}
                     ,lot_no       = #{item.lotNo}
                     ,test_no      = #{item.testNo}
-                    ,expira_date  = #{item.expiraDate}
+                    ,expiry_date  = #{item.expiryDate}
                     ,etc          = #{item.etc}
                     ,in_yn        = #{item.inYn}
                     ,qc_status    = #{item.qcStatus}
@@ -174,13 +175,33 @@
         </foreach>
     </update>
 
-    <delete id="deletePurchaseItemList">
-        delete tb_pur_item where pur_id = #{purId}
-    </delete>
     <delete id="deletePurMst">
         delete tb_pur_mst where pur_id = #{purId}
     </delete>
+    <delete id="deletePurchaseItemList">
+        delete tb_pur_item where pur_id = #{purId}
+    </delete>
 
+    <select id="getNextTestNoSeq">
+        SELECT ISNULL(MAX(CAST(RIGHT(test_no, 3) AS INT)), 0) + 1
+        FROM   tb_pur_item
+        WHERE test_no LIKE CONCAT(#{prefix}, '%')
+    </select>
+
+    <select id="updateErpYn">
+        update tb_pur_mst
+        set    erp_yn ='Y'
+        where  pur_id = #{purId}
+    </select>
+    <select id="getPurchaseDetailList">
+
+
+
+
+
+
+
+    </select>
 
 
 </mapper>

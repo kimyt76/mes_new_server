@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.purchase.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data

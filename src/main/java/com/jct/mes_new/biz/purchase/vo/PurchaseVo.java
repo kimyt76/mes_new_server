@@ -1,20 +1,23 @@
 package com.jct.mes_new.biz.purchase.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Data
 public class PurchaseVo {
     private Long purId;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private String strDate;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private String toDate;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private String purDate;
     private Integer seq;
     private String areaCd;
@@ -53,8 +56,8 @@ public class PurchaseVo {
         private BigDecimal vatPrice;
         private String lotNo;
         private String testNo;
-        @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-        private String expiraDate;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate expiryDate;
         private String inYn;
         private String qcStatus;
         private String etc;

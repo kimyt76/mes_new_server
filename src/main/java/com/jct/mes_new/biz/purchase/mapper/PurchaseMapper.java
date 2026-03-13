@@ -42,9 +42,32 @@ public interface PurchaseMapper {
     void deletePurchaseItemList(Long purId);
     int updatePurchaseItemList(List<PurchaseVo.PurchaseListVo> purchaseList);
 
+    int insertPurchaseItem(PurchaseVo.PurchaseListVo item);
+    int updatePurItem(PurchaseVo.PurchaseListVo item);
+
     /**
      * 구매 삭제
      * @param purId
      */
     void deletePurMst(Long purId);
+    void deleteItemList(Long purId, List<Long> deletedItemIds);
+
+    /**
+     * 구매 현황 조회
+     * @param vo
+     * @return
+     */
+    List<PurchaseVo.searchPurchaseListVo> getPurchaseDetailList(PurchaseVo vo);
+
+
+
+    /**
+     * 시험번호 seq 채번
+     * @param prefix
+     * @return
+     */
+    Integer getNextTestNoSeq(String prefix);
+
+
+
 }
