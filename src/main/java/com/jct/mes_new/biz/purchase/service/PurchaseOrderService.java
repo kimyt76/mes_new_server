@@ -44,5 +44,7 @@ public interface PurchaseOrderService {
     List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(List<Long> purOrderIds);
 
     PurchaseOrderRequestVo getPurchaseOrderInfoMail(Map<String, Object> map);
+
+    List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderDetailList(PurchaseOrderVo vo);
 }
 

@@ -17,7 +17,13 @@ public interface PurchaseOrderMapper {
 
     List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderListM2(PurchaseOrderVo vo);
 
-   
+    /**
+     * 발주현황
+     * @param vo
+     * @return
+     */
+    List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderDetailList(PurchaseOrderVo vo);
+
     /**
      * 발주 마스터 등록
      * @param vo
@@ -66,6 +72,7 @@ public interface PurchaseOrderMapper {
     void updatePrintYn(@Param("purOrderIds") List<Long> purOrderIds, @Param("itemTypeCd") String itemTypeCd);
 
     List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(@Param("purOrderIds") List<Long> purOrderIds);
+
 
 
 }

@@ -33,6 +33,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             return purchaseOrderMapper.getPurchaseOrderListM2(vo);
         }
     }
+    public List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderDetailList(PurchaseOrderVo vo){
+        return purchaseOrderMapper.getPurchaseOrderDetailList(vo);
+    }
 
     //발주서 상세 조회
     public PurchaseOrderRequestVo getPurchaseOrderInfo(Map<String, Object> map) {

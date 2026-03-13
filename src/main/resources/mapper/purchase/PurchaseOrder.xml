@@ -330,5 +330,47 @@
         </foreach>
     </update>
 
-
+    <select id="getPurchaseOrderDetailList">
+        select  CONCAT(CONVERT(varchar(10),a.pur_order_date,23),' - ',a.seq) AS purOrderDateSeq
+                 ,a.pur_order_date
+                 ,a.delivery_date
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name
+                 ,b.item_cd
+                 ,b.item_name
+                 ,dbo.getStorageName(a.storage_cd) as storage_name
+                 ,a.delivery_date
+                 ,b.qty
+                 ,isnull((select qty from tb_pur_item where b.pur_order_item_id = pur_item_id ) , 0) as inQty
+                 ,isnull(b.in_Yn, 'N') as in_Yn
+                 ,isnull(a.end_yn, 'N') as end_yn
+                 ,dbo.getUserName(a.manager_id) as manager_name
+                 ,a.pur_order_id
+                 ,b.pur_order_item_id
+        from   tb_pur_order_mst a
+                inner join tb_pur_order_item b
+                on a.pur_order_id = b.pur_order_id
+        where  a.pur_order_date between #{strDate} and #{toDate}
+        <if test="areaCd != null and areaCd != ''">
+            and   a.area_cd = #{areaCd}
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            and   b.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and   b.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and   b.item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="customerName != null and customerName != ''">
+            and   dbo.getCustomerName(a.customer_cd)  like '%' + #{customerName} + '%'
+        </if>
+        <if test="inYn != null and inYn != ''">
+            and   b.in_yn = #{inYn}
+        </if>
+        <if test="endYn != null and endYn != ''">
+            and   a.end_yn = #{endYn}
+        </if>
+        order by a.pur_order_date desc, a.seq desc
+    </select>
 </mapper>

@@ -32,10 +32,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -65,6 +62,16 @@ public class PurchaseOrderController {
     @PostMapping("/getPurchaseOrderList")
     public List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderList(@RequestBody PurchaseOrderVo vo) {
         return purchaseOrderService.getPurchaseOrderList(vo);
+    }
+
+    /**
+     * 발주 현황 조회
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getPurchaseOrderDetailList")
+    public List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderDetailList(@RequestBody PurchaseOrderVo vo) {
+        return purchaseOrderService.getPurchaseOrderDetailList(vo);
     }
 
     /**
@@ -349,6 +356,42 @@ public class PurchaseOrderController {
         }
     }
 
+
+    @PostMapping(value = "/printList")
+    public ResponseEntity<Resource> printList(@RequestBody PurchaseOrderVo vo) throws Exception {
+
+        List<PurchaseOrderVo.PurchaseOrderListVo> purOrderList = this.getPurchaseOrderDetailList(vo);
+        List<Map<String, Object>> matOrderStateViewList = new ArrayList<>() ;
+
+        try {
+            for( PurchaseOrderVo.PurchaseOrderListVo item : purOrderList ) {
+                Map<String, Object> itemMap = new HashMap<>() ;
+                itemMap.put("orderNo", item.getPurOrderDateSeq());
+                itemMap.put("orderDate", item.getPurOrderDate());
+                itemMap.put("customerName", item.getCustomerName());
+                itemMap.put("itemCd", item.getItemCd());
+                itemMap.put("itemName", item.getItemName());
+                itemMap.put("storageName", item.getStorageName());
+                itemMap.put("deliveryDate", item.getDeliveryDate());
+                itemMap.put("orderQty", item.getQty());
+                itemMap.put("sumQty", item.getInQty());
+                itemMap.put("regYn", item.getInYn());
+                itemMap.put("endYn", item.getEndYn());
+                itemMap.put("memberName", item.getManagerName());
+                matOrderStateViewList.add(itemMap);
+            }
+
+            InputStream reportStream = getClass().getResourceAsStream("/report/mat_order_state_list.jrxml");
+            byte[] pdfContent = JasperUtil.getPdfBinary(reportStream, matOrderStateViewList);
+            ByteArrayResource resource = new ByteArrayResource(pdfContent);
+            HttpHeaders header = JasperUtil.getHeader("mat_order_state_list", pdfContent.length);
+
+            return new ResponseEntity<Resource>(resource, header, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new Exception("리포트 생성중 에러발생!");
+        }
+    }
 
 
 
