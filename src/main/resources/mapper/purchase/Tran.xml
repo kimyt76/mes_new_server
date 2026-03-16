@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.purchase.mapper.TranMapper">
+    <select id="getTranList">
+        select   CONCAT(CONVERT(varchar(10),a.tran_date,23),' - ',a.seq) AS purDateSeq
+                ,dbo.getCustomerName(a.customer_cd) as customer_name
+                ,CASE WHEN COUNT(b.tran_item_id) = 1 THEN MIN(b.item_name)
+                      ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.tran_item_id) - 1 AS VARCHAR) + '건' END AS item_name
+                ,sum(isnull(b.qty, 0)) as totQty
+                ,dbo.getStorageName(a.form_storage_cd) as form_storage_name
+                ,dbo.getStorageName(a.to_storage_cd) as to_storage_name
+                ,a.tran_status
+                ,dbo.getUserName(a.manager_id) as manager_name
+                ,a.tran_id
+        from   tb_inv_tran_mst a
+                inner join tb_inv_tran_item b
+                on a.pur_id = b.pur_id
+        where   a.tran_date between #{strDate} and #{toDate}
+        <if test="itemCd != null and itemCd != ''">
+          and    b.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+          and    b.item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="customerName != null and customerName != ''">
+            and  dbo.getCustomerName(a.customer_cd) like '%' + #{customerName} + '%'
+        </if>
+        group by  a.tran_id, a.tran_date, a.form_storage_cd, a.form_storage_cd, a.tran_status, a.customer_cd , a.manager_id
+        order by a.pur_date desc, a.seq desc
+    </select>
+
+    <select id="getTranInfo">
+        select    a.tran_date
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name
+                 ,a.customer_cd
+                 ,a.from_storage_cd
+                 ,dbo.getStorageName(a.from_storage_cd) as fromStorageName
+                 ,a.to_storage_cd
+                 ,dbo.getStorageName(a.to_storage_cd) as toStorageName
+                 ,a.remark
+                 ,a.manager_id
+                 ,a.order_type
+                 ,dbo.getUserName(a.manager_id) as manager_name
+                 ,a.tran_id
+                 ,a.pur_id
+        from   tb_pur_mst a
+        where   a.tran_id = #{tranId}
+    </select>
+
+    <select id="getTranItemList">
+        select    a.item_cd
+                 ,a.item_name
+                 ,a.spec
+                 ,a.qty
+                 ,a.lot_No
+                 ,a.expiry_date
+                 ,a.test_no
+                 ,a.etc
+                 ,a.pur_item_id
+                 ,a.tran_id
+        from     tb_inv_tran_item a
+        where   a.tran_id = #{tranId}
+    </select>
+
+    <!--    재고 마스터 등록 -->
+    <insert id="insertTranMst" parameterType="com.jct.mes_new.biz.purchase.vo.TranVo"  useGeneratedKeys="true" keyProperty="tranId">
+        INSERT INTO dbo.tb_inv_tran_mst (
+            tran_date, tran_type_cd, from_storage_cd, to_storage_cd, customer_cd, manager_id, remark,
+            tran_status, pur_id, reg_id, upd_id
+        )
+        VALUES (
+            #{tranDate}, #{tranTypeCd}, #{fromStorageCd}, #{toStorageCd}, #{customerCd},#{managerId}, #{remark},
+            #{tranStatus}, #{purId},  #{userId}, #{userId}
+               )
+    </insert>
+
+    <!--    재고 목록 등록 -->
+    <insert id="insertTranItem" useGeneratedKeys="true" keyProperty="tranItemId">
+        INSERT INTO tb_inv_tran_item (
+                 tran_id
+                ,item_cd
+                ,item_name
+                ,item_type_cd
+                ,spec
+                ,qty
+                ,lot_no
+                ,test_no
+                ,expiry_date
+                ,etc
+                ,in_yn
+                ,pur_Item_Id
+                ,reg_id
+                ,upd_id
+        )
+        VALUES
+            (
+             #{tranId}
+            ,#{itemCd}
+            ,#{itemName}
+            ,#{itemTypeCd}
+            ,#{spec}
+            ,#{qty}
+            ,#{lotNo}
+            ,#{testNo}
+            ,#{expiryDate}
+            ,#{etc}
+            ,#{inYn}
+            ,#{purItemId}
+            ,#{userId}
+            ,#{userId}
+            )
+    </insert>
+
+<!--    재고 마스터  수정용 -->
+    <update id="updateTranMst">
+        UPDATE dbo.tb_inv_tran_mst
+        SET    tran_date   = #{purDate}
+              ,from_storage_cd = #{fromStorageCd}
+              ,to_storage_cd = #{toStorageCd}
+              ,customer_cd  = #{customerCd}
+              ,manager_id   = #{managerId}
+              ,remark     = #{remark}
+              ,upd_id     = #{userId}
+              ,upd_dt     = GETDATE()
+        WHERE  pur_id     = #{purId}
+        and    tran_type_cd = 'A'
+    </update>
+    <!--    재고 품목 수정용 -->
+    <update id="updateTranItemList">
+            UPDATE  tb_inv_tran_item
+            SET      spec         = #{spec}
+                    ,qty          = #{qty}
+                    ,lot_no       = #{lotNo}
+                    ,expiry_date  = #{expiryDate}
+                    ,etc          = #{etc}
+                    ,qc_status    = isnull(#{qcStatus}, 'N')
+                    ,upd_id       = #{userId}
+                    ,upd_dt       = GETDATE()
+            WHERE pur_item_id  = #{purItemId}
+    </update>
+
+    <delete id="deleteTranItemList">
+        delete tb_inv_tran_item where pur_id = #{purId}
+    </delete>
+    <delete id="deleteTranMst">
+        delete tb_inv_tran_mst where pur_id = #{purId}
+    </delete>
+
+    <select id="updateQcStatusYn">
+        update tb_inv_tran_item
+        set    qc_status = #{qcStatus}
+        where  tran_item_id = #{tranItemId}
+    </select>
+
+
+
+</mapper>
