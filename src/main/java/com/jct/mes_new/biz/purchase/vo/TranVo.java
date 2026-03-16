@@ -12,11 +12,11 @@ public class TranVo {
     private Long tranId;
     private Long purId;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private String strDate;
+    private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private String toDate;
+    private LocalDate toDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private String tranDate;
+    private LocalDate tranDate;
     private String areaCd;
     private String fromStorageCd;
     private String fromStorageName;

@@ -3,38 +3,67 @@
 
 <mapper namespace="com.jct.mes_new.biz.purchase.mapper.PurchaseMapper">
     <select id="getPurchaseList">
-        select   CONCAT(CONVERT(varchar(10),a.pur_date,23),' - ',a.seq) AS purDateSeq
-                ,dbo.getCustomerName(a.customer_cd) as customer_name
-                ,CASE WHEN COUNT(b.pur_item_id) = 1 THEN MIN(b.item_name)
-                      ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.pur_item_id) - 1 AS VARCHAR) + '건' END AS item_name
-                ,sum(isnull(b.qty, 0)) as totQty
-                ,sum(isnull(b.supply_price,0)-isnull(b.vat_price,0)) as totPrice
-                ,dbo.getStorageName(a.storage_cd) as storage_name
-                ,a.order_type
-                ,dbo.getUserName(a.manager_id) as manager_name
-                ,a.erp_yn
-                ,a.pur_id
-        from   tb_pur_mst a
-                inner join tb_pur_item b
-                on a.pur_id = b.pur_id
-        where   a.pur_date between #{strDate} and #{toDate}
+        SELECT CONCAT(CONVERT(varchar(10), a.pur_date, 23), ' - ', a.seq) AS purDateSeq
+                , dbo.getCustomerName(a.customer_cd) AS customer_name
+                , CASE WHEN x.item_cnt = 1 THEN x.first_item_name ELSE x.first_item_name + ' 외 ' + CAST(x.item_cnt - 1 AS varchar) + '건' END AS item_name
+                , x.totQty
+                , x.totPrice
+                , dbo.getStorageName(a.storage_cd) AS storage_name
+                , a.order_type
+                , dbo.getUserName(a.manager_id) AS manager_name
+                , a.erp_yn
+                , a.pur_id
+        FROM    tb_pur_mst a
+                INNER JOIN (
+                        SELECT  b.pur_id
+                                , COUNT(b.pur_item_id) AS item_cnt
+                                , SUM(ISNULL(b.qty, 0)) AS totQty
+                                , SUM(ISNULL(b.supply_price, 0) - ISNULL(b.vat_price, 0)) AS totPrice
+                                , (
+                                    SELECT TOP 1 b2.item_name
+                                    FROM tb_pur_item b2
+                                    WHERE b2.pur_id = b.pur_id
+                                    ORDER BY b2.pur_item_id
+                                ) AS first_item_name
+                        FROM tb_pur_item b
+                        GROUP BY b.pur_id
+                ) x
+                ON a.pur_id = x.pur_id
+        WHERE a.pur_date BETWEEN #{strDate} AND #{toDate}
         <if test="areaCd != null and areaCd != ''">
-          and    a.area_cd = #{areaCd}
-        </if>
-        <if test="itemCd != null and itemCd != ''">
-          and    b.item_cd = #{itemCd}
-        </if>
-        <if test="itemName != null and itemName != ''">
-          and    b.item_name like '%' + #{itemName} + '%'
+            AND a.area_cd = #{areaCd}
         </if>
         <if test="endYn != null and endYn != ''">
-          and    a.end_yn = #{endYn}
+            AND a.end_yn = #{endYn}
         </if>
         <if test="customerName != null and customerName != ''">
-            and  dbo.getCustomerName(a.customer_cd) like '%' + #{customerName} + '%'
+            AND dbo.getCustomerName(a.customer_cd) LIKE '%' + #{customerName} + '%'
         </if>
-        group by  a.pur_id, a.pur_date,a.seq, a.storage_cd, a.order_type, a.customer_cd , a.manager_id,a.erp_yn
-        order by a.pur_date desc, a.seq desc
+        <if test="itemName != null and itemName != ''">
+            AND EXISTS (
+                SELECT 1
+                FROM tb_pur_item i
+                WHERE i.pur_id = a.pur_id
+                AND i.item_name LIKE '%' + #{itemName} + '%'
+            )
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND EXISTS (
+                SELECT 1
+                FROM tb_pur_item i
+                WHERE i.pur_id = a.pur_id
+                AND i.item_cd LIKE '%' + #{itemCd} + '%'
+            )
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            AND EXISTS (
+                SELECT 1
+                FROM tb_pur_item i
+                WHERE i.pur_id = a.pur_id
+                AND   i.item_type_cd  = #{itemTypeCd}
+            )
+        </if>
+        ORDER BY a.pur_date DESC, a.seq DESC
     </select>
 
     <select id="getPurchaseInfo">
@@ -58,6 +87,7 @@
     <select id="getPurchaseItemList">
         select    a.item_cd
                  ,a.item_name
+                 ,a.item_type_cd
                  ,a.spec
                  ,a.qty
                  ,a.in_price
@@ -70,7 +100,11 @@
                  ,a.pur_id
                  ,a.pur_item_id
                  ,a.pur_order_item_id
+                 ,b.tran_item_id
+                 ,b.tran_id
         from     tb_pur_item a
+                 left outer join tb_inv_tran_item b
+                 on b.pur_item_id = a.pur_item_id
         where   a.pur_id = #{purId}
     </select>
 
@@ -138,7 +172,6 @@
               ,remark     = #{remark}
               ,order_type = #{orderType}
               ,vat_type   = #{vatType}
-              ,end_yn     = isnull(#{endYn}, 'N')
               ,upd_id     = #{userId}
               ,upd_dt     = GETDATE()
         WHERE  pur_id     = #{purId}
@@ -147,18 +180,29 @@
     <update id="updatePurchaseItemList">
         UPDATE  tb_pur_item
         SET      spec         = #{spec}
-                ,qty          = #{item.qty}
-                ,in_price     = #{item.inPrice}
-                ,supply_price = #{item.supplyPrice}
-                ,vat_price    = #{item.vatPrice}
-                ,lot_no       = #{item.lotNo}
-                ,expiry_date  = #{item.expiryDate}
-                ,etc          = #{item.etc}
-                ,upd_id       = #{item.userId}
+                ,qty          = #{qty}
+                ,in_price     = #{inPrice}
+                ,supply_price = #{supplyPrice}
+                ,vat_price    = #{vatPrice}
+                ,lot_no       = #{lotNo}
+                ,expiry_date  = #{expiryDate}
+                ,etc          = #{etc}
+                ,upd_id       = #{userId}
                 ,upd_dt       = GETDATE()
-        WHERE pur_item_id  = #{item.purItemId}
+        WHERE pur_item_id  = #{purItemId}
     </update>
 
+<!--    품목 선택 삭제용-->
+    <delete id="deleteItemList">
+        DELETE FROM tb_pur_item
+        WHERE pur_id = #{purId}
+        AND pur_item_id IN
+        <foreach collection="deletedItemIds" item="itemId" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+
+    <!--  이건 전체 삭제용  -->
     <delete id="deletePurMst">
         delete tb_pur_mst where pur_id = #{purId}
     </delete>

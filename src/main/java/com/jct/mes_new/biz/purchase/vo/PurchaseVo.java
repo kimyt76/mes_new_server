@@ -45,6 +45,8 @@ public class PurchaseVo {
         private Long purId;
         private Long purItemId;
         private Long purOrderItemId;
+        private Long tranItemId;
+        private Long tranId;
         private String itemTypeCd;
         private String itemCd;
         private String itemName;

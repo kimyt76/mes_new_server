@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class TranServiceImpl implements TranService {
     private final TranMapper invTranMapper;
 
 
+    /* 원장 신규 저장 */
     @Transactional
     public Long saveTranInfo(TranRequestVo vo){
         String userId = UserUtil.getUserId();
@@ -58,26 +61,25 @@ public class TranServiceImpl implements TranService {
         return mst.getTranId();
     }
 
+    /* 원장 수정 */
     @Transactional
     public Long updateTranInfo(TranRequestVo vo){
         String msg = "수정되었습니다.";
         String userId = UserUtil.getUserId();
 
         TranVo mst = vo.getTranInfo();
+        Long tranId = mst.getTranId();
         mst.setUserId(userId);
 
         if ( invTranMapper.updateTranMst(mst) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
-        Long tranId = mst.getTranId();
-
         // 2. 삭제 처리
         List<Long> deletedItemIds = vo.getDeleteTranItems();
         if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
             invTranMapper.deleteItemList(tranId,deletedItemIds);
         }
-
         //3. 발주 품목 처리
         List<TranVo.TranItemListVo> itemList = vo.getTranItemList();
 
@@ -85,7 +87,7 @@ public class TranServiceImpl implements TranService {
             for (TranVo.TranItemListVo item : itemList) {
                 item.setTranId(tranId);
                 item.setUserId(userId);
-                if (item.getPurItemId() == null) {
+                if (item.getTranItemId() == null) {
                     // 신규 등록
                     int insertCnt = invTranMapper.insertTranItem(item);
                     if (insertCnt <= 0) {
@@ -98,21 +100,22 @@ public class TranServiceImpl implements TranService {
                         throw new BusinessException(ErrorCode.FAIL_UPDATED);
                     }
                 }
-
-
-
             }
         }
         return tranId;
     }
 
 
+    /**
+     * 원장 전체 삭제
+     * @param purId
+     */
+    public void deleteTranInfo(Long purId) {
+        Long tranId = invTranMapper.getTranId(purId);
 
-
-
-
-
-
+        invTranMapper.deleteTranItem(tranId);
+        invTranMapper.deleteTranMst(tranId);
+    }
 
 
 }

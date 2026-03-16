@@ -86,6 +86,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             Map<String, Integer> seqMap = new HashMap<>();
 
             for (PurchaseVo.PurchaseListVo item : purchaseItemList) {
+                log.info("itemCd={}, itemName={}, itemTypeCd={}",
+                        item.getItemCd(), item.getItemName(), item.getItemTypeCd());
                 String prefix = CodeUtil.createTestNo(
                         purchaseInfo.getPurDate(),
                         purchaseInfo.getAreaCd(),
@@ -154,7 +156,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
                 if (item.getPurItemId() == null) {
                     // 신규 등록
-                    int insertCnt = purchaseMapper.insertPurchaseItem(item);
+                    int insertCnt = purchaseMapper.savePurchaseItemList(item);
                     if (insertCnt <= 0) {
                         throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
@@ -185,8 +187,10 @@ public class PurchaseServiceImpl implements PurchaseService {
     public String deletePurchase(Long purId){
         String msg="삭제되었습니다.";
 
-        purchaseMapper.deletePurMst(purId);
         purchaseMapper.deletePurchaseItemList(purId);
+        purchaseMapper.deletePurMst(purId);
+
+        tranService.deleteTranInfo(purId);
 
         return msg;
     }
@@ -199,7 +203,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         // 1. 원장 마스터
         TranVo tranInfo = new TranVo();
         tranInfo.setPurId(purId);
-        tranInfo.setTranDate(purchaseInfo.getPurDate().toString());
+        tranInfo.setTranId(vo.getPurchaseItemList().get(0).getTranId());
+        tranInfo.setTranDate(purchaseInfo.getPurDate());
         tranInfo.setCustomerCd(purchaseInfo.getCustomerCd());
         tranInfo.setManagerId(purchaseInfo.getManagerId());
         tranInfo.setAreaCd(purchaseInfo.getAreaCd());
@@ -232,6 +237,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 tranItem.setSupplyPrice(purchaseItem.getSupplyPrice());
                 tranItem.setVatPrice(purchaseItem.getVatPrice());
                 tranItem.setPurItemId(purchaseItem.getPurItemId());
+                tranItem.setTranItemId(purchaseItem.getTranItemId());
                 tranItem.setQcStatus(purchaseItem.getQcStatus());
                 tranItem.setUserId(userId);
 

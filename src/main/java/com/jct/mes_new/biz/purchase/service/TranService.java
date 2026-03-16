@@ -6,4 +6,6 @@ public interface TranService {
 
     Long saveTranInfo(TranRequestVo vo);
     Long updateTranInfo(TranRequestVo vo);
+
+    void deleteTranInfo(Long purId);
 }

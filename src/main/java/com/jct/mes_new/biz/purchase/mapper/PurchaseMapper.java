@@ -40,7 +40,6 @@ public interface PurchaseMapper {
      */
     int updatePurchaseMst(PurchaseVo purchaseInfo);
     void deletePurchaseItemList(Long purId);
-    int insertPurchaseItem(PurchaseVo.PurchaseListVo item);
     int updatePurchaseItemList(PurchaseVo.PurchaseListVo item);
 
     /**

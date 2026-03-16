@@ -115,36 +115,50 @@
 <!--    재고 마스터  수정용 -->
     <update id="updateTranMst">
         UPDATE dbo.tb_inv_tran_mst
-        SET    tran_date   = #{purDate}
-              ,from_storage_cd = #{fromStorageCd}
-              ,to_storage_cd = #{toStorageCd}
-              ,customer_cd  = #{customerCd}
-              ,manager_id   = #{managerId}
-              ,remark     = #{remark}
-              ,upd_id     = #{userId}
-              ,upd_dt     = GETDATE()
-        WHERE  pur_id     = #{purId}
+        SET    tran_date        = #{tranDate}
+              ,from_storage_cd  = #{fromStorageCd}
+              ,to_storage_cd    = #{toStorageCd}
+              ,customer_cd      = #{customerCd}
+              ,manager_id       = #{managerId}
+              ,remark           = #{remark}
+              ,upd_id           = #{userId}
+              ,upd_dt           = GETDATE()
+        WHERE  pur_id           = #{purId}
         and    tran_type_cd = 'A'
     </update>
     <!--    재고 품목 수정용 -->
-    <update id="updateTranItemList">
+    <update id="updateTranItem">
             UPDATE  tb_inv_tran_item
             SET      spec         = #{spec}
                     ,qty          = #{qty}
                     ,lot_no       = #{lotNo}
                     ,expiry_date  = #{expiryDate}
                     ,etc          = #{etc}
-                    ,qc_status    = isnull(#{qcStatus}, 'N')
                     ,upd_id       = #{userId}
                     ,upd_dt       = GETDATE()
             WHERE pur_item_id  = #{purItemId}
     </update>
 
-    <delete id="deleteTranItemList">
-        delete tb_inv_tran_item where pur_id = #{purId}
+    <select id="getTranId" parameterType="long" resultType="long" >
+        select tran_id from tb_inv_tran_mst where pur_id = #{purId} and tran_type_cd ='A'
+    </select>
+
+    <delete id="deleteItemList">
+        DELETE FROM tb_inv_tran_item
+        WHERE tran_id = #{tranId}
+        and   pur_item_id IN
+        <foreach collection="deletedItemIds" item="itemId" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
     </delete>
+
+<!--  이건 전체 삭제용  -->
+    <delete id="deleteTranItem">
+        DELETE FROM tb_inv_tran_item WHERE tran_id = #{tranId}
+    </delete>
+
     <delete id="deleteTranMst">
-        delete tb_inv_tran_mst where pur_id = #{purId}
+        delete tb_inv_tran_mst where tran_id = #{tranId}
     </delete>
 
     <select id="updateQcStatusYn">
