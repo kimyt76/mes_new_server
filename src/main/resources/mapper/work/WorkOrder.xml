@@ -9,7 +9,7 @@
          ========================================================= -->
     <select id="getWorkOrderList" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo"
             resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
-        SELECT   a.work_order_date +' -'+ CAST(a.seq AS NVARCHAR) AS workOrderDateSeq
+        SELECT   CONCAT(CONVERT(varchar(10),a.work_order_date,23),' - ',a.seq) AS workOrderDateSeq
                 ,dbo.getCommonName('area', a.area_cd) as areaName
                 ,a.po_no             AS poNo
                 ,(select distinct  proc_order_date from  TB_WORK_ORDER_PROC where  proc_cd = 'PRC002'  and work_order_id = a.work_order_id) as matOrderDate
@@ -35,7 +35,7 @@
                 inner join  tb_users d
                 on d.user_id = a.manager_id
         WHERE 1=1
-        <if test="strDate != null and strDate != ''">
+        <if test="strDate != null ">
             AND a.work_order_date between  #{strDate} and #{toDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
@@ -56,8 +56,7 @@
          2) 상세 조회(마스터)
          WorkOrderVo getWorkOrderMst(String workOrderId);
          ========================================================= -->
-    <select id="getWorkOrderMst" parameterType="string"
-            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
+    <select id="getWorkOrderMst" parameterType="string" resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
         SELECT   a.work_order_date   AS workOrderDate
                 ,a.seq               AS seq
                 ,dbo.getCommonName('area', a.area_cd)  AS areaName
@@ -155,10 +154,7 @@
          void insertWorkOrderBatch(WorkOrderVo.Batch b);
          void updateWorkOrderBatch(WorkOrderVo.Batch b);
          ========================================================= -->
-    <insert id="insertWorkOrderBatch"
-            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch"
-            useGeneratedKeys="true"
-            keyProperty="workBatchId">
+    <insert id="insertWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch" useGeneratedKeys="true" keyProperty="workBatchId">
         INSERT INTO dbo.TB_WORK_ORDER_BATCH
         (
             work_order_id, po_no, mat_no, lot_no, lot_no2,
@@ -186,28 +182,20 @@
          void insertWorkOrderItem(WorkOrderVo.Item i);
          void updateWorkOrderItem(WorkOrderVo.Item i);
          ========================================================= -->
-    <insert id="insertWorkOrderProc"
-            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item"
-            useGeneratedKeys="true"
-            keyProperty="workProcId">
+    <insert id="insertWorkOrderProc" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item" useGeneratedKeys="true" keyProperty="workProcId">
         INSERT INTO dbo.TB_WORK_ORDER_PROC
         (
-            work_batch_id, po_no, proc_cd,
-            item_cd, proc_order_date, order_qty, proc_status,
-            work_order_id,
-            reg_id, upd_id
+            work_batch_id, po_no, proc_cd,item_cd, proc_order_date, order_qty, proc_status,work_order_id,
+            storage_cd,prod_date, memo, etc, reg_id, upd_id
         )
         VALUES
             (
-                #{workBatchId}, #{poNo}, #{procCd},
-                #{itemCd}, #{procOrderDate}, #{orderQty}, #{procStatus},
-                #{workOrderId},
-                #{userId}, #{userId}
+                #{workBatchId}, #{poNo}, #{procCd},#{itemCd}, #{procOrderDate}, #{orderQty}, #{procStatus},#{workOrderId},
+                #{storageCd},#{prodDate},#{memo},#{etc},#{userId},#{userId}, #{userId}
             )
     </insert>
 
-    <update id="updateWorkOrderProc"
-            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
+    <update id="updateWorkOrderProc" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
         UPDATE dbo.TB_WORK_ORDER_PROC
         SET
             work_batch_id   = #{workBatchId},
@@ -218,12 +206,14 @@
             order_qty       = #{orderQty},
             proc_status     = #{procStatus},
             work_order_id   = #{workOrderId},
+            storage_cd      = #{storageCd},
+            prod_date       = #{prodDate},
+            memo            = #{memo},
+            etc             = #{etc},
             upd_id          = #{userId},
             upd_dt          = GETDATE()
         WHERE work_proc_id = #{workProcId}
     </update>
-
-
     <!-- =========================================================
          8) 삭제(요청하신 "니가 만들어줘" 파트)
          - FK 때문에 ITEM -> BATCH -> MST 순서로 제공

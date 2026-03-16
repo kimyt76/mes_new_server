@@ -1,15 +1,18 @@
 package com.jct.mes_new.biz.work.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 @Data
 public class WorkOrderVo {
         // MST
         private Long workOrderId;
         private String workOrderDateSeq;
-        private String workOrderDate;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate workOrderDate;
         private Integer seq;
         private String areaCd;
         private String areaName;
@@ -18,15 +21,18 @@ public class WorkOrderVo {
         private String managerId;
         private String managerName;
         private BigDecimal deliveryQty;
-        private String deliveryDate;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate deliveryDate;
         private String itemCd;
         private String itemName;
         private String poNo;
         private String etc;
         private String workStatus;
 
-        private String strDate;
-        private String toDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate strDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate toDate;
         private String matOrderDate;
 
         private Integer batchCnt;
@@ -59,10 +65,18 @@ public class WorkOrderVo {
             private String procCd;
             private String itemCd;
             private String itemName;
-            private String procOrderDate;
+            @JsonFormat(pattern = "yyyy-MM-dd")
+            private LocalDate procOrderDate;
             private BigDecimal orderQty;
             private String procStatus;
             private String procStatusName;
+
+            @JsonFormat(pattern = "yyyy-MM-dd")
+            private LocalDate prodDate;
+            private String storageCd;
+            private String storageName;
+            private String memo;
+            private String etc;
 
             private String userId;
         }
