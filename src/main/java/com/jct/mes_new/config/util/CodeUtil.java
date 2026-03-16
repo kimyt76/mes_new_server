@@ -33,10 +33,14 @@ public class CodeUtil {
         };
     }
 
-    public String createTestNo(String purDate, String areaCd, String itemTypeCd) {
-        String datePrefix = LocalDate.parse(purDate).format(DateTimeFormatter.ofPattern("yyMMdd"));
+    public String createTestNo(LocalDate purDate, String areaCd, String itemTypeCd) {
+        String datePrefix = purDate.format(DateTimeFormatter.ofPattern("yyMMdd"));
         String areaGb = convertAreaCd(areaCd);
         String itemGb = convertItemTypeCd(itemTypeCd);
+
+        System.out.println("datePrefix      = [" + datePrefix + "]");
+        System.out.println("areaGb       = [" + areaGb + "]");
+        System.out.println("itemGb   = [" + itemGb + "]");
 
         return datePrefix + areaGb + itemGb;
     }
