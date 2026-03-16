@@ -14,11 +14,11 @@ import java.util.List;
 public class PurchaseVo {
     private Long purId;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private String strDate;
+    private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private String toDate;
+    private LocalDate toDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private String purDate;
+    private LocalDate purDate;
     private Integer seq;
     private String areaCd;
     private String itemTypeCd;
@@ -44,7 +44,7 @@ public class PurchaseVo {
     public static class PurchaseListVo {
         private Long purId;
         private Long purItemId;
-        private Long purOrderId;
+        private Long purOrderItemId;
         private String itemTypeCd;
         private String itemCd;
         private String itemName;

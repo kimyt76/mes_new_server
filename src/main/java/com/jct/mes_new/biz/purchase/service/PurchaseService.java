@@ -11,9 +11,11 @@ public interface PurchaseService {
 
     PurchaseRequestVo getPurchaseInfo(Long purId);
 
-    String savePurchaseInfo(PurchaseRequestVo vo);
+    Long savePurchaseInfo(PurchaseRequestVo vo);
 
     String updatePurchaseInfo(PurchaseRequestVo vo);
 
     String deletePurchase(Long purId);
+
+    List<PurchaseVo.searchPurchaseListVo> getPurchaseDetailList(PurchaseVo vo);
 }

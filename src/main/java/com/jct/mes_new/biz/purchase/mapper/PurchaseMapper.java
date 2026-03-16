@@ -31,7 +31,7 @@ public interface PurchaseMapper {
      * @return
      */
     int savePurchaseMst(PurchaseVo purchaseInfo);
-    int savePurchaseItemList(List<PurchaseVo.PurchaseListVo> purchaseList);
+    int savePurchaseItemList(PurchaseVo.PurchaseListVo item);
 
     /**
      * 구매 수정
@@ -40,10 +40,8 @@ public interface PurchaseMapper {
      */
     int updatePurchaseMst(PurchaseVo purchaseInfo);
     void deletePurchaseItemList(Long purId);
-    int updatePurchaseItemList(List<PurchaseVo.PurchaseListVo> purchaseList);
-
     int insertPurchaseItem(PurchaseVo.PurchaseListVo item);
-    int updatePurItem(PurchaseVo.PurchaseListVo item);
+    int updatePurchaseItemList(PurchaseVo.PurchaseListVo item);
 
     /**
      * 구매 삭제

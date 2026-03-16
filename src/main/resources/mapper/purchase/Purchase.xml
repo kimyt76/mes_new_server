@@ -3,8 +3,7 @@
 
 <mapper namespace="com.jct.mes_new.biz.purchase.mapper.PurchaseMapper">
     <select id="getPurchaseList">
-        select   a.pur_id
-                ,a.pur_date+'-'+ CAST(a.seq AS NVARCHAR) AS purDateSeq
+        select   CONCAT(CONVERT(varchar(10),a.pur_date,23),' - ',a.seq) AS purDateSeq
                 ,dbo.getCustomerName(a.customer_cd) as customer_name
                 ,CASE WHEN COUNT(b.pur_item_id) = 1 THEN MIN(b.item_name)
                       ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.pur_item_id) - 1 AS VARCHAR) + '건' END AS item_name
@@ -14,6 +13,7 @@
                 ,a.order_type
                 ,dbo.getUserName(a.manager_id) as manager_name
                 ,a.erp_yn
+                ,a.pur_id
         from   tb_pur_mst a
                 inner join tb_pur_item b
                 on a.pur_id = b.pur_id
@@ -69,7 +69,7 @@
                  ,a.etc
                  ,a.pur_id
                  ,a.pur_item_id
-                 ,a.pur_order_id
+                 ,a.pur_order_item_id
         from     tb_pur_item a
         where   a.pur_id = #{purId}
     </select>
@@ -77,20 +77,17 @@
     <!--    구매 마스터 등록 -->
     <insert id="savePurchaseMst" parameterType="com.jct.mes_new.biz.purchase.vo.PurchaseVo"  useGeneratedKeys="true" keyProperty="purId">
         INSERT INTO dbo.tb_pur_mst (
-            pur_date, seq, area_cd, storage_cd, customer_cd, manager_id, remark, order_type, vat_type,
-            reg_id, upd_id
+            pur_date, seq, area_cd, storage_cd, customer_cd, manager_id, remark, order_type, vat_type, reg_id, upd_id
         )
         VALUES (
-            #{purDate}, #{seq}, #{areaCd}, #{storageCd}, #{customerCd},#{managerId}, #{remark}, #{orderType}, #{vatType},
-            #{userId}, #{userId}
+            #{purDate}, #{seq}, #{areaCd}, #{storageCd}, #{customerCd},#{managerId}, #{remark}, #{orderType}, #{vatType}, #{userId}, #{userId}
                )
     </insert>
 
     <!--    구매 목록 등록 -->
-    <insert id="savePurchaseItemList" >
+    <insert id="savePurchaseItemList" parameterType="com.jct.mes_new.biz.purchase.vo.PurchaseVo$PurchaseListVo" useGeneratedKeys="true"  keyProperty="purItemId">
         INSERT INTO tb_pur_item (
                  pur_id
-                ,pur_order_id
                 ,item_cd
                 ,item_name
                 ,item_type_cd
@@ -104,33 +101,30 @@
                 ,expiry_date
                 ,etc
                 ,in_yn
-                ,qc_status
+                ,pur_order_item_id
                 ,reg_id
                 ,upd_id
         )
         VALUES
-        <foreach collection="list" item="item" separator=",">
             (
-             #{item.purId}
-            ,#{item.purOrderId}
-            ,#{item.itemCd}
-            ,#{item.itemName}
-            ,#{item.itemTypeCd}
-            ,#{item.spec}
-            ,#{item.qty}
-            ,#{item.inPrice}
-            ,#{item.supplyPrice}
-            ,#{item.vatPrice}
-            ,#{item.lotNo}
-            ,#{item.testNo}
-            ,#{item.expiryDate}
-            ,#{item.etc}
-            ,#{item.inYn}
-            ,#{item.qcStatus}
-            ,#{item.userId}
-            ,#{item.userId}
+             #{purId}
+            ,#{itemCd}
+            ,#{itemName}
+            ,#{itemTypeCd}
+            ,#{spec}
+            ,#{qty}
+            ,#{inPrice}
+            ,#{supplyPrice}
+            ,#{vatPrice}
+            ,#{lotNo}
+            ,#{testNo}
+            ,#{expiryDate}
+            ,#{etc}
+            ,#{inYn}
+            ,#{purOrderItemId}
+            ,#{userId}
+            ,#{userId}
             )
-        </foreach>
     </insert>
 
     <update id="updatePurchaseMst">
@@ -151,28 +145,18 @@
     </update>
 
     <update id="updatePurchaseItemList">
-        <foreach collection="list" item="item" separator=";">
-            UPDATE  tb_pur_item
-            SET      pur_id       = #{item.purId}
-                    ,pur_order_id = #{item.purOrderId}
-                    ,item_cd      = #{item.itemCd}
-                    ,item_name    = #{item.itemName}
-                    ,item_type_cd = #{item.itemTypeCd}
-                    ,spec         = #{item.spec}
-                    ,qty          = #{item.qty}
-                    ,in_price     = #{item.inPrice}
-                    ,supply_price = #{item.supplyPrice}
-                    ,vat_price    = #{item.vatPrice}
-                    ,lot_no       = #{item.lotNo}
-                    ,test_no      = #{item.testNo}
-                    ,expiry_date  = #{item.expiryDate}
-                    ,etc          = #{item.etc}
-                    ,in_yn        = #{item.inYn}
-                    ,qc_status    = #{item.qcStatus}
-                    ,upd_id       = #{item.userId}
-                    ,upd_dt       = GETDATE()
-            WHERE pur_item_id  = #{item.purItemId}
-        </foreach>
+        UPDATE  tb_pur_item
+        SET      spec         = #{spec}
+                ,qty          = #{item.qty}
+                ,in_price     = #{item.inPrice}
+                ,supply_price = #{item.supplyPrice}
+                ,vat_price    = #{item.vatPrice}
+                ,lot_no       = #{item.lotNo}
+                ,expiry_date  = #{item.expiryDate}
+                ,etc          = #{item.etc}
+                ,upd_id       = #{item.userId}
+                ,upd_dt       = GETDATE()
+        WHERE pur_item_id  = #{item.purItemId}
     </update>
 
     <delete id="deletePurMst">
@@ -193,6 +177,8 @@
         set    erp_yn ='Y'
         where  pur_id = #{purId}
     </select>
+
+
     <select id="getPurchaseDetailList">
 
 
