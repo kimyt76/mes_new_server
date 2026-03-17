@@ -8,11 +8,13 @@
                     <td style="padding: 10px; border-bottom: 1px solid #e5e5e5;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tbody>
-                            <tr>
-                                <td style="width: 140px;">
-                                    <img src="https://logincd.ecounterp.com/MemberInfo/Logo/_64301_589b0388302ae48faf7de525df752bba_logotop.gif">
+                            <tr style="height: 50px;">
+                                <td style="width: 140px; vertical-align: middle;">
+                                    <span style="font-size: 30px; font-weight: 700; color: #e94b28;">
+                                        JINCOSTECH
+                                    </span>
                                 </td>
-                                <td style="padding-left: 10px; font: 14px/1.6 Arial; color: #000; font-weight: bold; text-align: right;">
+                                <td style="padding-left: 10px; font-family: Arial; font-size: 18px; color: #000; font-weight: 700; text-align: right; vertical-align: middle;">
                                     발주서
                                 </td>
                             </tr>
