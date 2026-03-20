@@ -28,8 +28,8 @@ public class ItemTestController {
 
 
     @GetMapping("/getItemTestNoInfo/{id}")
-    public ItemTestVo getItemTestNoInfo(@PathVariable("id") Long testId) {
-        return itemTestService.getItemTestNoInfo(testId);
+    public ItemTestVo getItemTestNoInfo(@PathVariable("id") String testNo) {
+        return itemTestService.getItemTestNoInfo(testNo);
     }
 
 

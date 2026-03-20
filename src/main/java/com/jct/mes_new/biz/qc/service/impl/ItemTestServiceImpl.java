@@ -31,11 +31,11 @@ public class ItemTestServiceImpl implements ItemTestService {
 
     /**
      * 시험번호내역 상세 조회
-     * @param testId
+     * @param testNo
      * @return
      */
-    public ItemTestVo getItemTestNoInfo(Long testId) {
-        return itemTestMapper.getItemTestNoInfo(testId);
+    public ItemTestVo getItemTestNoInfo(String testNo) {
+        return itemTestMapper.getItemTestNoInfo(testNo);
     }
 
     public String updateItemTestNoInfo(ItemTestVo vo){

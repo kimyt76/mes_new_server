@@ -67,7 +67,7 @@
         from    tb_item_test_no a
                 inner join tb_pur_item b
                 on a.test_no = b.test_no
-        where   test_id = #{testId}
+        where   test_no = #{testNo}
     </select>
 
     <insert id="insertItemTestNo">

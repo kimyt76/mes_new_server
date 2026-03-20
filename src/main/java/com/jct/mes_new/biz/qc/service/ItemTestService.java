@@ -14,7 +14,7 @@ public interface ItemTestService {
 
     int updateItemTestNo(List<ItemTestVo> itemTestNoList, String userId);
 
-    ItemTestVo getItemTestNoInfo(Long testId);
+    ItemTestVo getItemTestNoInfo(String testNo);
 
     String updateItemTestNoInfo(ItemTestVo vo);
 }

@@ -18,10 +18,10 @@ public interface ItemTestMapper {
 
     /**
      * 시험번호내역 상세 조회
-     * @param testId
+     * @param testNo
      * @return
      */
-    ItemTestVo getItemTestNoInfo(Long testId);
+    ItemTestVo getItemTestNoInfo(String testNo);
 
     /**
      * 시험번호내역 업데이트
