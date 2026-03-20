@@ -33,6 +33,7 @@ public class ItemTestVo {
     private LocalDate shelfLife;
     private String testState;
     private String passState;
+    private String passStateName;
     private String endYn;
 
     private String userId;

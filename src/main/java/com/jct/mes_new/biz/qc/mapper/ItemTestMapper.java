@@ -21,7 +21,7 @@ public interface ItemTestMapper {
      * @param testNo
      * @return
      */
-    ItemTestVo getItemTestNoInfo(String testNo);
+    ItemTestVo getItemTestNoInfo(@Param("testNo") String testNo);
 
     /**
      * 시험번호내역 업데이트

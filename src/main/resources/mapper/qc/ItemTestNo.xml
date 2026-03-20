@@ -57,7 +57,8 @@
                  ,a.make_no
                  ,a.qty
                  ,a.expiry_date
-                 ,dbo.getCustomerName(a.customer_cd) as customer_name
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name0
+                 ,dbo.getCommonName('pass_state', a.pass_state) as pass_state_name
                  ,a.pass_state
                  ,a.test_state
                  ,a.expiry_date
@@ -67,7 +68,7 @@
         from    tb_item_test_no a
                 inner join tb_pur_item b
                 on a.test_no = b.test_no
-        where   test_no = #{testNo}
+        where   a.test_no = #{testNo}
     </select>
 
     <insert id="insertItemTestNo">
