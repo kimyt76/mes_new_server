@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.qc.mapper.ItemTestMapper">
+    <select id="countTestNo">
+        select count(test_no) from tb_item_test_no where test_no = #{testNo}
+    </select>
+
+    <select id="getItemTestNoList">
+        select    a.test_id
+                 ,a.test_no
+                 ,a.create_date
+                 ,dbo.getCommonName('item_type_cd', a.item_type_cd) as item_type_cd
+                 ,b.item_cd
+                 ,b.item_name
+                 ,a.lot_no
+                 ,a.qty
+                 ,a.expiry_date
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name
+                 ,dbo.getCommonName('pass_state', a.pass_state) as pass_state
+                 ,dbo.getCommonName('test_state', a.test_state) as test_state
+                 ,a.expiry_date
+                 ,a.shelf_life
+        from    tb_item_test_no a
+                inner join tb_pur_item b
+                on a.test_no = b.test_no
+        where   a.create_date between #{strDate} and #{toDate}
+        <if test="testNo != null and testNo != ''">
+            AND a.test_no = #{testNo}
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            AND a.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd LIKE '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="customerName != null and customerName != ''">
+            AND dbo.getCustomerName(a.customer_cd) LIKE '%' + #{customerName} + '%'
+        </if>
+        <if test="shelfLife != null and shelfLife != ''">
+            AND a.shelf_life = #{shelfLife}
+        </if>
+
+    </select>
+
+    <select id="getItemTestNoInfo">
+        select    a.test_id
+                 ,a.test_no
+                 ,a.create_date
+                 ,a.item_type_cd
+                 ,b.item_cd
+                 ,b.item_name
+                 ,a.lot_no
+                 ,a.make_no
+                 ,a.qty
+                 ,a.expiry_date
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name
+                 ,a.pass_state
+                 ,a.test_state
+                 ,a.expiry_date
+                 ,a.shelf_life
+                 ,a.customer_cd
+                 ,a.end_yn
+        from    tb_item_test_no a
+                inner join tb_pur_item b
+                on a.test_no = b.test_no
+        where   test_id = #{testId}
+    </select>
+
+    <insert id="insertItemTestNo">
+        insert into tb_item_test_no
+        ( TEST_NO, CREATE_DATE, AREA_CD, ITEM_type_cd, SEQ, ITEM_CD, item_name, QTY, CUSTOMER_CD, EXPIRY_DATE
+        , SHELF_LIFE, TEST_STATE, PASS_STATE, REG_ID,  UPD_ID  )
+        values
+         ( #{item.testNo}, #{item.createDate}, #{item.areaCd},  #{item.itemTypeCd}, #{item.seq}, #{item.itemCd},  #{item.itemName}, #{item.qty}
+         , #{item.customerCd}, #{item.expiryDate}
+         , #{item.shelfLife} , #{item.testState} , #{item.passState}, #{item.userId}, #{item.userId} )
+    </insert>
+
+    <!-- 구매 수정 용-->
+    <update id="updateItemTestNo">
+        update tb_item_test_no
+        set    create_date  = #{item.createDate}
+              ,customer_cd  = #{item.customerCd}
+              ,make_no      = #{item.makeNo}
+              ,lot_no       = #{item.lotNo}
+              ,qty          = #{item.qty}
+              ,pass_state   = #{item.passState}
+              ,test_state   = #{item.testState}
+              ,expiry_date  = #{item.expiryDate}
+              ,shelf_life   = #{item.shelfLife}
+              ,upd_id       = #{item.userId}
+              ,upd_dt       = getdate()
+        where  test_no      = #{item.testNo}
+    </update>
+
+
+
+
+</mapper>
