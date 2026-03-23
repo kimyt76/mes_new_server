@@ -19,8 +19,7 @@
                     ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
                     ,c.customer_name as customerName
                     ,(select LCode_name from tb_prodL where lcode = a.item_category1) as item_category1Name
-                    ,(select MCode_name from tb_prodM where lcode = a.item_category1 and MCode = a.item_category2) as
-                    item_category2Name
+                    ,(select MCode_name from tb_prodM where lcode = a.item_category1 and MCode = a.item_category2) as item_category2Name
             from tb_item_mst a
                 inner join tb_item_detail b
                 on b.item_cd = a.item_cd
@@ -41,6 +40,15 @@
             </if>
             <if test="customerName != null and customerName != ''">
             and  c.customer_name like '%' + #{customerName} + '%'
+            </if>
+            <if test="itemCategory1 != null and itemCategory1 != ''">
+            and  a.item_category1 like '%' + #{itemCategory1} + '%'
+            </if>
+            <if test="itemCategory2 != null and itemCategory2 != ''">
+            and  a.item_category2 like '%' + #{itemCategory2} + '%'
+            </if>
+            <if test="functionalTypeCd != null and functionalTypeCd != ''">
+            and  b.functional_type_cd like '%' + #{functionalTypeCd} + '%'
             </if>
         ) a
         order by a.rowNum, a.item_type_cd , a.item_cd desc
@@ -153,6 +161,8 @@
             ,safe_stock=#{safeStock}
             ,expiry_date=#{expiryDate}
             ,item_company=#{itemCompany}
+            ,item_category1=#{itemCategory1}
+            ,item_category2=#{itemCategory2}
             ,etc=#{etc}
             ,use_yn=#{useYn}
             ,upd_id=#{userId}

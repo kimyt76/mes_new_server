@@ -34,7 +34,8 @@ public class ItemVo {
     private String itemGrp2Name;
     private String itemGrp3Name;
     private String useCate;
-    private String category;                 /*유형*/
+    private String category;                 /*용도*/
+    private String safeStock;                 /*안전재고*/
     private String gb;                 /*유형*/
 
     private List<PriceHistoryVo> priceHistory = new ArrayList<>();
@@ -91,7 +92,6 @@ public class ItemVo {
     private String rspo; /* rspo lab*/
     private String addtion; /*추가 lab*/
     private String avgDeliveryDate;     /*평균납품일*/
-    private String safeStock;           /* 안전재고*/
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String expiryDate;           /* 유효기간*/
     private String itemCompany;           /* 원료제조사*/
