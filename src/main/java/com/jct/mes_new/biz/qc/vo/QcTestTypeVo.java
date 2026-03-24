@@ -7,7 +7,8 @@ import java.math.BigInteger;
 @Data
 public class QcTestTypeVo {
 
-    private BigInteger testTypeMethodId;
+    private Long testTypeMethodId;
+    private Long qcTestId;
     private String itemCd;
     private String itemName;
     private String itemTypeCd;
@@ -18,6 +19,9 @@ public class QcTestTypeVo {
     private String testResult;
     private String testSpec;
     private BigInteger distOrder;
+
+    private String testerName;
+    private String passState;
 
     private String testItemSummary;
     private String regYn;

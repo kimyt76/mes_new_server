@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.qc.controller;
 
 import com.jct.mes_new.biz.qc.service.QcTestTypeService;
+import com.jct.mes_new.biz.qc.vo.QcTestRequestVo;
 import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
@@ -29,8 +30,8 @@ public class QcTestTypeController {
     }
 
     @PostMapping("/saveQcTestTypeMethod")
-    public ResponseEntity<ApiResponse<Void>> saveQcTestTypeMethod(@RequestBody List<QcTestTypeVo> list){
-        String result = qcTestTypeService.saveQcTestTypeMethod(list);
+    public ResponseEntity<ApiResponse<Void>> saveQcTestTypeMethod(@RequestBody QcTestRequestVo vo){
+        String result = qcTestTypeService.saveQcTestTypeMethod(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 

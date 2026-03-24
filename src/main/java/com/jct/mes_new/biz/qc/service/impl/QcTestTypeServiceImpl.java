@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.qc.service.impl;
 
 import com.jct.mes_new.biz.qc.mapper.QcTestTypeMapper;
 import com.jct.mes_new.biz.qc.service.QcTestTypeService;
+import com.jct.mes_new.biz.qc.vo.QcTestRequestVo;
 import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
@@ -27,18 +28,30 @@ public class QcTestTypeServiceImpl implements QcTestTypeService {
         return qcTestTypeMapper.getQcTestTypeMethod(itemCd);
     }
 
-    public String saveQcTestTypeMethod(List<QcTestTypeVo> list){
-        String msg ="저장되었습니다.";
-        String itemCd = list.get(0).getItemCd();
+    public String saveQcTestTypeMethod(QcTestRequestVo vo){
+        String itemCd = vo.getQcTestTypeMethodList().get(0).getItemCd();
         String userId = UserUtil.getUserId();
 
-        qcTestTypeMapper.deleteQcTestTypeMethod(itemCd);
-        for(QcTestTypeVo vo : list){
-            vo.setUserId(userId);
+        //삭제 건이 있을 경우 먼저 처리
+        List<Long> getDeleteIds = vo.getDeleteIds();
+        if (getDeleteIds != null && !getDeleteIds.isEmpty()) {
+            qcTestTypeMapper.deleteQcTestTypeMethod(itemCd,getDeleteIds);
         }
-        if(qcTestTypeMapper.saveQcTestTypeMethod(list) <= 0 ) {
-            throw new BusinessException(ErrorCode.FAIL_CREATED);
+
+        for(QcTestTypeVo item : vo.getQcTestTypeMethodList()){
+            item.setUserId(userId);
+
+            if ( item.getTestTypeMethodId() == null ){
+                if(qcTestTypeMapper.insertTestTypeMethod(item) <=0 ) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }else{
+                if(qcTestTypeMapper.updateTestTypeMethod(itemCd, item) <=0 ) {
+                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                }
+            }
         }
-        return msg;
+
+        return "저장되었습니다.";
     }
 }

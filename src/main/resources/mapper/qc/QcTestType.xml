@@ -51,22 +51,22 @@
         <if test="itemName != null and itemName != ''">
             AND a.item_name LIKE '%' + #{itemName} + '%'
         </if>
-        <if test="regYn == 'Y'">
-            <![CDATA[
-            AND ISNULL(x.cnt,0) < 0
-           ]]>
-        </if>
-        <if test="regYn == 'N'">
-            <![CDATA[
-            AND ISNULL(x.cnt,0) = 0
-           ]]>
+        <if test="regYn != null and regYn != ''">
+            <choose>
+                <when test='"Y".equals(regYn)'>
+                    <![CDATA[
+                    AND ISNULL(x.cnt,0) > 0
+                    ]]>
+                </when>
+                <otherwise>
+                    <![CDATA[
+                    AND ISNULL(x.cnt,0) = 0
+                    ]]>
+                </otherwise>
+            </choose>
         </if>
         order by a.item_cd
     </select>
-
-    <delete id="deleteQcTestTypeMethod">
-        delete from tb_test_type_method where item_cd = #{itemCe}
-    </delete>
 
     <select id="getQcTestTypeMethod">
         SELECT  test_item
@@ -76,12 +76,24 @@
                ,dist_order
                ,item_cd
                ,test_type_method_id
+               ,qc_test_id
+               ,tester_name
+               ,pass_state
         FROM    tb_test_type_method
         WHERE   item_cd = #{itemCe}
         ORDER BY dist_order ASC
     </select>
 
-    <insert id="saveQcTestTypeMethod">
+    <delete id="deleteQcTestTypeMethod">
+        delete from tb_test_type_method
+        where  item_cd = #{itemCd}
+        and    test_type_method_id IN
+        <foreach collection="deleteIds" item="testTypeMethodId" open="(" separator="," close=")">
+            #{testTypeMethodId}
+        </foreach>
+    </delete>
+
+    <insert id="insertQcTestTypeMethod">
         INSERT INTO tb_test_type_method (
             item_cd,
             test_item,
@@ -89,22 +101,44 @@
             test_spec,
             test_result,
             dist_order,
+            qc_test_id,
+            tester_name,
+            pass_state,
             reg_id,
             upd_id
         )
         VALUES
-        <foreach collection="list" item="item" separator=",">
             (
-            #{item.itemCd},
-            #{item.testItem},
-            #{item.testMethod},
-            #{item.testSpec},
-            #{item.testResult},
-            #{item.distOrder},
-            #{item.userId},
-            #{item.userId}
+            #{itemCd},
+            #{testItem},
+            #{testMethod},
+            #{testSpec},
+            #{testResult},
+            #{distOrder},
+            #{qcTestId},
+            #{testerName},
+            #{passState},
+            #{userId},
+            #{userId}
             )
-        </foreach>
     </insert>
+
+    <update id="updateTestTypeMethod">
+        update tb_test_type_method
+        set     test_item   = #{testItem}
+               ,test_method = #{testMethod}
+               ,test_spec   = #{testSpec}
+               ,test_result = #{testResult}
+               ,dist_order  = #{distOrder}
+               ,qc_test_id  = #{qcTestId}
+               ,tester_name = #{testerName}
+               ,pass_state  = #{passState}
+               ,upd_id      = #{userId}
+               ,upd_dt      = getdate()
+        where  test_type_method_id = #{testTypeMethodId}
+        and    item_cd = #{itemCd}
+    </update>
+
+
 
 </mapper>

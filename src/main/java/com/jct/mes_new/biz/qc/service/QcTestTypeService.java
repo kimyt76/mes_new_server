@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.qc.service;
 
+import com.jct.mes_new.biz.qc.vo.QcTestRequestVo;
 import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
 
 import java.util.List;
@@ -9,5 +10,5 @@ public interface QcTestTypeService {
 
     List<QcTestTypeVo> getQcTestTypeMethod(String itemCd);
 
-    String saveQcTestTypeMethod(List<QcTestTypeVo> list);
+    String saveQcTestTypeMethod(QcTestRequestVo vo);
 }
