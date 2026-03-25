@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.qc.mapper.QcTestMapper">
+    <select id="getTestNoCnt">
+        select count(test_no) from tb_qc_test_mst where test_no = #{testNo} and req_date = #{reqDate}
+    </select>
+
+    <select id="getQcTestList">
+        select   a.test_no
+                ,a.req_date
+                ,dbo.getUserName(a.req_tester_id) as req_tester_id
+                ,dbo.getCommonName('item_type_cd', b.item_type_cd) as item_type_cd
+                ,b.item_cd
+                ,C.item_name
+                ,b.lot_no
+                ,a.req_qty
+                ,dbo.getStorageName(a.storage_cd) as storage_cd
+                ,dbo.getCommonName('test_state', a.test_state) as test_state
+                ,dbo.getCommonName('pass_state', a.pass_state) as passStateName
+                ,a.pass_state
+                ,a.qc_test_id
+        from    tb_qc_test_mst a
+                inner join tb_item_test_no b
+                on a.test_no = b.test_no
+                inner join tb_pur_item c
+                on a.test_no = c.test_no
+        where  a.req_date between #{strDate} and #{toDate}
+        <if test="areaCd != null and areaCd != ''">
+            AND a.area_cd =  #{areaCd}
+        </if>
+        <if test="retestYn != null and retestYn != ''">
+            AND a.retest_yn =  #{retestYn}
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            AND b.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND b.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND c.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="testNo != null and testNo != ''">
+            AND a.test_no LIKE '%' + #{testNo} + '%'
+        </if>
+        <if test="passState != null and passState != ''">
+            AND a.pass_state LIKE '%' + #{passState} + '%'
+        </if>
+        <choose>
+            <when test='"R".equals(menuType)'>
+                AND a.test_state in ( 'REQ','ING')
+            </when>
+            <otherwise>
+            AND a.test_state in ( 'ING','END')
+            </otherwise>
+        </choose>
+        order by a.upd_dt desc,  a.test_no desc
+    </select>
+
+    <select id="getQcTestDetailInfo">
+        select    a.test_no
+                 ,a.req_date
+                 ,dbo.getUserName(a.req_tester_id) as req_tester_name
+                 ,a.req_tester_id
+                 ,dbo.getCommonName('item_type_cd', b.item_type_cd) as item_type_name
+                 ,b.item_type_cd
+                 ,b.item_cd
+                 ,C.item_name
+                 ,b.lot_no
+                 ,b.make_no
+                 ,a.req_qty
+                 ,dbo.getStorageName(a.storage_cd) as storage_name
+                 ,a.storage_cd
+                 ,a.tester_id
+                 ,dbo.getUserName(a.tester_id) as tester_name
+                 ,a.order_tester_id
+                 ,dbo.getUserName(a.order_tester_id) as order_tester_name
+                 ,a.confirm_tester_id
+                 ,dbo.getUserName(a.confirm_tester_id) as confirm_tester_name
+                 ,a.sample_tester_id
+                 ,dbo.getUserName(a.sample_tester_id) as sample_tester_name
+                 ,a.test_date
+                 ,a.confirm_date
+                 ,a.sample_qty
+                 ,a.test_qty
+                 ,a.test_state
+                 ,a.pass_state
+                 ,a.qc_test_id
+                 ,a.area_cd
+                 ,isnull((select max(seq)+1 from  tb_qc_test_mst where retest_yn ='Y' and test_no = a.test_no ), 1) as seq
+                 ,a.retest_yn
+                 ,b.expiry_date
+                 ,b.customer_cd
+                 ,dbo.getCustomerName(b.customer_cd) as customer_Name
+                 ,d.order_type
+                 ,a.etc
+                 ,a.qc_cd
+        from    tb_qc_test_mst a
+                inner join tb_item_test_no b
+                on a.test_no = b.test_no
+                inner join tb_pur_item c
+                on a.test_no = c.test_no
+                inner join tb_pur_mst d
+                on c.pur_id = d.pur_id
+        where  a.qc_test_id = #{qcTestId}
+    </select>
+
+    <select id="getQcTestMethod">
+        SELECT  test_item
+               ,test_method
+               ,test_spec
+               ,test_result
+               ,dist_order
+               ,item_cd
+               ,tester_name
+               ,pass_state
+               ,test_type_method_id
+        FROM    tb_test_type_method
+        WHERE   item_cd = #{itemCe}
+        ORDER BY dist_order ASC
+    </select>
+
+    <insert id="insertQcTest">
+        insert into tb_qc_test_mst
+        (
+          TEST_NO
+        , RETEST_YN
+        , REQ_DATE
+        , req_tester_id
+        , area_cd
+        , storage_cd
+        , req_qty
+        , TEST_STATE
+        , PASS_STATE
+        , REG_ID
+        ,  UPD_ID  )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.testNo}
+            ,#{item.retestYn}
+            ,#{item.reqDate}
+            ,#{item.reqTesterId}
+            ,#{item.areaCd}
+            ,#{item.storageCd}
+            ,#{item.reqQty}
+            , 'REQ'
+            , 'REQ'
+            ,#{userId}
+            ,#{userId}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertSingleQcTest">
+        insert into tb_qc_test_mst
+        (
+          TEST_NO
+        , RETEST_YN
+        , REQ_DATE
+        , req_tester_id
+        , area_cd
+        , storage_cd
+        , req_qty
+        , TEST_STATE
+        , PASS_STATE
+        , REG_ID
+        ,  UPD_ID  )
+        VALUES
+            (
+             #{list.testNo}
+            ,#{list.retestYn}
+            ,#{list.reqDate}
+            ,#{list.reqTesterId}
+            ,#{list.areaCd}
+            ,#{list.storageCd}
+            ,#{list.reqQty}
+            , 'REQ'
+            , 'REQ'
+            ,#{userId}
+            ,#{userId}
+            )
+    </insert>
+
+    <update id="updateQcTestInfo">
+        update tb_qc_test_mst
+        set       req_tester_id = #{vo.reqTesterId}
+                , area_cd       = #{vo.areaCd}
+                , storage_cd    = #{vo.storageCd}
+                , req_qty       = #{vo.reqQty}
+                , TEST_STATE    = #{vo.testState}
+                , PASS_STATE    = #{vo.passState}
+                , upd_id        = #{userId}
+                , upd_dt        = getdate()
+        where  test_no  = #{testNo}
+        and    REQ_DATE = #{reqDate}
+    </update>
+
+
+
+<!-- 품질검사요청 부분 -->
+    <update id="updateQcTestDetailInfo">
+        update tb_qc_test_mst
+        set     req_tester_id = #{reqTesterId}
+              , area_cd       = #{areaCd}
+              , storage_cd    = #{storageCd}
+              , req_qty       = #{reqQty}
+              , TEST_STATE    = #{testState}
+              , PASS_STATE    = #{passState}
+              , upd_id        = #{userId}
+              , upd_dt        = getdate()
+        where  qc_test_id     = #{qcTestId}
+    </update>
+
+    <insert id="insertRetestInfo">
+        insert into tb_qc_test_mst
+         ( req_date, req_tester_id, area_cd,  storage_cd,  TEST_NO, seq, RETEST_YN, req_qty, TEST_STATE,  PASS_STATE, reg_id, upd_id )
+        values
+          (#{reqDate}, #{reqTesterId}, #{areaCd}, #{storageCd}, #{testNo}, #{seq}, 'Y', #{reqQty},'REQ', 'REQ',  #{userId}, #{userId})
+    </insert>
+
+
+    <!-- 품질검사 부분 -->
+    <update id="updateQcTestAllInfo">
+        update tb_qc_test_mst
+        set    req_qty	 	        = #{reqQty}
+              ,test_qty	 	        = #{testQty}
+              ,sample_qty	 	    = #{sampleQty}
+              ,tester_id		 	= #{testerId}
+              ,order_tester_id 	    = #{orderTesterId}
+              ,confirm_tester_id    = #{confirmTesterId}
+              ,sample_tester_id 	= #{sampleTesterId}
+              ,etc			 	    = #{etc}
+              ,qc_cd         	    = #{qcCd}
+        <if test="testDate != null ">
+              ,test_date	 	    = #{testDate}
+        </if>
+        <if test="confirmDate != null ">
+              ,confirm_date 	    = #{confirmDate}
+        </if>
+              ,test_state	 	    = #{testState}
+              ,pass_state	 	    = #{passState}
+              ,upd_id               = #{userId}
+              ,upd_dt               = getdate()
+        where  qc_test_id = #{qcTestId}
+    </update>
+</mapper>
