@@ -51,7 +51,6 @@ public class QcTestTypeServiceImpl implements QcTestTypeService {
                 }
             }
         }
-
         return "저장되었습니다.";
     }
 }

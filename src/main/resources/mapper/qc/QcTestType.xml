@@ -75,10 +75,11 @@
                ,test_result
                ,dist_order
                ,item_cd
-               ,test_type_method_id
-               ,qc_test_id
+               ,test_date_string
                ,tester_name
                ,pass_state
+               ,test_type_method_id
+               ,qc_test_id
         FROM    tb_test_type_method
         WHERE   item_cd = #{itemCe}
         ORDER BY dist_order ASC
@@ -93,7 +94,7 @@
         </foreach>
     </delete>
 
-    <insert id="insertQcTestTypeMethod">
+    <insert id="insertTestTypeMethod">
         INSERT INTO tb_test_type_method (
             item_cd,
             test_item,
@@ -101,6 +102,7 @@
             test_spec,
             test_result,
             dist_order,
+            test_date_string,
             qc_test_id,
             tester_name,
             pass_state,
@@ -115,6 +117,7 @@
             #{testSpec},
             #{testResult},
             #{distOrder},
+            #{testDateString},
             #{qcTestId},
             #{testerName},
             #{passState},
@@ -125,17 +128,18 @@
 
     <update id="updateTestTypeMethod">
         update tb_test_type_method
-        set     test_item   = #{testItem}
-               ,test_method = #{testMethod}
-               ,test_spec   = #{testSpec}
-               ,test_result = #{testResult}
-               ,dist_order  = #{distOrder}
-               ,qc_test_id  = #{qcTestId}
-               ,tester_name = #{testerName}
-               ,pass_state  = #{passState}
-               ,upd_id      = #{userId}
+        set     test_item   = #{item.testItem}
+               ,test_method = #{item.testMethod}
+               ,test_spec   = #{item.testSpec}
+               ,test_result = #{item.testResult}
+               ,dist_order  = #{item.distOrder}
+               ,test_date_string = #{item.testDateString}
+               ,qc_test_id  = #{item.qcTestId}
+               ,tester_name = #{item.testerName}
+               ,pass_state  = #{item.passState}
+               ,upd_id      = #{item.userId}
                ,upd_dt      = getdate()
-        where  test_type_method_id = #{testTypeMethodId}
+        where  test_type_method_id = #{item.testTypeMethodId}
         and    item_cd = #{itemCd}
     </update>
 

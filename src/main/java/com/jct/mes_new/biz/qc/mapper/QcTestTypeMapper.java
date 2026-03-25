@@ -15,5 +15,5 @@ public interface QcTestTypeMapper {
     void deleteQcTestTypeMethod(@Param("itemCd") String itemCd, @Param("deleteIds") List<Long> deleteIds);
 
     int insertTestTypeMethod(QcTestTypeVo item);
-    int updateTestTypeMethod(@Param("itemCd") String itemCd, QcTestTypeVo item);
+    int updateTestTypeMethod(@Param("itemCd") String itemCd, @Param("item") QcTestTypeVo item);
 }

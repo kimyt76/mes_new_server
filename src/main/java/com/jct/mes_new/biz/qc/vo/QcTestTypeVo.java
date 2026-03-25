@@ -22,6 +22,7 @@ public class QcTestTypeVo {
 
     private String testerName;
     private String passState;
+    private String testDateString;
 
     private String testItemSummary;
     private String regYn;
