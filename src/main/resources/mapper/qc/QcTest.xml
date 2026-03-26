@@ -9,23 +9,38 @@
     <select id="getQcTestList">
         select   a.test_no
                 ,a.req_date
+                ,a.test_date
                 ,dbo.getUserName(a.req_tester_id) as req_tester_id
                 ,dbo.getCommonName('item_type_cd', b.item_type_cd) as item_type_cd
                 ,b.item_cd
                 ,C.item_name
                 ,b.lot_no
+                ,b.make_no
                 ,a.req_qty
                 ,dbo.getStorageName(a.storage_cd) as storage_cd
                 ,dbo.getCommonName('test_state', a.test_state) as test_state
                 ,dbo.getCommonName('pass_state', a.pass_state) as passStateName
                 ,a.pass_state
+                ,a.confirm_date
+                ,case when a.retest_yn = 'Y' then '재검사' else '입고검사' end retest_yn
                 ,a.qc_test_id
         from    tb_qc_test_mst a
                 inner join tb_item_test_no b
                 on a.test_no = b.test_no
                 inner join tb_pur_item c
                 on a.test_no = c.test_no
-        where  a.req_date between #{strDate} and #{toDate}
+        where
+        <choose>
+            <when test='"R".equals(menuType)'>
+                a.req_date between #{strDate} and #{toDate}
+               AND a.test_state in ( 'REQ','ING')
+            </when>
+            <otherwise>
+                a.test_date between #{strDate} and #{toDate}
+                AND a.test_state in ( 'ING','END')
+            </otherwise>
+        </choose>
+
         <if test="areaCd != null and areaCd != ''">
             AND a.area_cd =  #{areaCd}
         </if>
@@ -47,14 +62,6 @@
         <if test="passState != null and passState != ''">
             AND a.pass_state LIKE '%' + #{passState} + '%'
         </if>
-        <choose>
-            <when test='"R".equals(menuType)'>
-                AND a.test_state in ( 'REQ','ING')
-            </when>
-            <otherwise>
-            AND a.test_state in ( 'ING','END')
-            </otherwise>
-        </choose>
         order by a.upd_dt desc,  a.test_no desc
     </select>
 
