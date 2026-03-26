@@ -16,4 +16,6 @@ public interface QcTestTypeMapper {
 
     int insertTestTypeMethod(QcTestTypeVo item);
     int updateTestTypeMethod(@Param("itemCd") String itemCd, @Param("item") QcTestTypeVo item);
+
+    List<QcTestTypeVo> getQcTestTypeMethodComp(QcTestTypeVo vo);
 }

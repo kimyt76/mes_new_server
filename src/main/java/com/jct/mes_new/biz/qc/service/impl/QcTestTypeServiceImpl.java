@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -52,5 +53,11 @@ public class QcTestTypeServiceImpl implements QcTestTypeService {
             }
         }
         return "저장되었습니다.";
+    }
+
+
+
+    public List<QcTestTypeVo> getQcTestTypeMethodComp(QcTestTypeVo vo){
+        return  qcTestTypeMapper.getQcTestTypeMethodComp(vo );
     }
 }

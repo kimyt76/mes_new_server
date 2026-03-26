@@ -143,6 +143,24 @@
         and    item_cd = #{itemCd}
     </update>
 
-
+    <select id="getQcTestTypeMethodComp">
+        select    a.test_no
+                 ,m.test_item
+                 ,m.test_method
+                 ,m.test_spec
+                 ,m.test_result
+                 ,a.test_date
+                 ,m.tester_name
+                 ,dbo.getCommonName('pass_state', a.pass_state) pass_state
+        from    tb_test_type_method m
+                inner join tb_qc_test_mst a
+                on m.qc_test_id = a.qc_test_id
+                inner join tb_pur_item b
+                on b.test_no = a.test_no
+        where   a.test_date between #{strDate} and #{toDate}
+          and   a.test_state in ( 'ING','END')
+          and   b.item_cd = #{itemCd}
+          order by m.dist_order, a.test_no
+    </select>
 
 </mapper>

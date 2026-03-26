@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +20,11 @@ public class QcTestTypeController {
     private final QcTestTypeService qcTestTypeService;
     private final MessageUtil messageUtil;
 
+    /**
+     * 품질검사 유형 조회
+     * @param vo
+     * @return
+     */
     @PostMapping("/getQcTestTypeList")
     public List<QcTestTypeVo> getQcTestTypeList(@RequestBody QcTestTypeVo vo) {
         return qcTestTypeService.getQcTestTypeList(vo);
@@ -36,6 +42,14 @@ public class QcTestTypeController {
     }
 
 
-
+    /**
+     * 품목별검사 비교 조회
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getQcTestTypeMethodComp")
+    public List<QcTestTypeVo> getQcTestTypeMethodComp(@RequestBody QcTestTypeVo vo) {
+        return qcTestTypeService.getQcTestTypeMethodComp(vo);
+    }
 
 }
