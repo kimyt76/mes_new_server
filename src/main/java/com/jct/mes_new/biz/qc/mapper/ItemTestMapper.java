@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.qc.mapper;
 
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
+import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -56,5 +57,10 @@ public interface ItemTestMapper {
     int updateItemTestNo(@Param("item") ItemTestVo item);
 
 
-
+    /**
+     * 품질검사에서 시험진행상테 업데이트
+     * @param qcTestMst
+     * @return
+     */
+    int updateState(QcTestVo qcTestMst);
 }
