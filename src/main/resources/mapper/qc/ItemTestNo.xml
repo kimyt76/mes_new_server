@@ -44,6 +44,7 @@
             AND a.shelf_life = #{shelfLife}
         </if>
 
+
     </select>
 
     <select id="getItemTestNoInfo">
@@ -93,12 +94,20 @@
               ,test_state   = #{item.testState}
               ,expiry_date  = #{item.expiryDate}
               ,shelf_life   = #{item.shelfLife}
+              ,end_yn       = isnull(#{item.endYn}, 'N')
               ,upd_id       = #{item.userId}
               ,upd_dt       = getdate()
         where  test_no      = #{item.testNo}
     </update>
 
-
+    <update id="updateState">
+        update tb_item_test_no
+        set pass_state   = #{passState}
+           ,test_state   = #{testState}
+           ,upd_id       = #{userId}
+           ,upd_dt       = getdate()
+        where  test_no   = #{testNo}
+    </update>
 
 
 </mapper>
