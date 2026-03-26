@@ -134,7 +134,6 @@
                 ,test_no
                 ,expiry_date
                 ,etc
-                ,in_yn
                 ,pur_order_item_id
                 ,reg_id
                 ,upd_id
@@ -154,7 +153,6 @@
             ,#{testNo}
             ,#{expiryDate}
             ,#{etc}
-            ,#{inYn}
             ,#{purOrderItemId}
             ,#{userId}
             ,#{userId}
@@ -181,7 +179,6 @@
         UPDATE  tb_pur_item
         SET      spec         = #{spec}
                 ,qty          = #{qty}
-                ,in_price     = #{inPrice}
                 ,supply_price = #{supplyPrice}
                 ,vat_price    = #{vatPrice}
                 ,lot_no       = #{lotNo}
@@ -212,15 +209,15 @@
 
     <select id="getNextTestNoSeq">
         SELECT ISNULL(MAX(CAST(RIGHT(test_no, 3) AS INT)), 0) + 1
-        FROM   tb_pur_item
+        FROM   tb_item_test_no
         WHERE test_no LIKE CONCAT(#{prefix}, '%')
     </select>
 
-    <select id="updateErpYn">
+    <update id="updateErpYn">
         update tb_pur_mst
         set    erp_yn ='Y'
         where  pur_id = #{purId}
-    </select>
+    </update>
 
 
     <select id="getPurchaseDetailList">

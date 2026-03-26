@@ -74,5 +74,12 @@ public interface PurchaseOrderMapper {
     List<PurchaseOrderVo.PurchaseOrderListVo> getSubItemList(@Param("purOrderIds") List<Long> purOrderIds);
 
 
-
+    /**
+     * 구매 등록 후 발주 상태 업데이트
+     * @param purOrderId
+     * @param userId
+     * @return
+     */
+    int updateEndYn(@Param("purOrderId")Long purOrderId, @Param("userId")String userId);
+    int updateInYn(@Param("purOrderItemId") Long purOrderItemId, @Param("userId") String userId);
 }

@@ -1,10 +1,17 @@
 package com.jct.mes_new.biz.purchase.service.impl;
 
 import com.jct.mes_new.biz.purchase.mapper.PurchaseMapper;
-import com.jct.mes_new.biz.purchase.mapper.TranMapper;
+import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
 import com.jct.mes_new.biz.purchase.service.PurchaseService;
 import com.jct.mes_new.biz.purchase.service.TranService;
-import com.jct.mes_new.biz.purchase.vo.*;
+import com.jct.mes_new.biz.purchase.vo.PurchaseRequestVo;
+import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
+import com.jct.mes_new.biz.purchase.vo.TranRequestVo;
+import com.jct.mes_new.biz.purchase.vo.TranVo;
+import com.jct.mes_new.biz.qc.service.ItemTestService;
+import com.jct.mes_new.biz.qc.service.QcTestService;
+import com.jct.mes_new.biz.qc.vo.ItemTestVo;
+import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
@@ -14,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +32,9 @@ import java.util.Map;
 public class PurchaseServiceImpl implements PurchaseService {
     private final PurchaseMapper purchaseMapper;
     private final TranService tranService;
+    private final ItemTestService itemTestService;
+    private final QcTestService qcTestService;
+    private final PurchaseOrderService purchaseOrderService;
 
     /**
      * 구매 조회
@@ -86,8 +95,6 @@ public class PurchaseServiceImpl implements PurchaseService {
             Map<String, Integer> seqMap = new HashMap<>();
 
             for (PurchaseVo.PurchaseListVo item : purchaseItemList) {
-                log.info("itemCd={}, itemName={}, itemTypeCd={}",
-                        item.getItemCd(), item.getItemName(), item.getItemTypeCd());
                 String prefix = CodeUtil.createTestNo(
                         purchaseInfo.getPurDate(),
                         purchaseInfo.getAreaCd(),
@@ -112,13 +119,36 @@ public class PurchaseServiceImpl implements PurchaseService {
                 if (purchaseMapper.savePurchaseItemList(item) <= 0) {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
+                //7. 발주서 품목 입고
+                if ( purchaseOrderService.updateInYn(item.getPurOrderItemId(), userId) <= 0 ) {
+                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                }
+
+                //8. 발주서 마스터 end 조건 업데이트
+                purchaseOrderService.updateEndYn(item.getPurOrderItemId(), userId);
             }
         }
+
+
+
         // 4. 원장 저장
         TranRequestVo tranRequestVo = makeTranRequestVo(vo, purId, userId);
         Long tranId = tranService.saveTranInfo(tranRequestVo);
 
         if (tranId == null) {
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
+
+        //5 .Qc품질검사 등록
+        List<QcTestVo> qcTestList = makeQcTest(vo,  userId);
+
+        if ( qcTestService.insertQcTest(qcTestList, tranId, userId) <= 0 ) {
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
+        //6. 시험내역 등록
+        List<ItemTestVo> itemTestNoList = makeItemTestNo(vo,  userId);
+
+        if ( itemTestService.insertItemTestNo(itemTestNoList, tranId, userId) <= 0 ) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
@@ -135,9 +165,12 @@ public class PurchaseServiceImpl implements PurchaseService {
         String msg = "수정되었습니다.";
         String userId = UserUtil.getUserId();
         Long purId = vo.getPurchaseInfo().getPurId();
+        PurchaseVo purchaseInfo = vo.getPurchaseInfo();
+
         //mst
-        vo.getPurchaseInfo().setUserId(userId);
-        if(purchaseMapper.updatePurchaseMst(vo.getPurchaseInfo()) <= 0 ){
+        purchaseInfo.setUserId(userId);
+
+        if(purchaseMapper.updatePurchaseMst(purchaseInfo) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
@@ -150,12 +183,31 @@ public class PurchaseServiceImpl implements PurchaseService {
         List<PurchaseVo.PurchaseListVo> itemList = vo.getPurchaseItemList();
 
         if (itemList != null && !itemList.isEmpty()) {
+            Map<String, Integer> seqMap = new HashMap<>();
+
             for (PurchaseVo.PurchaseListVo item : itemList) {
                 item.setPurId(purId);
                 item.setUserId(userId);
 
                 if (item.getPurItemId() == null) {
                     // 신규 등록
+                    String prefix = CodeUtil.createTestNo(
+                            purchaseInfo.getPurDate(),
+                            purchaseInfo.getAreaCd(),
+                            item.getItemTypeCd()
+                    );
+
+                    Integer nextSeq;
+                    if (seqMap.containsKey(prefix)) {
+                        nextSeq = seqMap.get(prefix) + 1;
+                    } else {
+                        nextSeq = purchaseMapper.getNextTestNoSeq(prefix);
+                    }
+                    seqMap.put(prefix, nextSeq);
+
+                    String testNo = prefix + String.format("%03d", nextSeq);
+                    item.setTestNo(testNo);
+
                     int insertCnt = purchaseMapper.savePurchaseItemList(item);
                     if (insertCnt <= 0) {
                         throw new BusinessException(ErrorCode.FAIL_CREATED);
@@ -172,9 +224,20 @@ public class PurchaseServiceImpl implements PurchaseService {
             //원장 수정
             TranRequestVo tranRequestVo = makeTranRequestVo(vo, purId, userId);
             tranRequestVo.setDeleteTranItems(deletedItemIds);
-
             tranService.updateTranInfo(tranRequestVo);
 
+            //5 .Qc품질검사 수정 및 등록
+            List<QcTestVo> qcTestList = makeQcTest(vo, userId);
+
+            if ( qcTestService.updateQcTest(qcTestList, userId) <= 0 ) {
+                throw new BusinessException(ErrorCode.FAIL_UPDATED);
+            }
+            //6. 시험내역 수정 및 등록
+            List<ItemTestVo> itemTestNoList = makeItemTestNo(vo, userId);
+
+            if ( itemTestService.updateItemTestNo(itemTestNoList, userId) <= 0 ) {
+                throw new BusinessException(ErrorCode.FAIL_UPDATED);
+            }
         }
         return msg;
     }
@@ -196,6 +259,13 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
 
+    /**
+     * 원장 내욕 셋팅
+     * @param vo
+     * @param purId
+     * @param userId
+     * @return
+     */
     private TranRequestVo makeTranRequestVo(PurchaseRequestVo vo, Long purId, String userId) {
         PurchaseVo purchaseInfo = vo.getPurchaseInfo();
         TranRequestVo tranRequestVo = new TranRequestVo();
@@ -248,6 +318,75 @@ public class PurchaseServiceImpl implements PurchaseService {
         tranRequestVo.setTranItemList(tranItemList);
 
         return tranRequestVo;
+    }
+
+    /**
+     * 시험번호별 내욕 등록
+     * @param vo
+     * @param userId
+     * @return
+     */
+    private List<ItemTestVo> makeItemTestNo(PurchaseRequestVo vo,  String userId) {
+        // 2. 시험항목 품목
+        PurchaseVo mst = vo.getPurchaseInfo();
+        List<ItemTestVo> itemTestNoList = new ArrayList<>();
+
+        if (vo.getPurchaseItemList() != null && !vo.getPurchaseItemList().isEmpty()) {
+            for (PurchaseVo.PurchaseListVo purchaseItem : vo.getPurchaseItemList()) {
+                ItemTestVo itemTest = new ItemTestVo();
+
+                itemTest.setTestNo(purchaseItem.getTestNo());
+                itemTest.setCreateDate(mst.getPurDate());
+                itemTest.setAreaCd(mst.getAreaCd());
+                itemTest.setSeq(1);
+                itemTest.setItemTypeCd(purchaseItem.getItemTypeCd());
+                itemTest.setItemCd(purchaseItem.getItemCd());
+                itemTest.setCustomerCd(mst.getCustomerCd());
+                itemTest.setQty(purchaseItem.getQty());
+                itemTest.setLotNo(purchaseItem.getLotNo());
+                itemTest.setMakeNo("");
+                itemTest.setExpiryDate(purchaseItem.getExpiryDate());
+                itemTest.setShelfLife(purchaseItem.getExpiryDate());
+                itemTest.setPassState("REQ");
+                itemTest.setTestState("REQ");
+                itemTest.setUserId(userId);
+
+                itemTestNoList.add(itemTest);
+            }
+        }
+        return itemTestNoList;
+    }
+
+    /**
+     *  QC 품질검사
+     * @param vo
+     * @param userId
+     * @return
+     */
+    private List<QcTestVo> makeQcTest(PurchaseRequestVo vo, String userId) {
+        // 2. 시험항목 품목
+        PurchaseVo mst = vo.getPurchaseInfo();
+        List<QcTestVo> qcTestList = new ArrayList<>();
+
+        if (vo.getPurchaseItemList() != null && !vo.getPurchaseItemList().isEmpty()) {
+            for (PurchaseVo.PurchaseListVo purchaseItem : vo.getPurchaseItemList()) {
+                QcTestVo qcTest = new QcTestVo();
+
+                qcTest.setRetestYn("N");
+                qcTest.setTestNo(purchaseItem.getTestNo());
+                qcTest.setReqDate(mst.getPurDate());
+                qcTest.setAreaCd(mst.getAreaCd());
+                qcTest.setStorageCd(mst.getStorageCd());
+                qcTest.setReqTesterId(mst.getManagerId());
+                qcTest.setReqQty(purchaseItem.getQty());
+                qcTest.setPassState("REQ");
+                qcTest.setTestState("REQ");
+                qcTest.setUserId(userId);
+
+                qcTestList.add(qcTest);
+            }
+        }
+        return qcTestList;
     }
 
 

@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 public class PurchaseVo {
     private Long purId;
+    private Long purOrderId;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -45,6 +46,7 @@ public class PurchaseVo {
         private Long purId;
         private Long purItemId;
         private Long purOrderItemId;
+        private Long purOrderId;
         private Long tranItemId;
         private Long tranId;
         private String itemTypeCd;

@@ -205,8 +205,8 @@ public class PurchaseOrderController {
         try {
             Map<String, Object> parameters = new HashMap<>();
             // 로고이미지
-            InputStream logoStream = getClass().getResourceAsStream("/static/images/logo1.png");
-            //InputStream logoStream = getClass().getResourceAsStream("/static/images/jct_logo_new.png");
+            //InputStream logoStream = getClass().getResourceAsStream("/static/images/logo1.png");
+            InputStream logoStream = getClass().getResourceAsStream("/static/images/jct_logo_new.png");
             parameters.put("logo", logoStream);
 
             // subReport 셋팅

@@ -167,10 +167,6 @@
                    a.pur_order_id = #{purOrderId}
             </otherwise>
         </choose>
-
-        <if test="itemTypeCd == 'M1'">
-
-        </if>
     </select>
 
     <!--    발주 등록 -->
@@ -373,4 +369,30 @@
         </if>
         order by a.pur_order_date desc, a.seq desc
     </select>
+
+
+    <update id="updateInYn">
+        update tb_pur_order_item
+        set in_yn ='Y'
+            ,upd_id = #{userId}
+            ,upd_dt = getdate()
+        where pur_order_item_id = #{purOrderItemId}
+    </update>
+
+    <update id="updateEndYn">
+        UPDATE m
+        SET    m.end_yn = 'Y'
+              ,m.upd_id = #{userId}
+              ,m.upd_dt = getDate()
+        FROM tb_pur_order_mst m
+            JOIN (
+                SELECT pur_order_id
+                FROM   tb_pur_order_item
+                GROUP BY pur_order_id
+                HAVING COUNT(*) = COUNT(CASE WHEN in_yn = 'Y' THEN 1 END)
+            ) i ON m.pur_order_id = i.pur_order_id
+         where  m.pur_order_id = #{purOrderId}
+    </update>
+
+
 </mapper>

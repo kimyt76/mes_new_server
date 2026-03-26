@@ -3,6 +3,8 @@ package com.jct.mes_new.biz.purchase.service;
 import com.jct.mes_new.biz.common.vo.MailVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
+import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
+import com.jct.mes_new.biz.qc.vo.QcTestVo;
 
 import java.util.List;
 import java.util.Map;
@@ -46,5 +48,19 @@ public interface PurchaseOrderService {
     PurchaseOrderRequestVo getPurchaseOrderInfoMail(Map<String, Object> map);
 
     List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderDetailList(PurchaseOrderVo vo);
+
+
+    /**
+     * 구매등록 후 발주완료 처리
+     * @param purOrderId
+     * @param userId
+     * @return
+     */
+    void updateEndYn(Long purOrderId, String userId);
+
+    int updateInYn(Long purOrderItemId, String userId);
+
+
+
 }
 

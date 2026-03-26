@@ -125,6 +125,32 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
 
+    /**
+     * 구매 입력 후 발주 업데이트
+     * @param purOrderId
+     * @param userId
+     * @return
+     */
+    public void updateEndYn(Long purOrderId, String userId){
+        purchaseOrderMapper.updateEndYn(purOrderId, userId);
+    }
+    
+    /**
+     * 구매 입력 후 발주품목 업데이트
+     * @param purOrderItemId
+     * @param userId
+     * @return
+     */
+    public int updateInYn(Long purOrderItemId, String userId){
+        int cnt = purchaseOrderMapper.updateInYn(purOrderItemId, userId);
+        if ( cnt <=0 ){
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+        return cnt;
+    }
+
+
 
 
     /**
