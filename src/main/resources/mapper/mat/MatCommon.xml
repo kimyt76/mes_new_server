@@ -48,18 +48,29 @@
                 )
 
                 select   a.item_cd as itemCd
-                        ,dbo.getCommonName('item_type_cd', a.item_type_cd ) as itemTypeCd
+                        ,dbo.getCommonName('item_type_cd', a.item_type_cd ) as itemTypeName
                         ,a.item_name as itemName
                         ,a.spec
                         ,a.unit
                         ,0 as realStockQty
-                        ,0 as reserveStockQty
+
+                        ,(  select isnull(sum(qty), 0) as qty
+        <if test="itemTypeCd == 'M1'">
+                            from   tb_purm_order_mst x
+        </if>
+        <if test="itemTypeCd == 'M2'">
+                            from   tb_purp_order_item x
+        </if>
+                            where  x.item_cd = a.item_cd
+                            and    x.end_yn ='N'
+                        )  as reserveStockQty
                         ,b.qty
                         ,0-qty as  differenceQty
                         ,dbo.getCustomerName(a.customer_cd) as customerName
-                        ,isnull((select code_nm from tb_common_code where com_type_cd = 'ITEM_GRP1' and code = a.item_grp1), '') as  inOut
+                        ,isnull((select code_nm from tb_common_code where com_type_cd = 'ITEM_GRP1' and code = a.item_grp1), '') as  orderType
                         ,a.in_price as inPrice
                         ,a.customer_cd as customerCd
+                        ,a.item_type_cd
                 from    tb_item_mst a
                         inner join  tmp_bom_recipe b
                         on a.item_cd = b.item_cd
@@ -103,20 +114,6 @@
 <!--                  and    end_yn ='N'-->
 <!--                  group by item_cd-->
 <!--                ) as realStockQty-->
-<!--                ,(-->
-<!--                    select  item_cd-->
-<!--                            ,sum(qty) as stockQty-->
-<!--                    from   tb_pur_order_item-->
-<!--                    where  item_cd = a.item_cd-->
-<!--                <if test="itemTypeCd == 'M1'">-->
-<!--                    and    item_type_cd = 'M1'-->
-<!--                </if>-->
-<!--                <if test="itemTypeCd == 'M2'">-->
-<!--                    and    item_type_cd in ('M2', 'M7')-->
-<!--                </if>-->
-<!--                    and    end_yn ='N'-->
-<!--                    group by item_cd-->
-<!--                ) as reserveStockQty-->
 <!--                ,b.qty-->
 <!--                ,dbo.getCustomerName(a.customer_cd) as customerName-->
 <!--                ,isnull((select code_nm from tb_common_code where com_type_cd = 'ITEM_GRP1' and code = a.item_grp1), '') as  in_out-->
