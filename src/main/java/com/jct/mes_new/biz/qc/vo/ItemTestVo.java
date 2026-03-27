@@ -16,7 +16,7 @@ public class ItemTestVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate toDate;
+    private LocalDate endDate;
     private String areaCd;
     private String itemTypeCd;
     private Integer seq;

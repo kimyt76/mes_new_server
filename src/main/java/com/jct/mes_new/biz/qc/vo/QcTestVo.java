@@ -13,7 +13,7 @@ public class QcTestVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate toDate;
+    private LocalDate endDate;
     private String retestYn;
     private String seq;
     @JsonFormat(pattern = "yyyy-MM-dd")

@@ -157,7 +157,7 @@
                 on m.qc_test_id = a.qc_test_id
                 inner join tb_pur_item b
                 on b.test_no = a.test_no
-        where   a.test_date between #{strDate} and #{toDate}
+        where   a.test_date between #{strDate} and #{endDate}
           and   a.test_state in ( 'ING','END')
           and   b.item_cd = #{itemCd}
           order by m.dist_order, a.test_no

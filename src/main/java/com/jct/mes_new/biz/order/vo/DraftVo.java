@@ -34,7 +34,7 @@ public class DraftVo {
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String strDate;
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String toDate;
+    private String endDate;
     private String userId;
 
 }

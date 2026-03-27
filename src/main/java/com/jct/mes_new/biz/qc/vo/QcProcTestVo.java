@@ -28,7 +28,7 @@ public class QcProcTestVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate toDate;
+    private LocalDate endDate;
 
     private String clientName;
     private String spec;

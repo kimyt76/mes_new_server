@@ -29,7 +29,7 @@ public class QcTestTypeVo {
     private String testDateString;
 
     private LocalDate strDate;
-    private LocalDate toDate;
+    private LocalDate endDate;
     private String testItemSummary;
     private String regYn;
 

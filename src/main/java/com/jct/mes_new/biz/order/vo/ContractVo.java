@@ -44,7 +44,7 @@ public class ContractVo {
     private String spec;
 
     private String strDate;
-    private String toDate;
+    private String endDate;
 
     private String userId;
 }

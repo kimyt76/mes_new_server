@@ -38,7 +38,7 @@
                 on d.item_cd = a.item_cd
          where  a.proc_cd = 'PRC003'
         <if test="strDate != null and strDate != ''">
-            AND a.proc_order_date between #{strDate} and #{toDate}
+            AND a.proc_order_date between #{strDate} and #{endDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
             AND c.area_cd = #{areaCd}

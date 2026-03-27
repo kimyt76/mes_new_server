@@ -30,6 +30,6 @@ public class ProcCoatingVo {
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String strDate;
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String toDate;
+    private String endDate;
 
 }

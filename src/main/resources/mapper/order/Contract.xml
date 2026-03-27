@@ -34,7 +34,7 @@
                 on e.user_id = b.manager_id
         where  1=1
         <if test='strDate != "" and strDate != null'>
-          and b.contract_date between #{strDate} and #{toDate}
+          and b.contract_date between #{strDate} and #{endDate}
         </if>
         <if test='itemCd != "" and itemCd != null'>
             AND a.item_cd LIKE '%' + #{itemCd} + '%'

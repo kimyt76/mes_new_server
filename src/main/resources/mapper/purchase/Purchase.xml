@@ -29,7 +29,7 @@
                         GROUP BY b.pur_id
                 ) x
                 ON a.pur_id = x.pur_id
-        WHERE a.pur_date BETWEEN #{strDate} AND #{toDate}
+        WHERE a.pur_date BETWEEN #{strDate} AND #{endDate}
         <if test="areaCd != null and areaCd != ''">
             AND a.area_cd = #{areaCd}
         </if>

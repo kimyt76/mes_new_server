@@ -28,7 +28,7 @@
         on a.pur_order_id = b.pur_order_id
         where 1=1
         <if test="strDate != null">
-          and   a.pur_order_date between #{strDate} and #{toDate}
+          and   a.pur_order_date between #{strDate} and #{endDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
           and   a.area_cd = #{areaCd}
@@ -75,7 +75,7 @@
             ON a.pur_order_id = b.pur_order_id
         where  b.item_type_cd in ('M2', 'M7')
         <if test="strDate != null">
-            and    a.pur_order_date between #{strDate} and #{toDate}
+            and    a.pur_order_date between #{strDate} and #{endDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
             and    b.area_cd = #{areaCd}
@@ -345,7 +345,7 @@
         from   tb_pur_order_mst a
                 inner join tb_pur_order_item b
                 on a.pur_order_id = b.pur_order_id
-        where  a.pur_order_date between #{strDate} and #{toDate}
+        where  a.pur_order_date between #{strDate} and #{endDate}
         <if test="areaCd != null and areaCd != ''">
             and   a.area_cd = #{areaCd}
         </if>

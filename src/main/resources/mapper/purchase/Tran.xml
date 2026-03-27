@@ -16,7 +16,7 @@
         from   tb_inv_tran_mst a
                 inner join tb_inv_tran_item b
                 on a.pur_id = b.pur_id
-        where   a.tran_date between #{strDate} and #{toDate}
+        where   a.tran_date between #{strDate} and #{endDate}
         <if test="itemCd != null and itemCd != ''">
           and    b.item_cd = #{itemCd}
         </if>

@@ -23,7 +23,7 @@
                 on b.user_id = a.sale_manager_id
         where   1=1
         <if test='strDate != "" and strDate != null'>
-        and  a.reg_date between #{strDate} and #{toDate}
+        and  a.reg_date between #{strDate} and #{endDate}
         </if>
         <if test='businessNo != "" and businessNo != null'>
             AND a.business_no LIKE '%' + #{businessNo} + '%'

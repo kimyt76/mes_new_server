@@ -20,7 +20,7 @@ public class PurchaseOrderVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate toDate;
+    private LocalDate endDate;
     private String storageCd;
     private String storageName;
     private String areaCd;

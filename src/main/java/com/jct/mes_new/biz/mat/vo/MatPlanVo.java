@@ -11,7 +11,7 @@ public class MatPlanVo {
     public String matPlanId;
 
     public String strDate;
-    public String toDate;
+    public String endDate;
 
     public String matRegDate;
     public String poNo;

@@ -36,7 +36,7 @@
                 on d.user_id = a.manager_id
         WHERE 1=1
         <if test="strDate != null ">
-            AND a.work_order_date between  #{strDate} and #{toDate}
+            AND a.work_order_date between  #{strDate} and #{endDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
             AND a.area_cd = #{areaCd}

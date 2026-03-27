@@ -2,6 +2,7 @@ package com.jct.mes_new.config.common.exception;
 
 import com.jct.mes_new.config.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
@@ -53,6 +55,7 @@ public class GlobalExceptionHandler {
     // 3) 그 외 예외 (서버 오류)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleEtc(Exception e, Locale locale) {
+        log.error("Unhandled exception", e);
         ErrorCode code = ErrorCode.INTERNAL_ERROR;
         String msg = messageSource.getMessage(code.getMessageKey(), null, "Internal error", locale);
 

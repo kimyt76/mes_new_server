@@ -32,11 +32,11 @@
         where
         <choose>
             <when test='"R".equals(menuType)'>
-                a.req_date between #{strDate} and #{toDate}
+                a.req_date between #{strDate} and #{endDate}
                AND a.test_state in ( 'REQ','ING')
             </when>
             <otherwise>
-                a.test_date between #{strDate} and #{toDate}
+                a.test_date between #{strDate} and #{endDate}
                 AND a.test_state in ( 'ING','END')
             </otherwise>
         </choose>

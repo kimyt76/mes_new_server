@@ -8,6 +8,9 @@ import com.jct.mes_new.biz.common.vo.BarCodeVo;
 import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.common.vo.QrCodeInfo;
 import com.jct.mes_new.biz.common.vo.ReqPrinting;
+import com.jct.mes_new.biz.qc.service.ItemTestService;
+import com.jct.mes_new.biz.qc.service.impl.ItemTestServiceImpl;
+import com.jct.mes_new.biz.qc.vo.ItemTestVo;
 import com.jct.mes_new.config.util.BarcodeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,24 +42,51 @@ public class CommonServiceImpl implements CommonService {
 
     private final CommonMapper commonMapper;
     private final ItemServiceImpl itemServiceImpl;
+    private final ItemTestServiceImpl itemTestServiceImpl;
 
+    /**
+     * 공통코드 전체 리스트 조회
+     * @param commonVo
+     * @return
+     */
     public List<CommonVo> getCommonList(CommonVo commonVo){
         return commonMapper.getCommonList(commonVo);
     }
 
-
+    /**
+     * 공통코드 부분 조회
+     * @param type
+     * @return
+     */
     public List<CommonVo> getCodeList(String type){
         return commonMapper.getCodeList(type);
     }
 
+    /**
+     * 신규 시퀀스 채번
+     * @param itemTypeCd
+     * @param cd
+     * @param seqLen
+     * @return
+     */
     public String newSeq(String itemTypeCd, String cd, int seqLen){
         return commonMapper.newSeq(itemTypeCd , cd, seqLen);
     }
 
+    /**
+     * 공통코드 상세 정보조회
+     * @param comId
+     * @return
+     */
     public CommonVo getCommonInfo(String comId){
         return commonMapper.getCommonInfo(comId);
     }
 
+    /**
+     * 공통코드 정보 저장
+     * @param commonVo
+     * @return
+     */
     public String saveCommonInfo(CommonVo commonVo){
         String msg ="저장되었습니다.";
 
@@ -70,11 +100,24 @@ public class CommonServiceImpl implements CommonService {
         return msg;
     }
 
+    /**
+     * 테이블 별 시퀀스 자동 채번
+     * @param tb
+     * @param cd
+     * @param date
+     * @return
+     */
     public int getNextSeq(String tb, String cd, String date){
         return commonMapper.getNextSeq(tb, cd, date);
     }
 
 
+    /**
+     * QR 코드 채번
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     public byte[] createQrCodeLabels(ReqPrinting[] vo) throws Exception {
         List<JasperPrint> jasperPrintList = new ArrayList<JasperPrint>();
         for ( ReqPrinting item : vo ) {
@@ -95,15 +138,14 @@ public class CommonServiceImpl implements CommonService {
         QrCodeInfo qrCodeInfo = new QrCodeInfo();
         DecimalFormat df = new DecimalFormat("#,##0.000");
         DecimalFormat df2 = new DecimalFormat("#,##0");
-        //ItemTestNoView itemTestNoView = itemTestNoViewService.getById(testNo);
-        ItemVo itemMasterView = itemServiceImpl.getItemInfo("JRMSC00020");
-        //ItemVo itemMasterView = itemServiceImpl.getItemInfo(itemTestNoView.getItemCd());
-        String itemTypeCd = itemMasterView.getItemTypeCd();
+        ItemTestVo vo = itemTestServiceImpl.getItemTestNoInfo(testNo);
+        ItemVo itemMasterView = itemServiceImpl.getItemInfo(vo.getItemCd());
+        String itemTypeCd = vo.getItemTypeCd();
 
-        String itemCdWithBracket =  "(" + itemMasterView.getItemCd() + ")";
+        String itemCdWithBracket =  "(" + vo.getItemCd() + ")";
         qrCodeInfo.setItemCd(itemCdWithBracket);
 
-        qrCodeInfo.setItemName(itemMasterView.getItemName());
+        qrCodeInfo.setItemName(vo.getItemName());
         qrCodeInfo.setItemTypeCd(itemTypeCd);
         /* 사급 / 자급*/
         qrCodeInfo.setSupplyGb(itemMasterView.getOrderType());
@@ -112,24 +154,21 @@ public class CommonServiceImpl implements CommonService {
         qrCodeInfo.setTestNo(testNo);
 
         //로트번호 치환 !! -> " "
-        //String lotNo = (itemTestNoView.getLotNo() != null)?itemTestNoView.getLotNo().replaceAll("!!", " ") : "";
-        String lotNo = "lot1";
-
+        String lotNo = (vo.getLotNo() != null)?vo.getLotNo().replaceAll("!!", " ") : "";
 
         qrCodeInfo.setLotNo(lotNo);
-        //qrCodeInfo.setProdNo(itemTestNoView.getProdNo());
-        qrCodeInfo.setProdNo("제조1111");
+        qrCodeInfo.setProdNo(vo.getMakeNo());
 
         String unit = (itemMasterView.getUnit() == null)? "" : itemMasterView.getUnit();
         Boolean isKg = (unit.equals("kg") || unit.equals("KG") || unit.equals("Kg"));
         String strQty = (isKg) ? df.format(qty) : df2.format(qty);
         qrCodeInfo.setStrQty(strQty + " " + unit);
 
-        qrCodeInfo.setCustomerName("거래처 테스트");
-        qrCodeInfo.setCreateDate(LocalDate.parse( "2026-02-01" ));
-        qrCodeInfo.setExpiryDate(LocalDate.parse( "2026-02-02" ));
-        qrCodeInfo.setShelfLife(LocalDate.parse( "2026-02-03" ));
-        qrCodeInfo.setPassStateName("시험대기");
+        qrCodeInfo.setCustomerName(vo.getCustomerName());
+        qrCodeInfo.setCreateDate(vo.getCreateDate());
+        qrCodeInfo.setExpiryDate(vo.getExpiryDate());
+        qrCodeInfo.setShelfLife(vo.getShelfLife());
+        qrCodeInfo.setPassStateName(vo.getPassStateName());
         qrCodeInfo.setBarcodeImage(this.createQrCodeImage(testNo));//바코드 이미지 생성.
 
         if("M0".equals(itemTypeCd)) {

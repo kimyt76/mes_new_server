@@ -24,7 +24,7 @@
         from    tb_item_test_no a
                 inner join tb_pur_item b
                 on a.test_no = b.test_no
-        where   a.create_date between #{strDate} and #{toDate}
+        where   a.create_date between #{strDate} and #{endDate}
         <if test="testNo != null and testNo != ''">
             AND a.test_no = #{testNo}
         </if>

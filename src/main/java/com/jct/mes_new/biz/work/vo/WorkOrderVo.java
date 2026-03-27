@@ -32,7 +32,7 @@ public class WorkOrderVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
-        private LocalDate toDate;
+        private LocalDate endDate;
         private String matOrderDate;
 
         private Integer batchCnt;
