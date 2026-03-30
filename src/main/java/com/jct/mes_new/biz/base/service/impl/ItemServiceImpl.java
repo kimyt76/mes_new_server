@@ -55,9 +55,7 @@ public class ItemServiceImpl implements ItemService {
         if (existing != null && !existing.isEmpty()) {
             // existing이 바로 중복된 코드 목록
             // 예외 던지거나 메시지 처리
-            throw new BusinessException(ErrorCode.DUPLICATE,
-                    "이미 존재하는 코드가 있습니다: " + String.join(", ", existing),
-                    Map.of("duplicateCodes", existing));
+            throw new BusinessException("이미 존재하는 코드가 있습니다");
         }
 
         try{
