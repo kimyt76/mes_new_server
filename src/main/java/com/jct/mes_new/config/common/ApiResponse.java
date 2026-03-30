@@ -1,21 +1,32 @@
 package com.jct.mes_new.config.common;
 
-public record ApiResponse<T>(
-        boolean success,
-        String message,
-        String code,
-        T data,
-        Object details
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class ApiResponse<T> {
+
+    private boolean success;
+    private String message;
+    private String code;
+    private T data;
+
+    // 성공 응답
+    public static <T> ApiResponse<T> ok(String message) {
+        return new ApiResponse<>(true, message, "SUCCESS", null);
+    }
+
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(true, "SUCCESS", "SUCCESS", data);
+    }
+
+    // 실패 응답
+    public static <T> ApiResponse<T> fail(String message, String code, T data) {
+        return new ApiResponse<>(false, message, code, data);
+    }
+
     public static <T> ApiResponse<T> ok(String message, T data) {
-        return new ApiResponse<>(true, message, "OK", data, null);
-    }
-
-    public static ApiResponse<Void> ok(String message) {
-        return new ApiResponse<>(true, message, "OK", null, null);
-    }
-
-    public static ApiResponse<Void> fail(String message, String code, Object details) {
-        return new ApiResponse<>(false, message, code, null, details);
+        return new ApiResponse<>(true, message, "SUCCESS", data);
     }
 }

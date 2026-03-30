@@ -1,6 +1,7 @@
 package com.jct.mes_new.config.common.exception;
 
 import com.jct.mes_new.config.common.ApiResponse;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -20,44 +21,67 @@ public class GlobalExceptionHandler {
 
     private final MessageSource messageSource;
 
-    // 1) 비즈니스 예외 (권한/조회없음/중복/검증 등)
+    // 1️⃣ 비즈니스 예외
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusiness(BusinessException e, Locale locale) {
-        ErrorCode code = e.getErrorCode();
+    public ResponseEntity<ApiResponse<?>> handleBusiness(BusinessException e, Locale locale) {
 
-        // messageKey 기반 메시지
+        // ✔ ErrorCode 있는 경우
+        if (e.getErrorCode() != null) {
+            ErrorCode code = e.getErrorCode();
+
+            String msg = messageSource.getMessage(
+                    code.getMessageKey(),
+                    null,
+                    code.name(),
+                    locale
+            );
+
+            return ResponseEntity
+                    .status(code.getHttpStatus())
+                    .body(ApiResponse.fail(msg, code.name(), e.getDetails()));
+        }
+
+        // ✔ ErrorCode 없는 경우 (문자열 메시지)
+        return ResponseEntity
+                .badRequest()
+                .body(ApiResponse.fail(e.getMessage(), "BUSINESS_ERROR", e.getDetails()));
+    }
+
+    // 2️⃣ @Valid 검증 실패
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleValid(MethodArgumentNotValidException e, Locale locale) {
+
+        Map<String, Object> details = new HashMap<>();
+        e.getBindingResult().getFieldErrors()
+                .forEach(fe -> details.put(fe.getField(), fe.getDefaultMessage()));
+
+        ErrorCode code = ErrorCode.VALIDATION;
+
         String msg = messageSource.getMessage(
                 code.getMessageKey(),
                 null,
-                code.name(), // 키가 없으면 fallback
+                "Validation error",
                 locale
         );
-
-        return ResponseEntity
-                .status(code.getHttpStatus())
-                .body(ApiResponse.fail(msg, code.name(), e.getDetails()));
-    }
-
-    // 2) @Valid 검증 실패(Bean Validation) - 자동으로 들어오는 케이스
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValid(MethodArgumentNotValidException e, Locale locale) {
-        Map<String, Object> details = new HashMap<>();
-        e.getBindingResult().getFieldErrors().forEach(fe -> details.put(fe.getField(), fe.getDefaultMessage()));
-
-        ErrorCode code = ErrorCode.VALIDATION;
-        String msg = messageSource.getMessage(code.getMessageKey(), null, "Validation error", locale);
 
         return ResponseEntity
                 .status(code.getHttpStatus())
                 .body(ApiResponse.fail(msg, code.name(), details));
     }
 
-    // 3) 그 외 예외 (서버 오류)
+    // 3️⃣ 서버 오류
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleEtc(Exception e, Locale locale) {
+    public ResponseEntity<ApiResponse<?>> handleEtc(Exception e, Locale locale) {
         log.error("Unhandled exception", e);
+
         ErrorCode code = ErrorCode.INTERNAL_ERROR;
-        String msg = messageSource.getMessage(code.getMessageKey(), null, "Internal error", locale);
+
+        String msg = messageSource.getMessage(
+                code.getMessageKey(),
+                null,
+                "Internal error",
+                locale
+        );
 
         return ResponseEntity
                 .status(code.getHttpStatus())
