@@ -35,8 +35,8 @@ public class ClientController {
 
     @PostMapping("/saveClientInfo")
     public ResponseEntity<ApiResponse<Void>> saveClientInfo(@RequestBody ClientRequestVo vo) throws Exception {
-            String result = clientService.saveClientInfo(vo);
-        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+        String result = clientService.saveClientInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
     @GetMapping("/getBusinessNoChecked/{id}")
