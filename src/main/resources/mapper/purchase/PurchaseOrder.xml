@@ -333,9 +333,10 @@
                  ,dbo.getCustomerName(a.customer_cd) as customer_name
                  ,b.item_cd
                  ,b.item_name
+                 ,b.qty
+                 ,b.spec
                  ,dbo.getStorageName(a.storage_cd) as storage_name
                  ,a.delivery_date
-                 ,b.qty
                  ,isnull((select qty from tb_pur_item where b.pur_order_item_id = pur_item_id ) , 0) as inQty
                  ,isnull(b.in_Yn, 'N') as in_Yn
                  ,isnull(a.end_yn, 'N') as end_yn
@@ -345,7 +346,10 @@
         from   tb_pur_order_mst a
                 inner join tb_pur_order_item b
                 on a.pur_order_id = b.pur_order_id
-        where  a.pur_order_date between #{strDate} and #{endDate}
+        where 1=1
+        <if test="strDate != null">
+            a.pur_order_date between #{strDate} and #{endDate}
+        </if>
         <if test="areaCd != null and areaCd != ''">
             and   a.area_cd = #{areaCd}
         </if>

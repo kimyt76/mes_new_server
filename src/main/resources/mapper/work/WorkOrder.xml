@@ -157,13 +157,13 @@
     <insert id="insertWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch" useGeneratedKeys="true" keyProperty="workBatchId">
         INSERT INTO dbo.TB_WORK_ORDER_BATCH
         (
-            work_order_id, po_no, mat_no, lot_no, lot_no2,
+            work_order_id, po_no, mat_no, lot_no, lot_no2, batch_Status
             reg_id, upd_id
         )
         VALUES
             (
-                #{workOrderId}, #{poNo}, #{matNo}, #{lotNo}, #{lotNo2},
-                #{userId}, #{userId}
+            #{workOrderId}, #{poNo}, #{matNo}, #{lotNo}, #{lotNo2}, #{batchStatus}
+            #{userId}, #{userId}
             )
     </insert>
 
@@ -245,4 +245,9 @@
         </foreach>
     </delete>
 
+    <update id="updateBatchStatus">
+        update TB_WORK_ORDER_BATCH
+        set    batch_status = #{batchStatus}
+        where  work_batch_id = #{workBatchId}
+    </update>
 </mapper>
