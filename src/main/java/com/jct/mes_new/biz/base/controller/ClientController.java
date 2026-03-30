@@ -2,6 +2,8 @@ package com.jct.mes_new.biz.base.controller;
 
 import com.jct.mes_new.biz.base.service.ClientService;
 import com.jct.mes_new.biz.base.vo.*;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,8 @@ import java.util.Map;
 public class ClientController {
 
     private final ClientService clientService;
+    private final MessageUtil messageUtil;
+
 
     @PostMapping("/getClientList")
     public List<ClientVo> getClientList (@RequestBody ClientVo clientVo) {
@@ -30,16 +34,9 @@ public class ClientController {
     }
 
     @PostMapping("/saveClientInfo")
-    public ResponseEntity<?> saveClientInfo(@RequestBody ClientRequestVo vo) throws Exception {
-
-        try {
+    public ResponseEntity<ApiResponse<Void>> saveClientInfo(@RequestBody ClientRequestVo vo) throws Exception {
             String result = clientService.saveClientInfo(vo);
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
     @GetMapping("/getBusinessNoChecked/{id}")

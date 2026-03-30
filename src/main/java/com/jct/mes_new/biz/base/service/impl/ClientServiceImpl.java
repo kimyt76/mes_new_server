@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.base.mapper.ClientMapper;
 import com.jct.mes_new.biz.base.service.ClientService;
 import com.jct.mes_new.biz.base.vo.*;
 import com.jct.mes_new.config.common.CommonUtil;
+import com.jct.mes_new.config.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,56 +43,67 @@ public class ClientServiceImpl implements ClientService {
         List<ClientAddressVo> addressList = vo.getClientAddressList();
         String userId = clientInfo.getUserId();
 
-        try{
-            if (clientInfo.getClientId().isEmpty() ){
-                clientInfo.setClientId(CommonUtil.generateUUID());
+        String clientId = clientInfo.getClientId();
+        String businessNo = clientInfo.getBusinessNo();
+
+        // 신규일 때만 clientId 생성
+        if (clientId == null || clientId.isEmpty()) {
+            // 자기 자신 제외하고 사업자번호 중복 체크
+            String result = this.getBusinessNoChecked(businessNo);
+
+            if ("N".equals(result)) {
+                throw new BusinessException("중복된 사업자 번호입니다.");
             }
 
-            if ( clientMapper.saveClientInfo(clientInfo) <= 0 ){
-                throw new Exception("고객사 저장에 실패했습니다.");
-            }else{
-                clientMapper.deleteManagerList(clientInfo.getClientId());
-                clientMapper.deleteHistoryList(clientInfo.getClientId());
-                clientMapper.deleteAddressList(clientInfo.getClientId());
-
-                if ( managerList != null && !managerList.isEmpty() ){
-                    for (ClientManagerVo managerVo : managerList) {
-                        managerVo.setClientId(clientInfo.getClientId());
-                        managerVo.setUserId(userId);
-                    }
-                    if ( clientMapper.saveManagerList(managerList) <= 0 ) {
-                        throw new Exception("담당자 저장에 실패했습니다.");
-                    }
-                }
-                if ( historyList != null && !historyList.isEmpty() ){
-                    for (ClientHistoryVo historyVo : historyList) {
-                        historyVo.setClientId(clientInfo.getClientId());
-                        historyVo.setUserId(userId);
-                    }
-                    if ( clientMapper.saveHistoryList(historyList) <= 0 ) {
-                        throw new Exception("변경이력 저장에 실패했습니다.");
-                    }
-                }
-                if ( addressList != null && !addressList.isEmpty()){
-                    for (ClientAddressVo addressVo : addressList) {
-                        addressVo.setClientId(clientInfo.getClientId());
-                        addressVo.setUserId(userId);
-                    }
-                    if ( clientMapper.saveAddressList(addressList) <= 0 ) {
-                        throw new Exception("주소 저장에 실패했습니다.");
-                    }
-                }
-            }
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+            clientId = CommonUtil.generateUUID();
+            clientInfo.setClientId(clientId);
         }
+
+        if (clientMapper.saveClientInfo(clientInfo) <= 0) {
+            throw new BusinessException("고객사 저장에 실패했습니다.");
+        }
+
+        clientMapper.deleteManagerList(clientId);
+        clientMapper.deleteHistoryList(clientId);
+        clientMapper.deleteAddressList(clientId);
+
+        if (managerList != null && !managerList.isEmpty()) {
+            for (ClientManagerVo managerVo : managerList) {
+                managerVo.setClientId(clientId);
+                managerVo.setUserId(userId);
+            }
+            if (clientMapper.saveManagerList(managerList) <= 0) {
+                throw new RuntimeException("담당자 저장에 실패했습니다.");
+            }
+        }
+
+        if (historyList != null && !historyList.isEmpty()) {
+            for (ClientHistoryVo historyVo : historyList) {
+                historyVo.setClientId(clientId);
+                historyVo.setUserId(userId);
+            }
+            if (clientMapper.saveHistoryList(historyList) <= 0) {
+                throw new Exception("변경이력 저장에 실패했습니다.");
+            }
+        }
+
+        if (addressList != null && !addressList.isEmpty()) {
+            for (ClientAddressVo addressVo : addressList) {
+                addressVo.setClientId(clientId);
+                addressVo.setUserId(userId);
+            }
+            if (clientMapper.saveAddressList(addressList) <= 0) {
+                throw new Exception("주소 저장에 실패했습니다.");
+            }
+        }
+
         return msg;
     }
 
     public String getBusinessNoChecked(String businessNo) {
         String chk = "Y";
 
-        if ( clientMapper.getBusinessNoChecked(businessNo) > 0 ){
+        if (clientMapper.getBusinessNoChecked(businessNo) > 0) {
             chk = "N";
         }
         return chk;
