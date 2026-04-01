@@ -6,7 +6,7 @@
     <select id="getQcProcTestList">
         select    dbo.getCommonName('area', a.area_cd) as area_cd
                  ,dbo.getItemName(a.item_cd) as item_name
-                 ,b.mat_no
+                 ,b.make_No
                  ,b.lot_no
                  ,b.lot_no2
                  ,b.batch_status

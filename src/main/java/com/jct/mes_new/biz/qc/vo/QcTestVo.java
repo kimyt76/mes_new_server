@@ -59,6 +59,8 @@ public class QcTestVo {
     private String customerName;
 
     private String menuType;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate createDate;
 
     private String userId;
 }

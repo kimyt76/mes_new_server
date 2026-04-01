@@ -17,7 +17,7 @@ public class QcProcTestVo {
     private String areaCd;
     private String itemName;
     private String itemCd;
-    private String matNo;
+    private String makeNo;
     private String lotNo;
     private String lotNo2;
     private String batchStatus;

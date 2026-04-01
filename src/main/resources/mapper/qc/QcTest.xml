@@ -97,6 +97,7 @@
                  ,a.area_cd
                  ,isnull((select max(seq)+1 from  tb_qc_test_mst where retest_yn ='Y' and test_no = a.test_no ), 1) as seq
                  ,a.retest_yn
+                 ,b.create_date
                  ,b.expiry_date
                  ,b.customer_cd
                  ,dbo.getCustomerName(b.customer_cd) as customer_Name
@@ -110,6 +111,8 @@
                 on a.test_no = c.test_no
                 inner join tb_pur_mst d
                 on c.pur_id = d.pur_id
+
+
         where  a.qc_test_id = #{qcTestId}
     </select>
 

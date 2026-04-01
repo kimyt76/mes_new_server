@@ -22,4 +22,10 @@ public interface QcTestService {
     String insertRetestInfo(QcTestVo vo);
 
     String updateQcTestInfo(QcTestRequestVo vo);
+
+    byte[] getPrintTest(List<Long> qcTestIds) throws Exception;
+
+    byte[] certificateDownloadExcel(Long qcTestId);
+
+    byte[] tesetDownloadExcel(Long qcTestId);
 }
