@@ -8,6 +8,6 @@ import java.util.List;
 public interface ProcWeighService {
     List<ProcWeighVo> getWeighList(ProcWeighVo vo);
 
-    ProcWeighVo getWeighInfo(String workProcId, String itemCd);
+    WeighInfoVo getWeighInfo(ProcWeighVo vo);
 
 }

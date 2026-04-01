@@ -25,12 +25,8 @@ public class ProcWeighController {
     }
 
     @PostMapping("/getWeighInfo")
-    public ProcWeighVo getWeighInfo(@RequestBody Map<String, Object> map){
-        String workProcId = (String)map.get("workProcId");
-        String itemCd = (String)map.get("itemCd");
-
-        ProcWeighVo vo = procWeighService.getWeighInfo(workProcId, itemCd);
-        return vo;
+    public WeighInfoVo getWeighInfo(@RequestBody ProcWeighVo vo){
+        return procWeighService.getWeighInfo(vo);
     }
 
 

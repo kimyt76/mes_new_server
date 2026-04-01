@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.proc.service.impl;
 
 import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.proc.service.ProcWeighService;
+import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
 import com.jct.mes_new.biz.proc.vo.WeighInfoVo;
 import lombok.RequiredArgsConstructor;
@@ -17,21 +18,33 @@ public class ProcWeighServiceImpl implements ProcWeighService {
 
     private final ProcWeighMapper procWeighMapper;
 
+    /**
+     * 칭량조회
+     * @param vo
+     * @return
+     */
     public List<ProcWeighVo> getWeighList(ProcWeighVo vo){
         return procWeighMapper.getWeighList(vo);
     }
 
-    public ProcWeighVo getWeighInfo(String workProcId, String itemCd){
-        ProcWeighVo vo = procWeighMapper.getWeighHeadInfo(workProcId);
-        List<ProcWeighVo.weigh> recipeList = null;
+    /**
+     * 칭량 상세 조회
+     * @param vo
+     * @return
+     */
+    public WeighInfoVo getWeighInfo(ProcWeighVo vo){
+        WeighInfoVo info = new WeighInfoVo();
 
-        if (procWeighMapper.checkWeighCnt(workProcId) > 0 ){
-            recipeList = procWeighMapper.getRealBomWeighList(workProcId, itemCd);
+        info.setProcWeigh(procWeighMapper.getWeighHeadInfo(vo.getWorkProcId()));
+        List<ProcWeighBomVo> recipeList = null;
+
+        if (procWeighMapper.checkWeighCnt(vo.getWorkProcId()) > 0 ){
+            recipeList = procWeighMapper.getRealBomWeighList(vo.getWorkProcId(), vo.getItemCd());
         }else{
-            recipeList = procWeighMapper.getBomWeighList(workProcId, itemCd);
+            recipeList = procWeighMapper.getBomWeighList(vo.getWorkProcId(), vo.getItemCd());
         }
-        vo.setWeighs(recipeList);
+        info.setWeightBomList(recipeList);
 
-        return  vo;
+        return  info;
     }
 }
