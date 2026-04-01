@@ -9,4 +9,5 @@ public interface ProcCommonService {
 
     List<ProcCommonVo> getEquipmentList(String storageCd);
 
+    String updateProcStatus(ProcCommonVo vo);
 }

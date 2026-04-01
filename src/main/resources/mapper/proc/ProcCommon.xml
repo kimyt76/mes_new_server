@@ -25,4 +25,19 @@
         order by display_order
     </select>
 
+    <update id="updateProcStatus">
+        update TB_WORK_ORDER_PROC
+        set    proc_status = #{procStatus}
+              ,storage_cd  = #{storageCd}
+              ,prod_date   = convert(date, getdate(), -23)
+              ,work_start_time = getDate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <update id="updateBatchStatus">
+        update TB_WORK_ORDER_BATCH
+        set    batch_status = #{batchStatus}
+        where  work_batch_id = #{workBatchId}
+    </update>
+
 </mapper>

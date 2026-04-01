@@ -10,4 +10,8 @@ public interface ProcCommonMapper {
     List<ProcCommonVo> getWorkerList(String procCd);
 
     List<ProcCommonVo> getEquipmentList(String storageCd);
+
+    int updateProcStatus(ProcCommonVo vo);
+
+    int updateBatchStatus(ProcCommonVo vo);
 }
