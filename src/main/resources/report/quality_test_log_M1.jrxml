@@ -17,7 +17,7 @@
 		<band height="150" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<image>
-				<reportElement x="5" y="11" width="125" height="51" uuid="3a0a7d71-13fc-451c-87e8-4d65659fa391"/>
+				<reportElement x="8" y="22" width="125" height="51" uuid="3a0a7d71-13fc-451c-87e8-4d65659fa391"/>
 				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
 			</image>
 			<line>

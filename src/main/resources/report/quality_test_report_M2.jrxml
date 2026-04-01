@@ -42,7 +42,7 @@
                 </reportElement>
             </rectangle>
             <image>
-                <reportElement x="6" y="17" width="150" height="65" uuid="ce313098-399e-49c6-8528-b5587185a5b7"/>
+                <reportElement x="6" y="28" width="150" height="65" uuid="ce313098-399e-49c6-8528-b5587185a5b7"/>
                 <imageExpression><![CDATA[$P{logo}]]></imageExpression>
             </image>
             <line>
