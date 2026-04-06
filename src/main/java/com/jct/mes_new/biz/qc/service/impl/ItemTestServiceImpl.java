@@ -38,6 +38,10 @@ public class ItemTestServiceImpl implements ItemTestService {
         return itemTestMapper.getItemTestNoInfo(testNo);
     }
 
+    public List<ItemTestVo> getItemTestNoInfoList(String testNo){
+        return itemTestMapper.getItemTestNoInfoList(testNo);
+    }
+
     public String updateItemTestNoInfo(ItemTestVo vo){
         vo.setUserId(UserUtil.getUserId());
         if ( itemTestMapper.updateItemTestNo(vo) <= 0 ){

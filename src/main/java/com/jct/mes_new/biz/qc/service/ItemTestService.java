@@ -17,4 +17,6 @@ public interface ItemTestService {
     ItemTestVo getItemTestNoInfo(String testNo);
 
     String updateItemTestNoInfo(ItemTestVo vo);
+
+    List<ItemTestVo> getItemTestNoInfoList(String testNo);
 }

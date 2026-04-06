@@ -26,10 +26,13 @@ public class ItemTestController {
         return itemTestService.getItemTestNoList(vo);
     }
 
-
     @GetMapping("/getItemTestNoInfo/{id}")
     public ItemTestVo getItemTestNoInfo(@PathVariable("id") String testNo) {
         return itemTestService.getItemTestNoInfo(testNo);
+    }
+    @GetMapping("/getItemTestNoInfoList/{id}")
+    public List<ItemTestVo> getItemTestNoInfoList(@PathVariable("id") String testNo) {
+        return itemTestService.getItemTestNoInfoList(testNo);
     }
 
 

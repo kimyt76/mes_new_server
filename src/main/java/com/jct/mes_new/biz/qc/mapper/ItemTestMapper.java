@@ -63,4 +63,6 @@ public interface ItemTestMapper {
      * @return
      */
     int updateState(QcTestVo qcTestMst);
+
+    List<ItemTestVo> getItemTestNoInfoList(String testNo);
 }

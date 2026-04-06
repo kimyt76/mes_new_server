@@ -72,6 +72,31 @@
         where   a.test_no = #{testNo}
     </select>
 
+    <select id="getItemTestNoInfoList">
+        select    a.test_id
+                 ,a.test_no
+                 ,a.create_date
+                 ,a.item_type_cd
+                 ,b.item_cd
+                 ,b.item_name
+                 ,a.lot_no
+                 ,a.make_no
+                 ,a.qty
+                 ,a.expiry_date
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name0
+                 ,dbo.getCommonName('pass_state', a.pass_state) as pass_state_name
+                 ,a.pass_state
+                 ,a.test_state
+                 ,a.expiry_date
+                 ,a.shelf_life
+                 ,a.customer_cd
+                 ,a.end_yn
+        from    tb_item_test_no a
+                inner join tb_pur_item b
+                on a.test_no = b.test_no
+        where   a.test_no = #{testNo}
+    </select>
+
     <insert id="insertItemTestNo">
         insert into tb_item_test_no
         ( TEST_NO, CREATE_DATE, AREA_CD, ITEM_type_cd, SEQ, ITEM_CD, item_name, QTY, CUSTOMER_CD, EXPIRY_DATE
