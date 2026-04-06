@@ -1,9 +1,11 @@
 package com.jct.mes_new.biz.lab.controller;
 
 
+import com.jct.mes_new.biz.lab.service.BomService;
 import com.jct.mes_new.biz.lab.service.SampleService;
 import com.jct.mes_new.biz.lab.vo.SampleVo;
-import com.jct.mes_new.config.util.ApiResponse;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.Map;
 public class SampleController {
 
     private final SampleService sampleService;
+    private final MessageUtil messageUtil;
 
     @PostMapping("/getSampleList")
     public List<SampleVo> getSampleList (@RequestBody SampleVo sampleVo) {
@@ -31,16 +34,9 @@ public class SampleController {
     }
 
     @PostMapping("/saveSampleInfo")
-    public ResponseEntity<?> saveSampleInfo(@RequestBody SampleVo vo ) throws Exception {
-
-        try {
-            String result = sampleService.saveSampleInfo(vo);
-
-            return ResponseEntity.ok(ApiResponse.success(result));
-            //return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail("저장에 실패했습니다.", 400));
-        }
+    public ResponseEntity<ApiResponse<Void>> saveSampleInfo(@RequestBody SampleVo vo ){
+        String result = sampleService.saveSampleInfo(vo);
+        return  ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
     @GetMapping("/getNextProdMgmtNo")
     public String getNextProdMgmtNo() {

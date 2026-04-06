@@ -3,8 +3,8 @@ package com.jct.mes_new.biz.lab.controller;
 
 import com.jct.mes_new.biz.lab.service.BomService;
 import com.jct.mes_new.biz.lab.vo.*;
+import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
-import com.jct.mes_new.config.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -78,44 +78,34 @@ public class BomController {
      * BOM 저장
      * @param request
      * @return
-     * @throws Exception
      */
     @PostMapping("/saveBomInfo")
-    public ResponseEntity<?> saveBomInfo(@RequestBody BomRequestVo request ) throws Exception {
-        try {
-            BomVo bomInfo = request.getBomInfo();
-            List<BomRecipeVo> bomRecipeList = request.getBomRecipeList();
-            List<BomProcVo> bomProcList = request.getBomProcList();
+    public ResponseEntity<ApiResponse<Void>> saveBomInfo(@RequestBody BomRequestVo request ) {
+        BomVo bomInfo = request.getBomInfo();
+        List<BomRecipeVo> bomRecipeList = request.getBomRecipeList();
+        List<BomProcVo> bomProcList = request.getBomProcList();
 
-            String result = bomService.saveBomInfo(bomInfo, bomRecipeList, bomProcList);
+        String result = bomService.saveBomInfo(bomInfo, bomRecipeList, bomProcList);
 
-            Map<String, String> response = Map.of("message", result);
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), 400));
-        }
+        Map<String, String> response = Map.of("message", result);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
     /**
      * BOM VER저장
      * @param request
      * @return
-     * @throws Exception
      */
     @PostMapping("/saveBomVerInfo")
-    public ResponseEntity<?> saveBomVerInfo(@RequestBody BomRequestVo request ) throws Exception {
-        try {
-            BomVo bomInfo = request.getBomInfo();
-            List<BomRecipeVo> bomRecipeList = request.getBomRecipeList();
-            List<BomProcVo> bomProcList = request.getBomProcList();
+    public ResponseEntity<ApiResponse<Void>> saveBomVerInfo(@RequestBody BomRequestVo request ) {
+        BomVo bomInfo = request.getBomInfo();
+        List<BomRecipeVo> bomRecipeList = request.getBomRecipeList();
+        List<BomProcVo> bomProcList = request.getBomProcList();
 
-            String result = bomService.saveBomVerInfo(bomInfo, bomRecipeList, bomProcList);
+        String result = bomService.saveBomVerInfo(bomInfo, bomRecipeList, bomProcList);
 
-            Map<String, String> response = Map.of("message", result);
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), 400));
-        }
+        Map<String, String> response = Map.of("message", result);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
 

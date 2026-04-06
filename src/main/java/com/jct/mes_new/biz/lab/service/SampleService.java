@@ -9,7 +9,7 @@ public interface SampleService {
 
     SampleVo getSampleInfo(String sampleId);
 
-    String saveSampleInfo(SampleVo vo) throws Exception;
+    String saveSampleInfo(SampleVo vo);
 
     String getNextProdMgmtNo();
 }
