@@ -29,6 +29,9 @@ public class StorageServiceImpl implements StorageService {
     public StorageVo getStorageInfo(String storageCd) {
         return storageMapper.getStorageInfo(storageCd);
     }
+    public List<Map<String, Object>> getAreaStorageList(String areaCd) {
+        return storageMapper.getAreaStorageList(areaCd);
+    }
 
     public String saveStorageInfo(StorageVo vo){
         String msg = "저장되었습니다.";

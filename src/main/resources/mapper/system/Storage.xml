@@ -101,4 +101,13 @@
         select coutn(storage_cd) cnt from tb_storage_mst where storage_cd = #{storageCd}
     </select>
 
+
+    <select id="getAreaStorageList" parameterType="string" resultType="map">
+        SELECT  storage_cd as storageCd
+               ,storage_name as storageName
+        FROM    tb_storage_mst
+        WHERE   area_cd = #{areaCd}
+        AND     ISNULL(use_yn, 'Y') = 'Y'
+        ORDER BY storage_cd
+    </select>
 </mapper>

@@ -34,6 +34,11 @@ public class StorageController {
         return storageService.getStorageInfo(storageCd);
     }
 
+    @GetMapping("/getAreaStorageList/{cd}")
+    public List<Map<String, Object>> getAreaStorageList(@PathVariable("cd") String areaCd) {
+        return storageService.getAreaStorageList(areaCd);
+    }
+
     @PostMapping("/saveStorageInfo")
     public ResponseEntity<ApiResponse<Void>> saveStorageInfo (@RequestBody StorageVo vo) {
         String result = storageService.saveStorageInfo(vo);

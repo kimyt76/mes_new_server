@@ -9,6 +9,8 @@ import java.util.Map;
 public interface StorageService {
     List<StorageVo> getStorageList(StorageVo vo);
 
+    List<Map<String, Object>> getAreaStorageList(String areaCd);
+
     StorageVo getStorageInfo(String storageCd);
 
     String saveStorageInfo(StorageVo vo);
