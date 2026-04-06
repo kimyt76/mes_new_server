@@ -97,17 +97,44 @@ public class QcTestController {
     }
 
     /**
-     * 시험일지 PDF 출력
-     * @param qcTestIds
+     * 시험일지 출력
      */
     @PostMapping("/getPrintTest")
-    public ResponseEntity<byte[]> getPrintTest(@RequestBody List<Long> qcTestIds) throws Exception{
-        byte[] pdfBytes = qcTestService.getPrintTest(qcTestIds);
+    public ResponseEntity<byte[]> getPrintTest(@RequestBody List<Long> qcTestIds) throws Exception {
+        byte[] pdf = qcTestService.getPrintTest(qcTestIds);
+        return createPdfResponse(pdf, "시험일지.pdf");
+    }
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=qc-test.pdf")
-                .body(pdfBytes);
+    /**
+     * 성적서 출력
+     */
+    @PostMapping("/getPrintCertificate")
+    public ResponseEntity<byte[]> getPrintCertificate(@RequestBody List<Long> qcTestIds) throws Exception {
+        byte[] pdf = qcTestService.getPrintCertificate(qcTestIds);
+        return createPdfResponse(pdf, "성적서.pdf");
+    }
+
+    /**
+     * 전체 출력(성적서 + 시험일지)
+     */
+    @PostMapping("/getPrintAll")
+    public ResponseEntity<byte[]> printAll(@RequestBody List<Long> qcTestIds) throws Exception {
+        byte[] pdf = qcTestService.getPrintAll(qcTestIds);
+        return createPdfResponse(pdf, "시험일지_성적서.pdf");
+    }
+
+    private ResponseEntity<byte[]> createPdfResponse(byte[] pdf, String fileName) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+                ContentDisposition.inline()
+                        .filename(fileName, StandardCharsets.UTF_8)
+                        .build()
+        );
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(pdf);
     }
 
     @GetMapping("/certificateDownloadExcel/{qcTestId}")

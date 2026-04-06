@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.qc.service;
 
+import com.jct.mes_new.biz.qc.constant.PrintDocumentType;
 import com.jct.mes_new.biz.qc.vo.QcTestRequestVo;
 import com.jct.mes_new.biz.qc.vo.QcTestVo;
 
@@ -23,9 +24,19 @@ public interface QcTestService {
 
     String updateQcTestInfo(QcTestRequestVo vo);
 
-    byte[] getPrintTest(List<Long> qcTestIds) throws Exception;
+    //byte[] getPrintTest(List<Long> qcTestIds) throws Exception;
 
     byte[] certificateDownloadExcel(Long qcTestId);
 
     byte[] tesetDownloadExcel(Long qcTestId);
+
+
+    byte[] getPrintCertificate(List<Long> qcTestIds) throws Exception;
+
+    byte[] getPrintTest(List<Long> qcTestIds) throws Exception;
+
+    byte[] getPrintAll(List<Long> qcTestIds) throws Exception;
+
+    byte[] getPrintPdf(List<Long> qcTestIds, PrintDocumentType printType) throws Exception;
+
 }

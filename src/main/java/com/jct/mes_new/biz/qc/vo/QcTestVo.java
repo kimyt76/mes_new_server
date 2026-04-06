@@ -31,6 +31,7 @@ public class QcTestVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate confirmDate;
     private String testState;
+    private String testStateName;
     private String passState;
     private String passStateName;
 

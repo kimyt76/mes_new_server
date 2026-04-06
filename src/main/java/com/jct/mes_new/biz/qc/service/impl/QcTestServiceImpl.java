@@ -9,6 +9,7 @@ import com.jct.mes_new.biz.qc.mapper.ItemTestMapper;
 import com.jct.mes_new.biz.qc.mapper.QcTestMapper;
 import com.jct.mes_new.biz.qc.mapper.QcTestTypeMapper;
 import com.jct.mes_new.biz.qc.service.QcTestService;
+import com.jct.mes_new.biz.qc.constant.PrintDocumentType;
 import com.jct.mes_new.biz.qc.vo.*;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
@@ -55,7 +56,6 @@ public class QcTestServiceImpl implements QcTestService {
     private final ItemMapper itemMapper;
     private final CommonMapper commonMapper;
 
-
     /** 검사 지시 및 성적서 **/
     private final int REPO_MAX_ROW = 15;    // 승인칸 있을 시, 최대 ROW수
     private final int REPO_DIVIDE_CNT = 17; // 승인칸 없을 시, 최대 ROW수
@@ -63,7 +63,6 @@ public class QcTestServiceImpl implements QcTestService {
     private final int JOURNAL_LINE_CNT = 9;
     /** 시험일지 **/
     private final int TEST_LOG_MAX_ROWS = 10;    // 검사항목 최대 16개 출력
-
 
     /**
      * 품질검사요청 조회
@@ -212,11 +211,118 @@ public class QcTestServiceImpl implements QcTestService {
         return 1;
     }
 
+    public byte[] getPrintCertificate(List<Long> qcTestIds) throws Exception {
+        return getPrintPdf(qcTestIds, PrintDocumentType.REPORT);
+    }
+
+    public byte[] getPrintTest(List<Long> qcTestIds) throws Exception {
+        return getPrintPdf(qcTestIds, PrintDocumentType.LOG);
+    }
+
+    public byte[] getPrintAll(List<Long> qcTestIds) throws Exception {
+        return getPrintPdf(qcTestIds, PrintDocumentType.ALL);
+    }
+
+
+    /**
+     * PDF 공통 출력
+     */
+    public byte[] getPrintPdf(List<Long> qcTestIds, PrintDocumentType printType) throws Exception {
+        if (qcTestIds == null || qcTestIds.isEmpty()) {
+            throw new BusinessException(getEmptyMessage(printType));
+        }
+        List<JasperPrint> jasperPrintList = new ArrayList<>();
+
+        for (Long qcTestId : qcTestIds) {
+            QcTestRequestVo vo = this.getQcTestInfo(qcTestId);
+            if (vo == null) {
+                continue;
+            }
+
+            QcTestVo mst = vo.getQcTestInfo();
+            List<QcTestTypeVo> typeList = vo.getQcTestTypeMethodList();
+
+            if (mst == null) {
+                continue;
+            }
+
+            String itemGb = CodeUtil.convertItemTypeCd(mst.getItemTypeCd());
+            Map<String, Object> param = this.getParamMap(mst, itemGb);
+
+            List<QcTestTypeReportVo> qtItemList = getQtItemList(typeList, mst.getConfirmTesterId());
+
+            // 성적서
+            if (printType == PrintDocumentType.REPORT || printType == PrintDocumentType.ALL) {
+                List<QcTestTypeReportVo> qtReportList =
+                        filledListItem(qtItemList, REPO_MAX_ROW, REPO_DIVIDE_CNT);
+
+                JasperPrint jasperPrintReport = writeJasperReportPage(
+                        "quality_test_report_M" + itemGb,
+                        qtReportList,
+                        param
+                );
+
+                if (jasperPrintReport != null) {
+                    jasperPrintList.add(jasperPrintReport);
+                }
+            }
+
+            // 시험일지
+            if (printType == PrintDocumentType.LOG || printType == PrintDocumentType.ALL) {
+                List<QcTestTypeReportVo> qtLogList =
+                        filledListItem(qtItemList, TEST_LOG_MAX_ROWS, TEST_LOG_MAX_ROWS);
+
+                JasperPrint jasperPrintLog = writeJasperReportPage(
+                        "quality_test_log_M" + itemGb,
+                        qtLogList,
+                        param
+                );
+
+                if (jasperPrintLog != null) {
+                    jasperPrintList.add(jasperPrintLog);
+                }
+            }
+        }
+
+        if (jasperPrintList.isEmpty()) {
+            throw new BusinessException("출력할 PDF 데이터가 없습니다.");
+        }
+        return exportPdf(jasperPrintList);
+    }
+
+    private String getEmptyMessage(PrintDocumentType printType) {
+        if (printType == PrintDocumentType.REPORT) {
+            return "출력할 성적서가 없습니다.";
+        } else if (printType == PrintDocumentType.LOG) {
+            return "출력할 시험일지가 없습니다.";
+        } else {
+            return "출력할 PDF 데이터가 없습니다.";
+        }
+    }
+
+    private byte[] exportPdf(List<JasperPrint> jasperPrintList) throws Exception {
+        JRPdfExporter exporter = new JRPdfExporter();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        exporter.setExporterInput(SimpleExporterInput.getInstance(jasperPrintList));
+        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(baos));
+        exporter.exportReport();
+
+        return baos.toByteArray();
+    }
+
+
+
+
+
+
+
+
     /**
      * pdf print
-     * @param qcTestIds
+     * @param
      * @return
-     */
+
     public byte[] getPrintTest(List<Long> qcTestIds)  throws Exception {
         if (qcTestIds == null || qcTestIds.isEmpty()) {
             throw new BusinessException("출력할 시험일지가 없습니다.");
@@ -263,6 +369,8 @@ public class QcTestServiceImpl implements QcTestService {
 
         return baos.toByteArray();
     }
+     */
+
 
     public List<QcTestTypeReportVo> filledListItem (List<QcTestTypeReportVo> listItem, int maxRow, int divideCnt) {
         List<QcTestTypeReportVo> resultList = new ArrayList<>(listItem);
@@ -429,7 +537,6 @@ public class QcTestServiceImpl implements QcTestService {
                             .setCellValue(item.getCodeNm());
                 }
             }
-
             /** 상단 정보 **/
             Map<String, Object> cellValueList = getCellValueList(itemGb, mst);
 
@@ -444,7 +551,6 @@ public class QcTestServiceImpl implements QcTestService {
                             .setCellValue(value == null ? "" : value.toString());
                 }
             }
-
             /** 검사내역 **/
             int rowNo = (itemGb.equals("3")) ? 14 : 15;
 
@@ -604,7 +710,6 @@ public class QcTestServiceImpl implements QcTestService {
                     ExcelStyleUtil.getCellRef(sheet, item.getCode()).setCellValue(item.getCodeNm());
                 }
             }
-
             // D6 품명
             ExcelStyleUtil.getCellRef(sheet, "D6").setCellValue(mst.getItemName());
 
@@ -612,7 +717,6 @@ public class QcTestServiceImpl implements QcTestService {
             ExcelStyleUtil.getCellRef(sheet, "D8").setCellValue(
                     "3".equals(itemGb) ? mst.getMakeNo() : mst.getLotNo()
             );
-
             // P8 시험번호
             ExcelStyleUtil.getCellRef(sheet, "P8").setCellValue(mst.getTestNo());
 
@@ -625,29 +729,23 @@ public class QcTestServiceImpl implements QcTestService {
 
             // 데이터 출력
             for (QcTestTypeVo item : typeList) {
-
                 // 행 생성/가져오기
                 ExcelStyleUtil.getRow(sheet, rowNo).setHeight(rowHeight);
-
                 // 병합 보장
                 mergeJournalRow(sheet, rowNo);
-
                 // 시험항목 (A:B)
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 0, cellStyleList.get(0)).setCellValue(nvl(item.getTestItem()));
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 1, cellStyleList.get(1)).setCellValue("");
-
                 // 시험방법 (C:F)
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 2, cellStyleList.get(2)).setCellValue(nvl(item.getTestMethod()));
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 3, cellStyleList.get(3)).setCellValue("");
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 4, cellStyleList.get(4)).setCellValue("");
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 5, cellStyleList.get(5)).setCellValue("");
-
                 // 시험기준 (G:J)
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 6, cellStyleList.get(6)).setCellValue(nvl(item.getTestSpec()));
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 7, cellStyleList.get(7)).setCellValue("");
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 8, cellStyleList.get(8)).setCellValue("");
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 9, cellStyleList.get(9)).setCellValue("");
-
                 // 시험결과 (K:S)
                 // 필요하면 item.getTestResult() 넣으면 됨
                 ExcelStyleUtil.getStyleCell(sheet, rowNo, 10, cellStyleList.get(10)).setCellValue("");

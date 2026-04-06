@@ -18,8 +18,9 @@
                 ,b.make_no
                 ,a.req_qty
                 ,dbo.getStorageName(a.storage_cd) as storage_cd
-                ,dbo.getCommonName('test_state', a.test_state) as test_state
+                ,dbo.getCommonName('test_state', a.test_state) as test_state_name
                 ,dbo.getCommonName('pass_state', a.pass_state) as passStateName
+                ,a.test_state
                 ,a.pass_state
                 ,a.confirm_date
                 ,case when a.retest_yn = 'Y' then '재검사' else '입고검사' end retest_yn
