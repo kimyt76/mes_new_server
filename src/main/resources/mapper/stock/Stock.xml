@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.stock.mapper.StockMapper">
+
+    <select id="getScaleList">
+        select  dbo.getCommonName('area', a.area_cd) as areaName
+               ,b.storage_name
+               ,a.scale_nickname as scaleNickname
+               ,a.scale_cd
+               ,a.scale_name
+               ,a.etc
+               ,a.scale_id
+        from    tb_scale_mst a
+                left outer join tb_storage_mst b
+                --inner join tb_storage_mst b
+                on b.storage_cd = a.storage_cd
+        where   1=1
+        <if test='useYn != "" and useYn != null'>
+            AND a.use_yn = #{useYn}
+        </if>
+        <if test='areaCd != "" and areaCd != null'>
+            AND a.area_cd = #{areaCd}
+        </if>
+        <if test='storageCd != "" and storageCd != null'>
+            AND a.storage_cd = #{storageCd}
+        </if>
+        <if test='scaleNickname != "" and scaleNickname != null'>
+            AND a.scale_nickname LIKE '%' + #{scaleNickname} + '%'
+        </if>
+        order by a.area_cd
+    </select>
+
+    <select id="getStockList" >
+        WITH stock_move AS (
+            /* 입고 */
+            SELECT  i.item_cd
+                   ,i.test_no
+                   ,i.expiry_date
+                   ,m.tran_date
+                   ,m.to_storage_cd AS storage_cd
+                   ,i.qty AS qty
+            FROM tb_inv_tran_item i
+                JOIN tb_inv_tran_mst m
+                ON i.tran_id = m.tran_id
+            WHERE i.item_cd = #{itemCd}
+            AND m.tran_status = 'C'
+            AND m.to_storage_cd IS NOT NULL
+        UNION ALL
+            /* 출고 */
+            SELECT  i.item_cd
+                    ,i.test_no
+                    ,i.expiry_date
+                    ,m.tran_date
+                    ,m.from_storage_cd AS storage_cd
+                    ,i.qty * -1 AS qty
+            FROM    tb_inv_tran_item i
+                    JOIN tb_inv_tran_mst m
+                    ON i.tran_id = m.tran_id
+            WHERE i.item_cd = #{itemCd}
+            AND m.tran_status = 'C'
+            AND m.from_storage_cd IS NOT NULL
+        ),
+        base AS (
+            SELECT  sm.item_cd
+                    ,sm.test_no
+                    ,sm.expiry_date
+                    ,sm.storage_cd
+                    ,SUM(sm.qty) AS qty
+            FROM stock_move sm
+                JOIN tb_storage_mst s
+                ON sm.storage_cd = s.storage_cd
+            WHERE s.area_cd = #{areaCd}
+            AND ISNULL(s.use_yn, 'Y') = 'Y'
+            GROUP BY sm.item_cd, sm.test_no, sm.expiry_date, sm.storage_cd
+        ),
+        in_date AS (
+            SELECT  i.item_cd
+                    ,i.test_no
+                    ,i.expiry_date
+                    ,MIN(m.tran_date) AS in_date
+            FROM tb_inv_tran_item i
+                JOIN tb_inv_tran_mst m
+                ON i.tran_id = m.tran_id
+            WHERE i.item_cd = #{itemCd}
+            AND m.tran_status = 'C'
+            AND m.to_storage_cd IS NOT NULL
+            GROUP BY i.item_cd, i.test_no, i.expiry_date
+        )
+        SELECT  b.item_cd AS itemCd
+                ,b.test_no AS testNo
+                ,d.in_date AS inDate
+                ,b.expiry_date AS expiryDate
+                ,
+        <foreach collection="storageCodes" item="storageCd" separator=",">
+            SUM(CASE WHEN b.storage_cd = #{storageCd} THEN b.qty ELSE 0 END) AS [${storageCd}]
+        </foreach>
+        <if test="storageCodes != null and storageCodes.size() > 0">
+            ,
+            <foreach collection="storageCodes" item="storageCd" separator=" + ">
+                 SUM(CASE WHEN b.storage_cd = #{storageCd} THEN b.qty ELSE 0 END)
+            </foreach> AS totQty
+        </if>
+        FROM base b
+            LEFT JOIN in_date d
+            ON b.item_cd = d.item_cd
+            AND ISNULL(b.test_no, '') = ISNULL(d.test_no, '')
+            AND ISNULL(b.expiry_date, '1900-01-01') = ISNULL(d.expiry_date, '1900-01-01')
+            GROUP BY b.item_cd, b.test_no, d.in_date, b.expiry_date
+        HAVING
+        <foreach collection="storageCodes" item="storageCd" separator=" + ">
+            SUM(CASE WHEN b.storage_cd = #{storageCd} THEN b.qty ELSE 0 END)
+        </foreach> > 0
+        ORDER BY  b.test_no
+    </select>
+</mapper>
