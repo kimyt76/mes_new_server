@@ -5,6 +5,9 @@ import com.jct.mes_new.biz.proc.service.ProcWeighService;
 import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
 import com.jct.mes_new.biz.proc.vo.WeighInfoVo;
+import com.jct.mes_new.config.common.UserUtil;
+import com.jct.mes_new.config.common.exception.BusinessException;
+import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,9 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         return procWeighMapper.getWeighList(vo);
     }
 
+    public ProcWeighVo getWeighHeadInfo(Long workProcId){
+        return procWeighMapper.getWeighHeadInfo(workProcId);
+    }
     /**
      * 칭량 상세 조회
      * @param vo
@@ -35,7 +41,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
     public WeighInfoVo getWeighInfo(ProcWeighVo vo){
         WeighInfoVo info = new WeighInfoVo();
 
-        info.setProcWeigh(procWeighMapper.getWeighHeadInfo(vo.getWorkProcId()));
+        info.setProcWeigh(this.getWeighHeadInfo(vo.getWorkProcId()));
         List<ProcWeighBomVo> recipeList = null;
 
         if (procWeighMapper.checkWeighCnt(vo.getWorkProcId()) > 0 ){
@@ -47,4 +53,34 @@ public class ProcWeighServiceImpl implements ProcWeighService {
 
         return  info;
     }
+
+    public Long saveWeighInfo(WeighInfoVo vo) {
+        ProcWeighVo mst = vo.getProcWeigh();
+        List<ProcWeighBomVo> recipeList = vo.getWeightBomList();
+        String userId = UserUtil.getUserId();
+
+        if (procWeighMapper.updateProcWeigh(mst) <=0  ){
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+        int cntWeigh = procWeighMapper.checkWeighCnt(mst.getWorkProcId());
+
+        for(ProcWeighBomVo item : recipeList ){
+            item.setWorkProcId(mst.getWorkProcId());
+            item.setUserId(userId);
+            if(cntWeigh <= 0) {
+                if (procWeighMapper.insertWeighRecipe(item) <=0  ){
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }else{
+                item.setUserId(userId);
+                if (procWeighMapper.updateWeighRecipe(item) <=0  ){
+                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                }
+            }
+        }
+        return mst.getWorkProcId();
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.proc.mapper;
 
 import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
+import com.jct.mes_new.biz.proc.vo.WeighInfoVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -17,4 +18,12 @@ public interface ProcWeighMapper {
     List<ProcWeighBomVo> getRealBomWeighList(Long workProcId, String itemCd);
 
     List<ProcWeighBomVo> getBomWeighList(Long workProcId, String itemCd);
+
+    int insertWeighRecipe(ProcWeighBomVo item);
+
+    int updateWeighRecipe(ProcWeighBomVo item);
+
+    int updateProcWeigh(ProcWeighVo vo);
+
+    int getWeighInfoCnt(long workProcId);
 }

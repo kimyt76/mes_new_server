@@ -10,4 +10,8 @@ public interface ProcWeighService {
 
     WeighInfoVo getWeighInfo(ProcWeighVo vo);
 
+    Long saveWeighInfo(WeighInfoVo vo);
+
+
+    ProcWeighVo getWeighHeadInfo(Long workProcId);
 }

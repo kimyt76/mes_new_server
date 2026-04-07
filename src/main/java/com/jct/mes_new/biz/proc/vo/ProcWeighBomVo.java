@@ -24,6 +24,7 @@ public class ProcWeighBomVo {
     private String weigher;
     private String confirmer;
     private BigInteger distOrder;
+    private BigInteger rowNum;
 
     private String userId;
 

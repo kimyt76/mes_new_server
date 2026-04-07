@@ -71,6 +71,7 @@
                  ,a.work_proc_id
                  ,a.work_batch_id
                  ,a.work_order_id
+                 ,a.proc_cd
                  ,(select area_cd from tb_work_order_mst where work_order_id = a.work_order_id) as area_cd
         from    TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
@@ -93,16 +94,20 @@
              ,d.confirmer
              ,d.weigh_id
              ,d.work_proc_id
+             , ROW_NUMBER() OVER (
+				 PARTITION BY ISNULL(d.phase, b.phase)
+				 ORDER BY d.dist_order
+			   ) AS dist_order
         from  tb_bom_mst a
-                  inner join tb_bom_recipe b
-                             on b.bom_id = a.bom_id
-                                 and  a.item_cd = #{itemCd}
-                  inner join tb_item_detail c
-                             on c.item_cd = b.item_cd
-                  left outer join tb_weigh_info d
-                                  on b.item_cd = d.item_cd
+              inner join tb_bom_recipe b
+              on b.bom_id = a.bom_id
+              and  a.item_cd = #{itemCd}
+              inner join tb_item_detail c
+              on c.item_cd = b.item_cd
+              left outer join tb_weigh_info d
+              on b.item_cd = d.item_cd
         where a.default_yn = 'Y'
-        order by d.dist_order
+        order by b.phase, d.dist_order
     </select>
 
 
@@ -120,6 +125,11 @@
              ,c.confirmer
              ,c.weigh_id
              ,c.work_proc_id
+             ,isnull(c.dist_order,
+                     (ROW_NUMBER() OVER (
+				 PARTITION BY ISNULL(c.phase, c.phase)
+				 ORDER BY c.dist_order
+			   ) )) as  dist_order
         from  tb_bom_mst a
               inner join tb_bom_recipe b
               on b.bom_id = a.bom_id
@@ -128,11 +138,35 @@
               on b.item_cd = c.item_cd
         where c.work_proc_id = #{workProcId}
           and   a.default_yn = 'Y'
-        order by c.dist_order
-
-
+        order by b.phase, c.dist_order
     </select>
 
+    <update id="updateProcWeigh">
+        update TB_WORK_ORDER_PROC
+        set    etc = #{etc}
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <insert id="insertWeighRecipe">
+        insert into  tb_weigh_info
+        ( work_proc_id, phase, item_cd, weigh_qty, bag_weight, test_no, weigh_yn, weigher, confirmer, dist_order, reg_id, upd_id)
+        values
+        (#{workProcId}, #{phase}, #{itemCd}, #{weighQty}, #{bagWeight}, #{testNo}, #{weighYn}, #{weigher}, #{confirmer}, #{distOrder}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateWeighRecipe">
+        update tb_weigh_info
+        set     weigh_qty   =#{weighQty}
+              , bag_weight =#{bagWeight}
+              , test_no    =#{testNo}
+              , weigh_yn   =#{weighYn}
+              , weigher    =#{weigher}
+              , confirmer  =#{confirmer}
+              , dist_order =#{distOrder}
+              , upd_id     =#{userId}
+              ,upd_dt      = getDate()
+        where weigh_id     = #{weighId}
+    </update>
 
 <!--    &lt;!&ndash; =========================================================-->
 <!--         2) 상세 조회-->
