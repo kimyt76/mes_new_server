@@ -4,13 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class ApiResponse<T> {
 
     private boolean success;
     private String message;
     private String code;
     private T data;
+
+    public ApiResponse(boolean success, String message, String code, T data) {
+        this.success = success;
+        this.message = message;
+        this.code = code;
+        this.data = data;
+    }
 
     // 성공 응답
     public static <T> ApiResponse<T> ok(String message) {
@@ -25,11 +31,6 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> fail(String message, String code, T data) {
         return new ApiResponse<>(false, message, code, data);
     }
-
-    public static <T> ApiResponse<T> fail(String message, String code) {
-        return new ApiResponse<>(message, code);
-    }
-
 
     public static <T> ApiResponse<T> ok(String message, T data) {
         return new ApiResponse<>(true, message, "SUCCESS", data);
