@@ -14,7 +14,7 @@ public class CommonVo {
     private String comTypeNm;
     private String code;
     private String codeNm;
-    private String distOrder;
+    private String orderDist;
     private String description;
     private String useYn;
 
