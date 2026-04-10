@@ -83,7 +83,7 @@
         SELECT   work_batch_id  AS workBatchId
                 ,work_order_id  AS workOrderId
                 ,po_no          AS poNo
-                ,mat_no         AS matNo
+                ,make_No         AS makeNo
                 ,lot_no         AS lotNo
                 ,lot_no2        AS lotNo2
         FROM dbo.TB_WORK_ORDER_BATCH
@@ -157,12 +157,12 @@
     <insert id="insertWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch" useGeneratedKeys="true" keyProperty="workBatchId">
         INSERT INTO dbo.TB_WORK_ORDER_BATCH
         (
-            work_order_id, po_no, mat_no, lot_no, lot_no2, batch_Status
+            work_order_id, po_no, make_No, lot_no, lot_no2, batch_Status,
             reg_id, upd_id
         )
         VALUES
             (
-            #{workOrderId}, #{poNo}, #{matNo}, #{lotNo}, #{lotNo2}, #{batchStatus}
+            #{workOrderId}, #{poNo}, #{makeNo}, #{lotNo}, #{lotNo2}, #{batchStatus},
             #{userId}, #{userId}
             )
     </insert>
@@ -170,7 +170,7 @@
     <update id="updateWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
         UPDATE dbo.TB_WORK_ORDER_BATCH
         SET po_no   = #{poNo},
-            mat_no  = #{matNo},
+            make_No  = #{makeNo},
             lot_no  = #{lotNo},
             lot_no2 = #{lotNo2},
             upd_id  = #{userId},
@@ -186,12 +186,12 @@
         INSERT INTO dbo.TB_WORK_ORDER_PROC
         (
             work_batch_id, po_no, proc_cd,item_cd, proc_order_date, order_qty, proc_status,work_order_id,
-            storage_cd,prod_date, memo, etc, reg_id, upd_id
+            storage_cd, memo, etc, reg_id, upd_id
         )
         VALUES
             (
                 #{workBatchId}, #{poNo}, #{procCd},#{itemCd}, #{procOrderDate}, #{orderQty}, #{procStatus},#{workOrderId},
-                #{storageCd},#{prodDate},#{memo},#{etc},#{userId},#{userId}, #{userId}
+                #{storageCd},#{memo},#{etc},#{userId},#{userId}
             )
     </insert>
 
@@ -207,17 +207,13 @@
             proc_status     = #{procStatus},
             work_order_id   = #{workOrderId},
             storage_cd      = #{storageCd},
-            prod_date       = #{prodDate},
             memo            = #{memo},
             etc             = #{etc},
             upd_id          = #{userId},
             upd_dt          = GETDATE()
         WHERE work_proc_id = #{workProcId}
     </update>
-    <!-- =========================================================
-         8) 삭제(요청하신 "니가 만들어줘" 파트)
-         - FK 때문에 ITEM -> BATCH -> MST 순서로 제공
-         ========================================================= -->
+
     <!-- ITEM: work_proc_id로 1건 삭제 -->
     <!-- PROC -->
     <delete id="deleteWorkOrderProcByOrderIds" parameterType="map">
@@ -248,6 +244,7 @@
     <update id="updateBatchStatus">
         update TB_WORK_ORDER_BATCH
         set    batch_status = #{batchStatus}
+              ,prodDate    = #{prodDate}
         where  work_batch_id = #{workBatchId}
     </update>
 </mapper>

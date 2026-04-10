@@ -46,9 +46,10 @@ public class WorkOrderVo {
             private Long workBatchId;
             private Long workOrderId;
             private String poNo;
-            private String matNo;
+            private String makeNo;
             private String lotNo;
             private String lotNo2;
+            private String batchStatus;
 
             private String userId;
 
@@ -77,6 +78,8 @@ public class WorkOrderVo {
             private String storageName;
             private String memo;
             private String etc;
+
+            private String managerId;
 
             private String userId;
         }
