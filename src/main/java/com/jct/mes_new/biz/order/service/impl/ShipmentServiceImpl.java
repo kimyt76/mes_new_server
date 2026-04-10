@@ -43,7 +43,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     public String saveShipmentInfo(ShipmentVo shipmentInfo, List<ShipmentItemListVo> itemList, List<MultipartFile> attachFileList) throws Exception {
         Snowflake snowflake = new Snowflake(1, 1);
         String msg ="저장되었습니다.";
-        int distOrder = 0;
+        int orderDist = 0;
         try{
             /* 출하지시서 id 채번*/
             if ( shipmentInfo.getShipmentId() == null || shipmentInfo.getShipmentId().isEmpty()   ){
@@ -70,7 +70,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                 for (ShipmentItemListVo item : itemList) {
                     item.setShipmentItemId(String.valueOf(snowflake.nextId()));
                     item.setShipmentId(shipmentInfo.getShipmentId());
-                    item.setId(distOrder++);
+                    item.setId(orderDist++);
                     item.setUserId(shipmentInfo.getUserId());
 
                     if ( shipmentMapper.saveItemList(item)  <= 0 ){

@@ -73,7 +73,7 @@
                ,test_method
                ,test_spec
                ,test_result
-               ,dist_order
+               ,order_dist
                ,item_cd
                ,test_date_string
                ,tester_name
@@ -82,7 +82,7 @@
                ,qc_test_id
         FROM    tb_test_type_method
         WHERE   item_cd = #{itemCe}
-        ORDER BY dist_order ASC
+        ORDER BY order_dist ASC
     </select>
 
     <delete id="deleteQcTestTypeMethod">
@@ -101,7 +101,7 @@
             test_method,
             test_spec,
             test_result,
-            dist_order,
+            order_dist,
             test_date_string,
             qc_test_id,
             tester_name,
@@ -116,7 +116,7 @@
             #{testMethod},
             #{testSpec},
             #{testResult},
-            #{distOrder},
+            #{orderDist},
             #{testDateString},
             #{qcTestId},
             #{testerName},
@@ -132,7 +132,7 @@
                ,test_method = #{item.testMethod}
                ,test_spec   = #{item.testSpec}
                ,test_result = #{item.testResult}
-               ,dist_order  = #{item.distOrder}
+               ,order_dist  = #{item.orderDist}
                ,test_date_string = #{item.testDateString}
                ,qc_test_id  = #{item.qcTestId}
                ,tester_name = #{item.testerName}
@@ -160,7 +160,7 @@
         where   a.test_date between #{strDate} and #{endDate}
           and   a.test_state in ( 'ING','END')
           and   b.item_cd = #{itemCd}
-          order by m.dist_order, a.test_no
+          order by m.order_dist, a.test_no
     </select>
 
 </mapper>

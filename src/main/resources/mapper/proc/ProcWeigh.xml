@@ -70,7 +70,6 @@
                  ,b.batch_status
                  ,a.work_proc_id
                  ,a.work_batch_id
-                 ,a.work_order_id
                  ,a.proc_cd
                  ,(select area_cd from tb_work_order_mst where work_order_id = a.work_order_id) as area_cd
         from    TB_WORK_ORDER_PROC a
@@ -83,33 +82,23 @@
     <select id="getBomWeighList">
         select b.item_cd
              ,dbo.getItemName(b.item_cd) as item_name
-             ,isnull(d.phase, b.phase ) as phase
+             ,b.phase
              ,c.appearance
              ,b.real_content as orderQty
-             ,d.weigh_qty
-             ,d.bag_weight
-             ,d.test_no
-             ,d.weigh_yn
-             ,d.weigher
-             ,d.confirmer
-             ,d.weigh_id
-             ,d.work_proc_id
+
              , ROW_NUMBER() OVER (
-				 PARTITION BY ISNULL(d.phase, b.phase)
-				 ORDER BY d.dist_order
-			   ) AS dist_order
+				 PARTITION BY b.phase
+				 ORDER BY b.order_dist
+			   ) AS order_dist
         from  tb_bom_mst a
               inner join tb_bom_recipe b
               on b.bom_id = a.bom_id
               and  a.item_cd = #{itemCd}
               inner join tb_item_detail c
               on c.item_cd = b.item_cd
-              left outer join tb_weigh_info d
-              on b.item_cd = d.item_cd
         where a.default_yn = 'Y'
-        order by b.phase, d.dist_order
+        order by b.phase, fb.order_dist
     </select>
-
 
     <select id="getRealBomWeighList">
         select b.item_cd
@@ -125,20 +114,21 @@
              ,c.confirmer
              ,c.weigh_id
              ,c.work_proc_id
-             ,isnull(c.dist_order,
+             ,c.work_batch_id
+             ,isnull(c.order_dist,
                      (ROW_NUMBER() OVER (
 				 PARTITION BY ISNULL(c.phase, c.phase)
-				 ORDER BY c.dist_order
-			   ) )) as  dist_order
+				 ORDER BY c.order_dist
+			   ) )) as  order_dist
         from  tb_bom_mst a
               inner join tb_bom_recipe b
               on b.bom_id = a.bom_id
               and  a.item_cd = #{itemCd}
               inner join tb_weigh_info c
-              on b.item_cd = c.item_cd
-        where c.work_proc_id = #{workProcId}
+              on  b.item_cd = c.item_cd
+        where   c.work_proc_id = #{workProcId}
           and   a.default_yn = 'Y'
-        order by b.phase, c.dist_order
+        order by b.phase, c.order_dist
     </select>
 
     <update id="updateProcWeigh">
@@ -147,11 +137,24 @@
         where  work_proc_id = #{workProcId}
     </update>
 
+    <update id="startProcWeigh">
+        update TB_WORK_ORDER_PROC
+        set    proc_status      = #{procStatus}
+              ,prod_date        = isnull(CAST(#{prodDate} AS date), CONVERT(date, GETDATE()))
+              ,storage_cd       = #{storageCd}
+              ,work_start_time  = getdate()
+              ,upd_id           = #{userId}
+              ,upd_dt           = getDate()
+        where  work_proc_id     = #{workProcId}
+    </update>
+
     <insert id="insertWeighRecipe">
         insert into  tb_weigh_info
-        ( work_proc_id, phase, item_cd, weigh_qty, bag_weight, test_no, weigh_yn, weigher, confirmer, dist_order, reg_id, upd_id)
+        ( work_batch_id, work_proc_id, phase, item_cd, order_qty, weigh_qty, bag_weight, test_no, weigh_yn, weigher, confirmer
+        , order_dist, reg_id, upd_id)
         values
-        (#{workProcId}, #{phase}, #{itemCd}, #{weighQty}, #{bagWeight}, #{testNo}, #{weighYn}, #{weigher}, #{confirmer}, #{distOrder}, #{userId}, #{userId})
+            (#{workBatchId}, #{workProcId}, #{phase}, #{itemCd}, #{orderQty}, #{weighQty}, #{bagWeight}, #{testNo}, #{weighYn}, #{weigher}, #{confirmer}
+            , #{orderDist}, #{userId}, #{userId})
     </insert>
 
     <update id="updateWeighRecipe">
@@ -162,221 +165,72 @@
               , weigh_yn   =#{weighYn}
               , weigher    =#{weigher}
               , confirmer  =#{confirmer}
-              , dist_order =#{distOrder}
+              , order_dist =#{orderDist}
               , upd_id     =#{userId}
               ,upd_dt      = getDate()
         where weigh_id     = #{weighId}
     </update>
 
-<!--    &lt;!&ndash; =========================================================-->
-<!--         2) 상세 조회-->
-<!--         WorkOrderVo getWorkOrderMst(String workOrderId);-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    <select id="getWeighInfo" parameterType="string"-->
-<!--            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">-->
-<!--        SELECT   a.work_order_date   AS workOrderDate-->
-<!--                ,a.seq               AS seq-->
-<!--                ,dbo.getCommonName('area', a.area_cd)  AS areaName-->
-<!--                ,dbo.getItemName(a.item_cd) AS itemName-->
-<!--                ,dbo.getUserName(a.manager_id)  AS managerName-->
-<!--                ,a.area_cd           AS areaCd-->
-<!--                ,a.item_cd           AS itemCd-->
-<!--                ,a.manager_id        AS managerId-->
-<!--                ,a.delivery_qty      AS deliveryQty-->
-<!--                ,a.delivery_date     AS deliveryDate-->
-<!--                ,dbo.getClientName(a.client_id ) AS clientName-->
-<!--                ,a.client_id         AS clientId-->
-<!--                ,a.po_no             AS poNo-->
-<!--        FROM    dbo.TB_WORK_ORDER_MST a-->
-<!--        WHERE   a.work_order_id = #{workOrderId}-->
-<!--    </select>-->
+    <select id="getStockTestNoList">
+        select weigh_inv_id
+              ,weigh_id
+              ,storage_cd
+              ,weigh_qty
+              ,item_cd
+              ,lot_no
+              ,test_no
+        from  tb_weigh_inv
+        where  weigh_id = #{weighId}
+    </select>
 
-<!--    &lt;!&ndash; =========================================================-->
-<!--         3) 상세 조회(BATCH)-->
-<!--         List<WorkOrderVo.Batch> getWorkOrderBatch(String workOrderId);-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    <select id="getWorkOrderBatch" parameterType="string"-->
-<!--            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">-->
-<!--        SELECT   work_batch_id  AS workBatchId-->
-<!--                ,work_order_id  AS workOrderId-->
-<!--                ,po_no          AS poNo-->
-<!--                ,make_No         AS makeNo-->
-<!--                ,lot_no         AS lotNo-->
-<!--                ,lot_no2        AS lotNo2-->
-<!--        FROM dbo.TB_WORK_ORDER_BATCH-->
-<!--        WHERE work_order_id = #{workOrderId}-->
-<!--        ORDER BY work_batch_id ASC-->
-<!--    </select>-->
-<!--    &lt;!&ndash; =========================================================-->
-<!--         4) 상세 조회(ITEM)-->
-<!--         List<WorkOrderVo.Item> getWorkOrderProc(String workOrderId);-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    <select id="getWorkOrderProc" parameterType="string"-->
-<!--            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">-->
-<!--        SELECT   work_proc_id    AS workProcId-->
-<!--                ,work_batch_id   AS workBatchId-->
-<!--                ,po_no           AS poNo-->
-<!--                ,proc_cd         AS procCd-->
-<!--                ,item_cd         AS itemCd-->
-<!--                ,dbo.getItemName(item_cd) AS itemName-->
-<!--                ,work_order_date AS workOrderDate-->
-<!--                ,order_qty        AS orderQty-->
-<!--                ,work_status     AS workStatus-->
-<!--                ,work_order_id   AS workOrderId-->
-<!--        FROM dbo.TB_WORK_ORDER_PROC-->
-<!--        WHERE work_order_id = #{workOrderId}-->
-<!--        ORDER BY work_batch_id ASC, work_proc_id ASC-->
-<!--    </select>-->
-<!--    &lt;!&ndash; =========================================================-->
-<!--         5) 등록/수정 - MST-->
-<!--         void insertWorkOrderMst(WorkOrderVo vo);-->
-<!--         void updateWorkOrderMst(WorkOrderVo vo);-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    <insert id="insertWorkOrderMst"-->
-<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo"-->
-<!--            useGeneratedKeys="true"-->
-<!--            keyProperty="workOrderId">-->
-<!--        INSERT INTO dbo.TB_WORK_ORDER_MST-->
-<!--        (-->
-<!--            work_order_date, seq, area_cd, client_id, manager_id,-->
-<!--            delivery_qty, delivery_date, item_cd, po_no,-->
-<!--            reg_id, upd_id-->
-<!--        )-->
-<!--        VALUES-->
-<!--            (-->
-<!--            #{workOrderDate}, #{seq}, #{areaCd}, #{clientId}, #{managerId},-->
-<!--            #{deliveryQty}, #{deliveryDate}, #{itemCd}, #{poNo},-->
-<!--            #{userId}, #{userId}-->
-<!--            )-->
-<!--    </insert>-->
+    <delete id="deleteWeighList">
+        DELETE FROM tb_weigh_inv
+        WHERE weigh_id IN
+        <foreach collection="deleteWeighItems" item="weighId" open="(" separator="," close=")">
+            #{weighId}
+        </foreach>
+    </delete>
 
-<!--    <update id="updateWorkOrderMst" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo">-->
-<!--        UPDATE dbo.TB_WORK_ORDER_MST-->
-<!--        SET work_order_date = #{workOrderDate},-->
-<!--            seq             = #{seq},-->
-<!--            area_cd         = #{areaCd},-->
-<!--            client_id       = #{clientId},-->
-<!--            manager_id      = #{managerId},-->
-<!--            delivery_qty    = #{deliveryQty},-->
-<!--            delivery_date   = #{deliveryDate},-->
-<!--            item_cd         = #{itemCd},-->
-<!--            po_no           = #{poNo},-->
-<!--            upd_id          = #{userId},-->
-<!--            upd_dt          = GETDATE()-->
-<!--        WHERE work_order_id = #{workOrderId}-->
-<!--    </update>-->
-<!--    &lt;!&ndash; =========================================================-->
-<!--         6) 등록/수정 - BATCH-->
-<!--         void insertWorkOrderBatch(WorkOrderVo.Batch b);-->
-<!--         void updateWorkOrderBatch(WorkOrderVo.Batch b);-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    <insert id="insertWorkOrderBatch"-->
-<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch"-->
-<!--            useGeneratedKeys="true"-->
-<!--            keyProperty="workBatchId">-->
-<!--        INSERT INTO dbo.TB_WORK_ORDER_BATCH-->
-<!--        (-->
-<!--            work_order_id, po_no, make_No, lot_no, lot_no2,-->
-<!--            reg_id, upd_id-->
-<!--        )-->
-<!--        VALUES-->
-<!--            (-->
-<!--                #{workOrderId}, #{poNo}, #{makeNo}, #{lotNo}, #{lotNo2},-->
-<!--                #{userId}, #{userId}-->
-<!--            )-->
-<!--    </insert>-->
+    <insert id="insertWeighInvItem">
+        INSERT INTO tb_weigh_inv
+            (weigh_id, storage_cd, weigh_qty, item_cd, lot_no, test_no, reg_id, upd_id)
+        VALUES
+            (#{weighId}, #{storageCd}, #{weighQty}, #{itemCd}, #{lotNo}, #{testNo}, #{userId}, #{userId})
+    </insert>
 
-<!--    <update id="updateWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">-->
-<!--        UPDATE dbo.TB_WORK_ORDER_BATCH-->
-<!--        SET po_no   = #{poNo},-->
-<!--            make_No  = #{makeNo},-->
-<!--            lot_no  = #{lotNo},-->
-<!--            lot_no2 = #{lotNo2},-->
-<!--            upd_id  = #{userId},-->
-<!--            upd_dt  = GETDATE()-->
-<!--        WHERE work_batch_id = #{workBatchId}-->
-<!--    </update>-->
-<!--    &lt;!&ndash; =========================================================-->
-<!--         7) 등록/수정 - ITEM-->
-<!--         void insertWorkOrderItem(WorkOrderVo.Item i);-->
-<!--         void updateWorkOrderItem(WorkOrderVo.Item i);-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    <insert id="insertWorkOrderProc"-->
-<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item"-->
-<!--            useGeneratedKeys="true"-->
-<!--            keyProperty="workProcId">-->
-<!--        INSERT INTO dbo.TB_WORK_ORDER_PROC-->
-<!--        (-->
-<!--            work_batch_id, po_no, proc_cd,-->
-<!--            item_cd, work_order_date, order_qty, work_status,-->
-<!--            work_order_id,-->
-<!--            reg_id, upd_id-->
-<!--        )-->
-<!--        VALUES-->
-<!--            (-->
-<!--                #{workBatchId}, #{poNo}, #{procCd},-->
-<!--                #{itemCd}, #{workOrderDate}, #{orderQty}, #{workStatus},-->
-<!--                #{workOrderId},-->
-<!--                #{userId}, #{userId}-->
-<!--            )-->
-<!--    </insert>-->
+    <update id="updateWeighInvItem">
+        UPDATE tb_weigh_inv
+        SET     weigh_id   = #{weighId}
+              , storage_cd = #{storageCd}
+              , weigh_qty  = #{weighQty}
+              , item_cd    = #{itemCd}
+              , lot_no     = #{lotNo}
+              , test_no    = #{testNo}
+              , upd_id     = #{updId}
+              , upd_dt     = GETDATE()
+        WHERE weigh_inv_id = #{weighInvId}
+    </update>
 
-<!--    <update id="updateWorkOrderProc"-->
-<!--            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">-->
-<!--        UPDATE dbo.TB_WORK_ORDER_PROC-->
-<!--        SET-->
-<!--            work_batch_id   = #{workBatchId},-->
-<!--            po_no           = #{poNo},-->
-<!--            proc_cd         = #{procCd},-->
-<!--            item_cd         = #{itemCd},-->
-<!--            work_order_date = #{workOrderDate},-->
-<!--            order_qty       = #{orderQty},-->
-<!--            work_status     = #{workStatus},-->
-<!--            work_order_id   = #{workOrderId},-->
-<!--            upd_id          = #{userId},-->
-<!--            upd_dt          = GETDATE()-->
-<!--        WHERE work_proc_id = #{workProcId}-->
-<!--    </update>-->
+    <select id="getWeighInvInfo">
+        select    a.item_cd
+                 ,c.item_type_cd
+                 ,c.item_name
+                 ,b.lot_no
+                 ,b.test_no
+                 ,c.expiry_date
+                 ,case when b.weigh_qty is null then a.weigh_qty
+                       when b.weigh_qty = 0 then a.weigh_qty end as weigh_qty
+                 ,b.weigh_inv_id
+        from   tb_weigh_info a
+                   inner join tb_weigh_inv b
+                              on a.weigh_id = b.weigh_id
+                   inner join tb_item_mst c
+                              on c.item_cd = a.item_cd
+        where  a.work_proc_id = #{workProcId}
+
+    </select>
 
 
-<!--    &lt;!&ndash; =========================================================-->
-<!--         8) 삭제(요청하신 "니가 만들어줘" 파트)-->
-<!--         - FK 때문에 ITEM -> BATCH -> MST 순서로 제공-->
-<!--         ========================================================= &ndash;&gt;-->
-<!--    &lt;!&ndash; ITEM: work_proc_id로 1건 삭제 &ndash;&gt;-->
-<!--    <delete id="deleteWorkOrderItemByProcId" parameterType="long">-->
-<!--        DELETE FROM dbo.TB_WORK_ORDER_PROC-->
-<!--        WHERE work_proc_id = #{workProcId}-->
-<!--    </delete>-->
 
-<!--    &lt;!&ndash; ITEM: work_batch_id 기준 일괄 삭제 &ndash;&gt;-->
-<!--    <delete id="deleteWorkOrderItemByBatchId" parameterType="long">-->
-<!--        DELETE FROM dbo.TB_WORK_ORDER_PROC-->
-<!--        WHERE work_batch_id = #{workBatchId}-->
-<!--    </delete>-->
-
-<!--    &lt;!&ndash; ITEM: work_order_id 기준 일괄 삭제 &ndash;&gt;-->
-<!--    <delete id="deleteWorkOrderItemByOrderId" parameterType="long">-->
-<!--        DELETE FROM dbo.TB_WORK_ORDER_PROC-->
-<!--        WHERE work_order_id = #{workOrderId}-->
-<!--    </delete>-->
-
-<!--    &lt;!&ndash; BATCH: work_batch_id 1건 삭제 (하위 ITEM 먼저 지운 뒤 호출 권장) &ndash;&gt;-->
-<!--    <delete id="deleteWorkOrderBatchByBatchId" parameterType="long">-->
-<!--        DELETE FROM dbo.TB_WORK_ORDER_BATCH-->
-<!--        WHERE work_batch_id = #{workBatchId}-->
-<!--    </delete>-->
-
-<!--    &lt;!&ndash; BATCH: work_order_id 기준 일괄 삭제 (하위 ITEM 먼저 지운 뒤 호출 권장) &ndash;&gt;-->
-<!--    <delete id="deleteWorkOrderBatchByOrderId" parameterType="long">-->
-<!--        DELETE FROM dbo.TB_WORK_ORDER_BATCH-->
-<!--        WHERE work_order_id = #{workOrderId}-->
-<!--    </delete>-->
-
-<!--    &lt;!&ndash; MST: work_order_id 1건 삭제 (하위 ITEM/BATCH 먼저 지운 뒤 호출) &ndash;&gt;-->
-<!--    <delete id="deleteWorkOrderMst" parameterType="long">-->
-<!--        DELETE FROM dbo.TB_WORK_ORDER_MST-->
-<!--        WHERE work_order_id = #{workOrderId}-->
-<!--    </delete>-->
 
 </mapper>

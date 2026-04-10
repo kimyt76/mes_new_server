@@ -348,7 +348,7 @@
                 on a.pur_order_id = b.pur_order_id
         where 1=1
         <if test="strDate != null">
-            a.pur_order_date between #{strDate} and #{endDate}
+            and a.pur_order_date between #{strDate} and #{endDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
             and   a.area_cd = #{areaCd}

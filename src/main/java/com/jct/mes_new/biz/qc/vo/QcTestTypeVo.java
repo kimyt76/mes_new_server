@@ -19,7 +19,7 @@ public class QcTestTypeVo {
     private String testMethod;
     private String testResult;
     private String testSpec;
-    private BigInteger distOrder;
+    private BigInteger orderDist;
 
     private String testNo;
     private String testerName;

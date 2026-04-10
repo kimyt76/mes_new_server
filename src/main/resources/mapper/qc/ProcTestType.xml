@@ -14,20 +14,20 @@
     <select id="getProcTestTypeMethod">
         SELECT    PROC_TEST_TYPE_METHOD_ID
                  ,TEST_TYPE
-                 ,dist_order
+                 ,order_dist
                  ,TEST_ITEM
                  ,TEST_METHOD
                  ,TEST_TIMING
                  ,TEST_TIME
         FROM    tb_proc_test_type_method
         WHERE   test_type = #{testType}
-        ORDER BY dist_order ASC
+        ORDER BY order_dist ASC
     </select>
 
     <select id="getProcTestTypeMethodInfo">
         SELECT    PROC_TEST_TYPE_METHOD_ID
                  ,TEST_TYPE
-                 ,dist_order
+                 ,order_dist
                  ,TEST_ITEM
                  ,TEST_METHOD
                  ,TEST_TIMING

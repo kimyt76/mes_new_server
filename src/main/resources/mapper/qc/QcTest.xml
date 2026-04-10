@@ -122,14 +122,14 @@
                ,test_method
                ,test_spec
                ,test_result
-               ,dist_order
+               ,order_dist
                ,item_cd
                ,tester_name
                ,pass_state
                ,test_type_method_id
         FROM    tb_test_type_method
         WHERE   item_cd = #{itemCe}
-        ORDER BY dist_order ASC
+        ORDER BY order_dist ASC
     </select>
 
     <insert id="insertQcTest">

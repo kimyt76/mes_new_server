@@ -4,10 +4,7 @@ import com.jct.mes_new.biz.purchase.mapper.PurchaseMapper;
 import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
 import com.jct.mes_new.biz.purchase.service.PurchaseService;
 import com.jct.mes_new.biz.purchase.service.TranService;
-import com.jct.mes_new.biz.purchase.vo.PurchaseRequestVo;
-import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
-import com.jct.mes_new.biz.purchase.vo.TranRequestVo;
-import com.jct.mes_new.biz.purchase.vo.TranVo;
+import com.jct.mes_new.biz.purchase.vo.*;
 import com.jct.mes_new.biz.qc.service.ItemTestService;
 import com.jct.mes_new.biz.qc.service.QcTestService;
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
@@ -258,7 +255,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         return msg;
     }
 
-
     /**
      * 원장 내욕 셋팅
      * @param vo
@@ -282,16 +278,17 @@ public class PurchaseServiceImpl implements PurchaseService {
         tranInfo.setRemark(purchaseInfo.getRemark());
         tranInfo.setEndYn(purchaseInfo.getEndYn());
         tranInfo.setTranTypeCd("A");
+        tranInfo.setTranStatus("C");
         tranInfo.setUserId(userId);
 
         tranRequestVo.setTranInfo(tranInfo);
 
         // 2. 원장 품목
-        List<TranVo.TranItemListVo> tranItemList = new ArrayList<>();
+        List<TranItemVo> tranItemList = new ArrayList<>();
 
         if (vo.getPurchaseItemList() != null && !vo.getPurchaseItemList().isEmpty()) {
             for (PurchaseVo.PurchaseListVo purchaseItem : vo.getPurchaseItemList()) {
-                TranVo.TranItemListVo tranItem = new TranVo.TranItemListVo();
+                TranItemVo tranItem = new TranItemVo();
 
                 tranItem.setItemCd(purchaseItem.getItemCd());
                 tranItem.setItemName(purchaseItem.getItemName());
