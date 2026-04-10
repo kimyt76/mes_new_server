@@ -16,4 +16,6 @@ public class BarcodeUtil {
         BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 200, 200);
         return MatrixToImageWriter.toBufferedImage(bitMatrix);
     }
+
+
 }
