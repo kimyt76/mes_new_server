@@ -2,7 +2,7 @@ package com.jct.mes_new.biz.lab.controller;
 
 import com.jct.mes_new.biz.lab.service.NewMaterialService;
 import com.jct.mes_new.biz.lab.vo.*;
-import com.jct.mes_new.config.util.ApiResponse;
+import com.jct.mes_new.config.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +35,7 @@ public class NewMaterialController {
     }
 
     @PostMapping("/saveNewMaterialInfo")
-    public ResponseEntity<?> saveNewMaterialInfo(@RequestBody NewMaterialRequestVo request ) throws Exception {
-        try {
+    public ResponseEntity<?> saveNewMaterialInfo(@RequestBody NewMaterialRequestVo request )  {
             NewMaterialVo newMaterialInfo = request.getNewMaterialInfo();
             List<IngredientVo> materialMappingList = request.getMaterialMappingList();
 
@@ -45,14 +44,11 @@ public class NewMaterialController {
             Map<String, String> response = Map.of("newMaterialCd", result);
 
             return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail("저장에 실패했습니다.", 400));
-        }
+
     }
 
     @PostMapping("/saveNewMaterialMapping")
-    public ResponseEntity<?> saveNewMaterialMapping(@RequestBody NewMaterialRequestVo request ) throws Exception {
-        try {
+    public ResponseEntity<?> saveNewMaterialMapping(@RequestBody NewMaterialRequestVo request ) {
             NewMaterialVo newMaterialInfo = request.getNewMaterialInfo();
             List<IngredientVo> materialMappingList = request.getMaterialMappingList();
 
@@ -61,9 +57,6 @@ public class NewMaterialController {
             Map<String, String> response = Map.of("newMaterialCd", result);
 
             return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), 400));
-        }
     }
 
 
