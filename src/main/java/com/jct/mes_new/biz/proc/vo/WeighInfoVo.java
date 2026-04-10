@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class WeighInfoVo {
-
     private ProcWeighVo procWeigh;
     private List<ProcWeighBomVo> weightBomList;
 }
