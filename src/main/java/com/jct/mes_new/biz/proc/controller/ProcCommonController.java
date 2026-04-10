@@ -27,6 +27,10 @@ public class ProcCommonController {
         return  procCommonService.getWorkerList(procCd);
 
     }
+    @GetMapping("/getBagWeightList")
+    public List<ProcCommonVo> getWorkerList() {
+        return  procCommonService.getBagWeightList();
+    }
 
     @GetMapping("/getEquipmentList/{id}")
     public List<ProcCommonVo> getEquipmentList(@PathVariable("id") String storageCd) {

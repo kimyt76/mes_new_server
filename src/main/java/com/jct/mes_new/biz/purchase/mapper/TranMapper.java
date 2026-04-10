@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.purchase.mapper;
 
+import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -14,8 +15,8 @@ public interface TranMapper {
     /* 수정*/
     int updateTranMst(TranVo mst);
     void deleteItemList(Long tranId, List<Long> deletedItemIds);
-    int insertTranItem(TranVo.TranItemListVo item);
-    int updateTranItem(TranVo.TranItemListVo item);
+    int insertTranItem(TranItemVo item);
+    int updateTranItem(TranItemVo item);
 
     /* tranId 조회*/
     Long getTranId(Long purId);
@@ -25,5 +26,5 @@ public interface TranMapper {
     void deleteTranMst(Long tranId);
 
     /* 원장 품목 조회*/
-    List<TranVo.TranItemListVo> getTranItemListByTranId(Long tranId);
+    List<TranItemVo> getTranItemListByTranId(Long tranId);
 }

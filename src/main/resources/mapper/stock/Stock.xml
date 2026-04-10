@@ -36,7 +36,6 @@
             /* 입고 */
             SELECT  i.item_cd
                    ,i.test_no
-                   ,i.expiry_date
                    ,m.tran_date
                    ,m.to_storage_cd AS storage_cd
                    ,i.qty AS qty
@@ -46,11 +45,11 @@
             WHERE i.item_cd = #{itemCd}
             AND m.tran_status = 'C'
             AND m.to_storage_cd IS NOT NULL
+            AND m.tran_type_cd IN ('A','B','C','I', 'J')
         UNION ALL
             /* 출고 */
             SELECT  i.item_cd
                     ,i.test_no
-                    ,i.expiry_date
                     ,m.tran_date
                     ,m.from_storage_cd AS storage_cd
                     ,i.qty * -1 AS qty
@@ -60,11 +59,25 @@
             WHERE i.item_cd = #{itemCd}
             AND m.tran_status = 'C'
             AND m.from_storage_cd IS NOT NULL
+            AND m.tran_type_cd IN ('D','E','F','L','Q','T','I', 'J')
+        UNION ALL
+        /* 조정 */
+            SELECT  i.item_cd
+                    ,i.test_no
+                    ,m.tran_date
+                    ,m.to_storage_cd AS storage_cd
+                    ,i.qty AS qty
+            FROM tb_inv_tran_item i
+                JOIN tb_inv_tran_mst m
+                ON i.tran_id = m.tran_id
+            WHERE i.item_cd = #{itemCd}
+            AND m.tran_status = 'C'
+            AND m.to_storage_cd IS NOT NULL
+            AND m.tran_type_cd IN ('P', 'R', 'S', 'U', 'V', 'W', 'X')
         ),
         base AS (
             SELECT  sm.item_cd
                     ,sm.test_no
-                    ,sm.expiry_date
                     ,sm.storage_cd
                     ,SUM(sm.qty) AS qty
             FROM stock_move sm
@@ -72,12 +85,11 @@
                 ON sm.storage_cd = s.storage_cd
             WHERE s.area_cd = #{areaCd}
             AND ISNULL(s.use_yn, 'Y') = 'Y'
-            GROUP BY sm.item_cd, sm.test_no, sm.expiry_date, sm.storage_cd
+            GROUP BY sm.item_cd, sm.test_no, sm.storage_cd
         ),
         in_date AS (
             SELECT  i.item_cd
                     ,i.test_no
-                    ,i.expiry_date
                     ,MIN(m.tran_date) AS in_date
             FROM tb_inv_tran_item i
                 JOIN tb_inv_tran_mst m
@@ -85,12 +97,12 @@
             WHERE i.item_cd = #{itemCd}
             AND m.tran_status = 'C'
             AND m.to_storage_cd IS NOT NULL
-            GROUP BY i.item_cd, i.test_no, i.expiry_date
+            GROUP BY i.item_cd, i.test_no
         )
         SELECT  b.item_cd AS itemCd
                 ,b.test_no AS testNo
                 ,d.in_date AS inDate
-                ,b.expiry_date AS expiryDate
+                ,(select expiry_date from tb_item_test_no where test_no = b.test_no) as expiryDate
                 ,
         <foreach collection="storageCodes" item="storageCd" separator=",">
             SUM(CASE WHEN b.storage_cd = #{storageCd} THEN b.qty ELSE 0 END) AS [${storageCd}]
@@ -105,8 +117,7 @@
             LEFT JOIN in_date d
             ON b.item_cd = d.item_cd
             AND ISNULL(b.test_no, '') = ISNULL(d.test_no, '')
-            AND ISNULL(b.expiry_date, '1900-01-01') = ISNULL(d.expiry_date, '1900-01-01')
-            GROUP BY b.item_cd, b.test_no, d.in_date, b.expiry_date
+            GROUP BY b.item_cd, b.test_no, d.in_date
         HAVING
         <foreach collection="storageCodes" item="storageCd" separator=" + ">
             SUM(CASE WHEN b.storage_cd = #{storageCd} THEN b.qty ELSE 0 END)

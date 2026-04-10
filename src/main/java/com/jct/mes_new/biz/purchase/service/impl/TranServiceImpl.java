@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.purchase.service.impl;
 
 import com.jct.mes_new.biz.purchase.mapper.TranMapper;
 import com.jct.mes_new.biz.purchase.service.TranService;
+import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranRequestVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
 import com.jct.mes_new.config.common.UserUtil;
@@ -36,12 +37,12 @@ public class TranServiceImpl implements TranService {
         if ( cnt <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        for (TranVo.TranItemListVo d : vo.getTranItemList()) {
+        for (TranItemVo d : vo.getTranItemList()) {
             d.setTranId(mst.getTranId());
         }
         // 3. 품목리스트 저장    //품질검사 요청 저장
         if (!vo.getTranItemList().isEmpty()) {
-            for (TranVo.TranItemListVo item : vo.getTranItemList()) {
+            for (TranItemVo item : vo.getTranItemList()) {
 
                 item.setTranId(mst.getTranId());
                 item.setUserId(userId);
@@ -81,10 +82,10 @@ public class TranServiceImpl implements TranService {
             invTranMapper.deleteItemList(tranId,deletedItemIds);
         }
         //3. 발주 품목 처리
-        List<TranVo.TranItemListVo> itemList = vo.getTranItemList();
+        List<TranItemVo> itemList = vo.getTranItemList();
 
         if (itemList != null && !itemList.isEmpty()) {
-            for (TranVo.TranItemListVo item : itemList) {
+            for (TranItemVo item : itemList) {
                 item.setTranId(tranId);
                 item.setUserId(userId);
                 if (item.getTranItemId() == null) {

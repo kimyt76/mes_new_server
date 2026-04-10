@@ -7,6 +7,6 @@ import java.util.List;
 @Data
 public class TranRequestVo {
     private TranVo tranInfo;
-    private List<TranVo.TranItemListVo> tranItemList;
+    private List<TranItemVo> tranItemList;
     private List<Long> deleteTranItems;
 }

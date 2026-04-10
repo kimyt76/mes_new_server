@@ -29,39 +29,14 @@ public class TranVo {
     private String orderType;
     private String vatType;
     private String endYn;
+    private String poNo;
     private String remark;
     private String tranTypeCd;
     private String tranStatus;
 
     private String userId;
 
-    List<TranItemListVo> tranItemList;
     List<searchTranListVo> searchTranList;
-
-    @Data
-    public static class TranItemListVo {
-        private Long tranId;
-        private Long tranItemId;
-        private Long purItemId;
-        private String itemTypeCd;
-        private String itemCd;
-        private String itemName;
-        private String spec;
-        private String unit;
-        private BigDecimal qty;
-        private BigDecimal inPrice;
-        private BigDecimal supplyPrice;
-        private BigDecimal vatPrice;
-        private String lotNo;
-        private String testNo;
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        private LocalDate expiryDate;
-        private String inYn;
-        private String qcStatus;
-        private String etc;
-
-        private String userId;
-    }
 
     @Data
     public static class searchTranListVo {

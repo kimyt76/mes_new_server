@@ -54,7 +54,6 @@
                  ,a.spec
                  ,a.qty
                  ,a.lot_No
-                 ,a.expiry_date
                  ,a.test_no
                  ,a.etc
                  ,a.pur_item_id
@@ -67,11 +66,11 @@
     <insert id="insertTranMst" parameterType="com.jct.mes_new.biz.purchase.vo.TranVo"  useGeneratedKeys="true" keyProperty="tranId">
         INSERT INTO dbo.tb_inv_tran_mst (
             tran_date, tran_type_cd, from_storage_cd, to_storage_cd, customer_cd, manager_id, remark,
-            tran_status, pur_id, reg_id, upd_id
+            tran_status, end_yn,  pur_id, reg_id, upd_id
         )
         VALUES (
             #{tranDate}, #{tranTypeCd}, #{fromStorageCd}, #{toStorageCd}, #{customerCd},#{managerId}, #{remark},
-            #{tranStatus}, #{purId},  #{userId}, #{userId}
+            #{tranStatus}, #{endYn}, #{purId}, #{userId}, #{userId}
                )
     </insert>
 
@@ -86,10 +85,11 @@
                 ,qty
                 ,lot_no
                 ,test_no
-                ,expiry_date
                 ,etc
                 ,in_yn
                 ,pur_Item_Id
+                ,weigh_inv_id
+                ,weigh_inv_etc_id
                 ,reg_id
                 ,upd_id
         )
@@ -103,10 +103,11 @@
             ,#{qty}
             ,#{lotNo}
             ,#{testNo}
-            ,#{expiryDate}
             ,#{etc}
             ,#{inYn}
             ,#{purItemId}
+            ,#{weighInvId}
+            ,#{weighInvEtcId}
             ,#{userId}
             ,#{userId}
             )
@@ -132,7 +133,6 @@
             SET      spec         = #{spec}
                     ,qty          = #{qty}
                     ,lot_no       = #{lotNo}
-                    ,expiry_date  = #{expiryDate}
                     ,etc          = #{etc}
                     ,upd_id       = #{userId}
                     ,upd_dt       = GETDATE()

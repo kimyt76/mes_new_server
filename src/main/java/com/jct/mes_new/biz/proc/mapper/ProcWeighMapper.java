@@ -26,4 +26,16 @@ public interface ProcWeighMapper {
     int updateProcWeigh(ProcWeighVo vo);
 
     int getWeighInfoCnt(long workProcId);
+
+    int startProcWeigh(ProcWeighVo vo);
+
+    void deleteWeighList(long workProcId, List<Long> deleteWeighItems);
+
+    int insertWeighInvItem(ProcWeighVo item);
+
+    int updateWeighInvItem(ProcWeighVo item);
+
+    List<ProcWeighVo> getStockTestNoList(ProcWeighVo vo);
+
+    List<ProcWeighVo> getWeighInvInfo(Long workProcId);
 }

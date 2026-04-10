@@ -9,12 +9,12 @@ import java.math.BigInteger;
 public class ProcWeighBomVo {
     private long weighId;
     private long workProcId;
+    private long workBatchId;
 
     private String itemCd;
     private String itemName;
     private String phase;
     private String appearance;
-    private BigDecimal realContents;
     private BigDecimal orderQty;
     private BigDecimal weighQty;
     private BigDecimal bagWeight;
@@ -23,8 +23,14 @@ public class ProcWeighBomVo {
     private String weighYn;
     private String weigher;
     private String confirmer;
-    private BigInteger distOrder;
-    private BigInteger rowNum;
+
+    /* 제조 추가*/
+    private String makeTime;
+    private String makeYn;
+    private String makeer;
+    private String makeConfirmer;
+
+    private BigInteger orderDist;
 
     private String userId;
 

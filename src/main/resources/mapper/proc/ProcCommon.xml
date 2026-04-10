@@ -12,8 +12,14 @@
              ,etc
              ,worker_id
         from tb_worker_mst
-        where  a.procecc_cd = #{procCd}
+        where  process_cd = #{procCd}
         order by worker_name
+    </select>
+
+    <select id="getBagWeightList">
+        select bag_weight_name
+              ,weight
+        from tb_bag_weight
     </select>
 
     <select id="getEquipmentList">
@@ -31,6 +37,14 @@
               ,storage_cd  = #{storageCd}
               ,prod_date   = convert(date, getdate(), -23)
               ,work_start_time = getDate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <update id="updateProcStatusComplete">
+        update TB_WORK_ORDER_PROC
+        set    proc_status = #{procStatus}
+              ,work_end_time = getDate()
+              ,end_yn ='Y'
         where  work_proc_id = #{workProcId}
     </update>
 

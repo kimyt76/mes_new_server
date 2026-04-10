@@ -1,8 +1,12 @@
 package com.jct.mes_new.biz.proc.service.impl;
 
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
+import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
+import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
+import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
+import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +19,14 @@ import java.util.List;
 public class ProcCommonServiceImpl implements ProcCommonService {
 
     private final ProcCommonMapper procCommonMapper;
+    private final ProcWeighMapper procWeighMapper;
 
 
     public List<ProcCommonVo> getWorkerList(String procCd){
         return procCommonMapper.getWorkerList(procCd);
+    }
+    public List<ProcCommonVo> getBagWeightList(){
+        return procCommonMapper.getBagWeightList();
     }
 
     public List<ProcCommonVo> getEquipmentList(String storageCd){
@@ -32,8 +40,12 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         if (procCommonMapper.updateBatchStatus(vo) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
-
         return "수정되었습니다.";
     }
+
+
+
+
+
 
 }

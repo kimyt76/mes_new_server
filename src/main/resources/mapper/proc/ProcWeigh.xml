@@ -85,7 +85,8 @@
              ,b.phase
              ,c.appearance
              ,b.real_content as orderQty
-
+             ,0 as weigh_qty
+             ,0 as bag_weight
              , ROW_NUMBER() OVER (
 				 PARTITION BY b.phase
 				 ORDER BY b.order_dist
@@ -97,7 +98,7 @@
               inner join tb_item_detail c
               on c.item_cd = b.item_cd
         where a.default_yn = 'Y'
-        order by b.phase, fb.order_dist
+        order by b.phase, b.order_dist
     </select>
 
     <select id="getRealBomWeighList">
@@ -218,16 +219,14 @@
                  ,b.lot_no
                  ,b.test_no
                  ,c.expiry_date
-                 ,case when b.weigh_qty is null then a.weigh_qty
-                       when b.weigh_qty = 0 then a.weigh_qty end as weigh_qty
+                 ,b.weigh_qty
                  ,b.weigh_inv_id
         from   tb_weigh_info a
-                   inner join tb_weigh_inv b
-                              on a.weigh_id = b.weigh_id
-                   inner join tb_item_mst c
-                              on c.item_cd = a.item_cd
+               inner join tb_weigh_inv b
+               on a.weigh_id = b.weigh_id
+               inner join tb_item_mst c
+               on c.item_cd = a.item_cd
         where  a.work_proc_id = #{workProcId}
-
     </select>
 
 

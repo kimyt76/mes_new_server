@@ -93,8 +93,11 @@
         select storage_cd as code
               ,storage_name as codeNm
               ,area_cd as areaCd
+              ,m1_Yn as  m1Yn
+              ,m2_Yn as m2Yn
+              ,m3_Yn as m3Yn
+              ,m5_Yn as m5Yn
         from   tb_storage_mst
-        where  m2_yn = 'Y'
     </select>
 
     <select id="useCheck">

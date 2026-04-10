@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.proc.mapper;
 
 import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
+import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -14,4 +15,8 @@ public interface ProcCommonMapper {
     int updateProcStatus(ProcCommonVo vo);
 
     int updateBatchStatus(ProcCommonVo vo);
+
+    List<ProcCommonVo> getBagWeightList();
+
+    Long updateProcStatusComplete(ProcWeighVo vo);
 }

@@ -1,11 +1,9 @@
 package com.jct.mes_new.biz.proc.controller;
 
 
+import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.service.ProcWeighService;
-import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
-import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
-import com.jct.mes_new.biz.proc.vo.WeighInfoVo;
-import com.jct.mes_new.biz.proc.vo.WeighLabelPrint;
+import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.util.BarcodeUtil;
@@ -32,6 +30,7 @@ import java.util.*;
 public class ProcWeighController {
 
     private final ProcWeighService procWeighService;
+    private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
 
     @PostMapping("/getWeighList")
@@ -44,6 +43,26 @@ public class ProcWeighController {
         return procWeighService.getWeighInfo(vo);
     }
 
+    /**
+     * 칭량 시작
+     * @param vo
+     * @return
+     */
+    @PostMapping("/startProcWeigh")
+    public String startProcWeigh(@RequestBody ProcWeighVo vo){
+        return procWeighService.startProcWeigh(vo);
+    }
+
+    /**
+     * 칭량량 조회
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getStockTestNoList")
+    public List<ProcWeighVo> getStockTestNoList(@RequestBody ProcWeighVo vo){
+        return procWeighService.getStockTestNoList(vo);
+    }
+
     @PostMapping("/saveWeighInfo")
     public ResponseEntity<ApiResponse<Map<String, Object>>> saveWeighInfo(@RequestBody WeighInfoVo vo){
         Long workProcId = procWeighService.saveWeighInfo(vo);
@@ -51,7 +70,20 @@ public class ProcWeighController {
         result.put("workProcId", workProcId);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
+    @PostMapping("/completeWeight")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> completeWeight(@RequestBody ProcWeighVo vo){
+        Long workProcId = procWeighService.completeWeight(vo);
+        Map<String, Object> result =  new HashMap<>();
+        result.put("workProcId", workProcId);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
+    }
 
+    @PostMapping("/saveWeighList")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> saveWeighList(@RequestBody WeighInvInfo vo){
+        Map<String, Object> result =  new HashMap<>();
+        result.put("msg", procWeighService.saveWeighList(vo));
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
+    }
 
 
     @PostMapping("/printWeighLabel")
@@ -77,7 +109,7 @@ public class ProcWeighController {
             item.setProdItemName(prodItemName);
 
             item.setItemName(labelItem.getItemName());
-            item.setItemAlias(labelItem.getPhase() + "-" + labelItem.getDistOrder());
+            item.setItemAlias(labelItem.getPhase() + "-" + labelItem.getOrderDist());
             item.setProdQty( prodQty);
             item.setBagWeight(df.format(labelItem.getBagWeight() == null ? 0 : labelItem.getBagWeight()) + unit);
             item.setWeighQty(df2.format(labelItem.getWeighQty() == null ? 0 : labelItem.getWeighQty()) + unit);
