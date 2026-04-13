@@ -27,7 +27,7 @@ public class ProcWeighBomVo {
     /* 제조 추가*/
     private String makeTime;
     private String makeYn;
-    private String makeer;
+    private String maker;
     private String makeConfirmer;
 
     private BigInteger orderDist;
