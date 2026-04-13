@@ -12,7 +12,8 @@
              ,etc
              ,worker_id
         from tb_worker_mst
-        where  process_cd = #{procCd}
+        where  area_cd = #{areaCd}
+        and    process_cd = #{procCd}
         order by worker_name
     </select>
 
@@ -54,4 +55,12 @@
         where  work_batch_id = #{workBatchId}
     </update>
 
+    <select id="getWorkProcId">
+        select b.work_proc_id
+        from   TB_WORK_ORDER_BATCH a
+                inner join TB_WORK_ORDER_PROC b
+                on b.proc_cd = #{procCd}
+                and  b.work_batch_id = a.work_batch_id
+        where  a.work_batch_id = #{workBatchId}
+    </select>
 </mapper>

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -22,9 +23,9 @@ public class ProcCommonController {
     private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
 
-    @GetMapping("/getWorkerList/{id}")
-    public List<ProcCommonVo> getWorkerList(@PathVariable("id") String procCd) {
-        return  procCommonService.getWorkerList(procCd);
+    @PostMapping("/getWorkerList")
+    public List<ProcCommonVo> getWorkerList(@RequestBody ProcCommonVo vo) {
+        return  procCommonService.getWorkerList(vo);
 
     }
     @GetMapping("/getBagWeightList")

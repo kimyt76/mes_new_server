@@ -22,8 +22,8 @@ public class ProcCommonServiceImpl implements ProcCommonService {
     private final ProcWeighMapper procWeighMapper;
 
 
-    public List<ProcCommonVo> getWorkerList(String procCd){
-        return procCommonMapper.getWorkerList(procCd);
+    public List<ProcCommonVo> getWorkerList(ProcCommonVo vo){
+        return procCommonMapper.getWorkerList(vo.getAreaCd(), vo.getProcCd());
     }
     public List<ProcCommonVo> getBagWeightList(){
         return procCommonMapper.getBagWeightList();

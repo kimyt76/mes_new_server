@@ -23,6 +23,7 @@ public class ProcCommonVo {
 
     private String workerName;
     private String etc;
+    private String areaCd;
 
     private String bagWeightName;
     private BigDecimal weight;

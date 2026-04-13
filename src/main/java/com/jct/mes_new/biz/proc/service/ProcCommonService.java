@@ -5,7 +5,7 @@ import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
 import java.util.List;
 
 public interface ProcCommonService {
-    List<ProcCommonVo> getWorkerList(String procCd);
+    List<ProcCommonVo> getWorkerList(ProcCommonVo vo);
 
     List<ProcCommonVo> getEquipmentList(String storageCd);
 
