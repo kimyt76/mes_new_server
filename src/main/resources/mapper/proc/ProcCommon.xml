@@ -28,7 +28,7 @@
               ,equipment_cd
               ,equipment_id
         from tb_equipment_mst
-        where  a.procecc_cd = #{storageCd}
+        where  storage_cd = #{storageCd}
         order by display_order
     </select>
 
