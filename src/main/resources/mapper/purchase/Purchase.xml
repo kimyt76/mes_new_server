@@ -207,12 +207,6 @@
         delete tb_pur_item where pur_id = #{purId}
     </delete>
 
-    <select id="getNextTestNoSeq">
-        SELECT ISNULL(MAX(CAST(RIGHT(test_no, 3) AS INT)), 0) + 1
-        FROM   tb_item_test_no
-        WHERE test_no LIKE CONCAT(#{prefix}, '%')
-    </select>
-
     <update id="updateErpYn">
         update tb_pur_mst
         set    erp_yn ='Y'

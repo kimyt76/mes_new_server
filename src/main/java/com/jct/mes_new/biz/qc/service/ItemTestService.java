@@ -19,4 +19,6 @@ public interface ItemTestService {
     String updateItemTestNoInfo(ItemTestVo vo);
 
     List<ItemTestVo> getItemTestNoInfoList(String testNo);
+
+    int getNextTestNoSeq(String prefix);
 }

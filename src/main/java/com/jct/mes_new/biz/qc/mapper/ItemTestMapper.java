@@ -10,6 +10,15 @@ import java.util.List;
 @Mapper
 public interface ItemTestMapper {
 
+
+
+    /**
+     * 시험번호 seq 채번
+     * @param prefix
+     * @return
+     */
+    Integer getNextTestNoSeq(String prefix);
+
     /**
      * 시험내역별 조회
      * @param vo

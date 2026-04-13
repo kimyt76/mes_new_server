@@ -2,6 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.qc.mapper.ItemTestMapper">
+    <select id="getNextTestNoSeq">
+        SELECT ISNULL(MAX(CAST(RIGHT(test_no, 3) AS INT)), 0) + 1
+        FROM   tb_item_test_no
+        WHERE test_no LIKE CONCAT(#{prefix}, '%')
+    </select>
+
     <select id="countTestNo">
         select count(test_no) from tb_item_test_no where test_no = #{testNo}
     </select>
@@ -43,8 +49,6 @@
         <if test="shelfLife != null and shelfLife != ''">
             AND a.shelf_life = #{shelfLife}
         </if>
-
-
     </select>
 
     <select id="getItemTestNoInfo">

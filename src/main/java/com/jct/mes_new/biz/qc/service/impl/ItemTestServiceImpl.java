@@ -20,6 +20,10 @@ public class ItemTestServiceImpl implements ItemTestService {
 
     private final ItemTestMapper itemTestMapper;
 
+    public int getNextTestNoSeq(String prefix){
+        return itemTestMapper.getNextTestNoSeq(prefix);
+    }
+
     /**
      * 시험내역별 조회
      * @param vo

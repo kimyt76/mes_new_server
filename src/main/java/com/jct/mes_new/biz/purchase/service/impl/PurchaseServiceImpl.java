@@ -5,6 +5,7 @@ import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
 import com.jct.mes_new.biz.purchase.service.PurchaseService;
 import com.jct.mes_new.biz.purchase.service.TranService;
 import com.jct.mes_new.biz.purchase.vo.*;
+import com.jct.mes_new.biz.qc.mapper.ItemTestMapper;
 import com.jct.mes_new.biz.qc.service.ItemTestService;
 import com.jct.mes_new.biz.qc.service.QcTestService;
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
@@ -102,7 +103,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 if (seqMap.containsKey(prefix)) {
                     nextSeq = seqMap.get(prefix) + 1;
                 } else {
-                    nextSeq = purchaseMapper.getNextTestNoSeq(prefix);
+                    nextSeq = itemTestService.getNextTestNoSeq(prefix);
                 }
                 seqMap.put(prefix, nextSeq);
 
@@ -198,7 +199,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                     if (seqMap.containsKey(prefix)) {
                         nextSeq = seqMap.get(prefix) + 1;
                     } else {
-                        nextSeq = purchaseMapper.getNextTestNoSeq(prefix);
+                        nextSeq = itemTestService.getNextTestNoSeq(prefix);
                     }
                     seqMap.put(prefix, nextSeq);
 

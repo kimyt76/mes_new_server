@@ -58,13 +58,4 @@ public interface PurchaseMapper {
 
 
 
-    /**
-     * 시험번호 seq 채번
-     * @param prefix
-     * @return
-     */
-    Integer getNextTestNoSeq(String prefix);
-
-
-
 }
