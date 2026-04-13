@@ -97,6 +97,7 @@
               ,m2_Yn as m2Yn
               ,m3_Yn as m3Yn
               ,m5_Yn as m5Yn
+              ,proc_cd as procCd
         from   tb_storage_mst
     </select>
 
