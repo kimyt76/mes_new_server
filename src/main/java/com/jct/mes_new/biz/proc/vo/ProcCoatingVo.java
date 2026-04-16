@@ -16,7 +16,7 @@ public class ProcCoatingVo {
     private String areaName;
     private String poNo;
     private String procOrderDate;
-    private String matNo;
+    private String makeNo;
     private String lotNo;
     private String itemCd;
     private String itemName;

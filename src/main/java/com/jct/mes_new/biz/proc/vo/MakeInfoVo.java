@@ -8,5 +8,5 @@ import java.util.List;
 public class MakeInfoVo {
 
     ProcMakeVo procMake;
-    List<ProcWeighBomVo> bomList;
+    List<ProcWeighBomVo> makeBomList;
 }

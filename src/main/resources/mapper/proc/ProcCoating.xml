@@ -6,7 +6,7 @@
         select   dbo.getCommonName('area', c.area_cd) as areaName
                 ,b.po_no
                 ,a.proc_order_date
-                ,b.mat_no
+                ,b.make_No
                 ,b.lot_no
                 ,a.item_cd
                 ,d.item_name
@@ -56,7 +56,7 @@
     </select>
 
     <select id="getCoatingHeadInfo">
-        select  b.mat_no
+        select  b.make_No
                  ,a.item_cd
                  ,dbo.getItemName(a.item_cd)  as itemName
                  ,a.proc_order_date
