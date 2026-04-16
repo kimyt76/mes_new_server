@@ -24,7 +24,6 @@ public class TranServiceImpl implements TranService {
 
     private final TranMapper invTranMapper;
 
-
     /* 원장 신규 저장 */
     @Transactional
     public Long saveTranInfo(TranRequestVo vo){
@@ -54,7 +53,6 @@ public class TranServiceImpl implements TranService {
                 }
                 // insert 후 자동으로 PK 세팅됨
                 Long tranItemId = item.getTranItemId();
-
                 // QC 요청 생성
                 //qcService.createQcRequest(  tranItemId, item);
             }
@@ -75,7 +73,6 @@ public class TranServiceImpl implements TranService {
         if ( invTranMapper.updateTranMst(mst) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
-
         // 2. 삭제 처리
         List<Long> deletedItemIds = vo.getDeleteTranItems();
         if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
@@ -106,7 +103,6 @@ public class TranServiceImpl implements TranService {
         return tranId;
     }
 
-
     /**
      * 원장 전체 삭제
      * @param purId
@@ -118,5 +114,13 @@ public class TranServiceImpl implements TranService {
         invTranMapper.deleteTranMst(tranId);
     }
 
+    public TranRequestVo getTranInfo(Long tranId){
+        TranRequestVo vo = new TranRequestVo();
+
+        vo.setTranInfo(invTranMapper.getTranMst(tranId));
+        vo.setTranItemList(invTranMapper.getTranItemList(tranId));
+
+        return vo;
+    }
 
 }

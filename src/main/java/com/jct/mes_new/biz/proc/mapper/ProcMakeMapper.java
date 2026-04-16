@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.proc.mapper;
 import com.jct.mes_new.biz.proc.vo.ProcMakeVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -11,9 +12,13 @@ public interface ProcMakeMapper {
 
     List<ProcMakeVo> getMatList(ProcMakeVo vo);
 
-    ProcMakeVo getMakeHeadInfo(long workProcId);
+    ProcMakeVo getMakeHeadInfo(Long workBatchId );
 
-    List<ProcWeighBomVo> getRealBomMakeList(long workBatchId, String itemCd);
+    List<ProcWeighBomVo> getRealBomMakeList(@Param("workProcId") Long workProcId, @Param("itemCd") String itemCd);
 
-    List<ProcWeighBomVo> getBomMakeList(long workBatchId, String itemCd);
+    int updateProcMake(ProcMakeVo vo);
+
+    Long getWeighQty(Long weighId);
+
+    int updateMakeRecipe(ProcWeighBomVo item);
 }

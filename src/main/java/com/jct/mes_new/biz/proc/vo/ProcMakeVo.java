@@ -8,11 +8,11 @@ import java.time.LocalDate;
 
 @Data
 public class ProcMakeVo {
-    private long makeId;
-    private long weighId;
-    private long workProcId;
-    private long workBatchId;
-    private long workOrderId;
+    private Long makeId;
+    private Long weighId;
+    private Long workProcId;
+    private Long workBatchId;
+    private Long workOrderId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate procOrderDate;    //지시일
@@ -22,6 +22,7 @@ public class ProcMakeVo {
     private String itemName;
     private String makeNo;
     private String lotNo;
+    private String lotNo2;
     private BigDecimal orderQty;
     private String batchStatus;
     private String procStatus;
@@ -41,6 +42,11 @@ public class ProcMakeVo {
     private String procCd;
     private String workStartTime;
     private String workEndTime;
+    private String workEquipmentCd;
+    private String managerId;
+
+
+    private String userId;
 
 
 

@@ -8,4 +8,6 @@ public interface TranService {
     Long updateTranInfo(TranRequestVo vo);
 
     void deleteTranInfo(Long purId);
+
+    TranRequestVo getTranInfo(Long tranId);
 }

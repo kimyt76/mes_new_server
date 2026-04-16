@@ -25,6 +25,8 @@ public interface TranMapper {
     void deleteTranItem(Long tranId);
     void deleteTranMst(Long tranId);
 
-    /* 원장 품목 조회*/
-    List<TranItemVo> getTranItemListByTranId(Long tranId);
+    /* 원장  조회*/
+    TranVo getTranMst(Long tranId);
+    /* 원장 목록 조회*/
+    List<TranItemVo> getTranItemList(Long tranId);
 }

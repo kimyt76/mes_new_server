@@ -30,7 +30,7 @@
         order by a.pur_date desc, a.seq desc
     </select>
 
-    <select id="getTranInfo">
+    <select id="getTranMst">
         select    a.tran_date
                  ,dbo.getCustomerName(a.customer_cd) as customer_name
                  ,a.customer_cd
@@ -40,11 +40,12 @@
                  ,dbo.getStorageName(a.to_storage_cd) as toStorageName
                  ,a.remark
                  ,a.manager_id
-                 ,a.order_type
+                 --,a.order_type
                  ,dbo.getUserName(a.manager_id) as manager_name
                  ,a.tran_id
                  ,a.pur_id
-        from   tb_pur_mst a
+                 ,a.seq
+        from   tb_inv_tran_mst a
         where   a.tran_id = #{tranId}
     </select>
 
@@ -65,13 +66,19 @@
     <!--    재고 마스터 등록 -->
     <insert id="insertTranMst" parameterType="com.jct.mes_new.biz.purchase.vo.TranVo"  useGeneratedKeys="true" keyProperty="tranId">
         INSERT INTO dbo.tb_inv_tran_mst (
-            tran_date, tran_type_cd, from_storage_cd, to_storage_cd, customer_cd, manager_id, remark,
-            tran_status, end_yn,  pur_id, reg_id, upd_id
+            tran_date, tran_type_cd, area_cd, from_storage_cd, to_storage_cd, customer_cd, manager_id, remark,
+            tran_status, end_yn,  pur_id, reg_id, upd_id, seq
         )
         VALUES (
-            #{tranDate}, #{tranTypeCd}, #{fromStorageCd}, #{toStorageCd}, #{customerCd},#{managerId}, #{remark},
-            #{tranStatus}, #{endYn}, #{purId}, #{userId}, #{userId}
-               )
+            #{tranDate}, #{tranTypeCd}, #{areaCd}, #{fromStorageCd}, #{toStorageCd}, #{customerCd},#{managerId}, #{remark},
+            #{tranStatus}, #{endYn}, #{purId}, #{userId}, #{userId},
+            (
+            SELECT ISNULL(MAX(seq), 0) + 1
+            FROM dbo.tb_inv_tran_mst WITH (UPDLOCK, HOLDLOCK)
+            WHERE tran_type_cd = #{tranTypeCd}
+            AND tran_date = #{tranDate}
+            )
+        )
     </insert>
 
     <!--    재고 목록 등록 -->
@@ -117,6 +124,7 @@
     <update id="updateTranMst">
         UPDATE dbo.tb_inv_tran_mst
         SET    tran_date        = #{tranDate}
+              ,area_cd          = #{areaCd}
               ,from_storage_cd  = #{fromStorageCd}
               ,to_storage_cd    = #{toStorageCd}
               ,customer_cd      = #{customerCd}

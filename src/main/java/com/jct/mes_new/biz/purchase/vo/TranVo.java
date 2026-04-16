@@ -17,6 +17,7 @@ public class TranVo {
     private LocalDate endDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate tranDate;
+    private Integer seq;
     private String areaCd;
     private String fromStorageCd;
     private String fromStorageName;
