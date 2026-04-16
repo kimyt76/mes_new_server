@@ -138,6 +138,17 @@
         where  work_proc_id = #{workProcId}
     </update>
 
+    <update id="updateWeighProcComplete">
+        update TB_WORK_ORDER_PROC
+        set    proc_status = #{procStatus}
+              ,work_end_time = getDate()
+              ,tran_yn      = 'Y'
+              ,tranId       = #{tranId}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
     <update id="startProcWeigh">
         update TB_WORK_ORDER_PROC
         set    proc_status      = #{procStatus}
