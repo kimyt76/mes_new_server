@@ -1,9 +1,11 @@
 package com.jct.mes_new.biz.proc.service.impl;
 
+import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
+import com.jct.mes_new.biz.proc.vo.ProcTranVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
 import com.jct.mes_new.config.common.UserUtil;
@@ -33,7 +35,15 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         return procCommonMapper.getEquipmentList(storageCd);
     }
 
+    /**
+     * 작업지시 상태 업데이트
+     * @param vo
+     * @return
+     */
     public String updateProcStatus(ProcCommonVo vo){
+        String userId = UserUtil.getUserId();
+        vo.setUserId(userId);
+
         if (procCommonMapper.updateProcStatus(vo) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
@@ -44,8 +54,14 @@ public class ProcCommonServiceImpl implements ProcCommonService {
     }
 
 
-
-
+    /**
+     * 제조출고 조회
+     * @param vo
+     * @return
+     */
+    public List<ProcTranVo> getProcTranList(SearchCommonVo vo){
+        return procCommonMapper.getProcTranList(vo);
+    }
 
 
 }

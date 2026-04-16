@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 @Data
 public class ProcCommonVo {
@@ -23,6 +24,7 @@ public class ProcCommonVo {
 
     private String workerName;
     private String etc;
+    private String memo;
     private String areaCd;
 
     private String bagWeightName;
