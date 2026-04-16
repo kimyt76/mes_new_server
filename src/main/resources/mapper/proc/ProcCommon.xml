@@ -35,23 +35,16 @@
     <update id="updateProcStatus">
         update TB_WORK_ORDER_PROC
         set    proc_status = #{procStatus}
-              ,storage_cd  = #{storageCd}
-              ,prod_date   = convert(date, getdate(), -23)
-              ,work_start_time = getDate()
-        where  work_proc_id = #{workProcId}
-    </update>
-
-    <update id="updateProcStatusComplete">
-        update TB_WORK_ORDER_PROC
-        set    proc_status = #{procStatus}
-              ,work_end_time = getDate()
-              ,end_yn ='Y'
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
         where  work_proc_id = #{workProcId}
     </update>
 
     <update id="updateBatchStatus">
         update TB_WORK_ORDER_BATCH
         set    batch_status = #{batchStatus}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
         where  work_batch_id = #{workBatchId}
     </update>
 
@@ -62,5 +55,82 @@
                 on b.proc_cd = #{procCd}
                 and  b.work_batch_id = a.work_batch_id
         where  a.work_batch_id = #{workBatchId}
+    </select>
+
+    <update id="updateProcEtc">
+        update TB_WORK_ORDER_PROC
+        set    etc                  = #{etc}
+              ,memo                 = #{memo}
+              ,upd_id               = #{userId}
+              ,upd_dt               = getDate()
+        where  work_proc_id         = #{workProcId}
+    </update>
+
+
+    <select id="getProcTranList">
+        with tmp_work_order as (
+            select   a.item_cd
+                    ,dbo.getItemName(a.item_cd) as item_name
+                    ,a.storage_cd
+                    ,b.lot_no
+                    ,b.lot_no2
+                    ,b.make_no
+                    ,a.tran_id
+                    ,a.tran_yn
+                    ,a.work_proc_id
+                    ,a.work_batch_id
+                    ,a.work_order_id
+                    ,b.po_no
+            from    TB_WORK_ORDER_PROC a
+                    inner join TB_WORK_ORDER_BATCH b
+                    on a.work_batch_id = b.work_batch_id
+            where  a.proc_cd = #{procCd}
+            and    a.tran_yn ='Y'
+        )
+        select    dbo.getCommonName('area', a.area_cd ) as area_cd
+                 ,c.po_no
+                 ,a.tran_date
+                 ,dbo.getStorageName(c.storage_cd) as storage_cd
+                 ,c.lot_no
+                 ,c.lot_no2
+                 ,c.item_name
+                 ,rep.item_cd
+                 ,case when rep.cnt > 1 then rep.item_name + ' 외 ' + cast(rep.cnt - 1 as varchar(10)) + '건'
+                       else rep.item_name end as tranOutItems
+                 ,rep.qty
+                 ,c.work_proc_id
+				 ,c.work_batch_id
+				 ,c.work_order_id
+                 ,a.tran_id
+        from    tb_inv_tran_mst a
+                inner join (
+                    select    x.tran_id
+                             ,x.item_cd
+                             ,y.item_name
+                             ,x.cnt
+                             ,x.qty
+                    from (   select  tran_id
+                                  ,min(item_cd) as item_cd
+                                  ,count(*) as cnt
+                                  ,sum(qty) as qty
+                             from tb_inv_tran_item
+                             group by tran_id
+                        ) x
+                    inner join tb_inv_tran_item y
+                    on  y.tran_id = x.tran_id
+                    and y.item_cd  = x.item_cd
+                ) rep
+                on rep.tran_id = a.tran_id
+                left outer join tmp_work_order c
+                on c.tran_id = a.tran_id
+        where   a.tran_type_cd = 'E'
+        and     a.tran_date between #{strDate} and #{endDate}
+        <if test="itemCd != null and itemCd != ''">
+        and     c.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+        and c.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        order by a.tran_date desc
     </select>
 </mapper>
