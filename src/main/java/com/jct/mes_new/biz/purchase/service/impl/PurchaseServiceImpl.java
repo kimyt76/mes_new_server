@@ -127,8 +127,6 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
         }
 
-
-
         // 4. 원장 저장
         TranRequestVo tranRequestVo = makeTranRequestVo(vo, purId, userId);
         Long tranId = tranService.saveTranInfo(tranRequestVo);
