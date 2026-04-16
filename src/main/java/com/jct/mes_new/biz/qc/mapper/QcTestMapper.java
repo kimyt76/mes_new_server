@@ -25,10 +25,6 @@ public interface QcTestMapper {
      */
     QcTestVo getQcTestDetailInfo(@Param("qcTestId") Long qtTestId);
     
-
-
-
-
     //다건
     int insertQcTest(@Param("list") List<QcTestVo> qcTestList, @Param("userId") String userId);
     //1건
