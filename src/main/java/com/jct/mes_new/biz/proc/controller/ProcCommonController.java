@@ -1,8 +1,10 @@
 package com.jct.mes_new.biz.proc.controller;
 
 
+import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
+import com.jct.mes_new.biz.proc.vo.ProcTranVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.util.RestResponse;
@@ -26,8 +28,8 @@ public class ProcCommonController {
     @PostMapping("/getWorkerList")
     public List<ProcCommonVo> getWorkerList(@RequestBody ProcCommonVo vo) {
         return  procCommonService.getWorkerList(vo);
-
     }
+
     @GetMapping("/getBagWeightList")
     public List<ProcCommonVo> getWorkerList() {
         return  procCommonService.getBagWeightList();
@@ -44,5 +46,10 @@ public class ProcCommonController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
+
+    @PostMapping("/getProcTranList")
+    public List<ProcTranVo> getProcTranList(@RequestBody SearchCommonVo vo) {
+        return  procCommonService.getProcTranList(vo);
+    }
 
 }
