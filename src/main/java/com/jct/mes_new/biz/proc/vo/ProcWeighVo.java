@@ -15,6 +15,7 @@ public class ProcWeighVo {
     private Long  workBatchId;
     private Long  workOrderId;
     private Long  weighInvId;
+    private Long tranId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate procOrderDate;    //지시일
@@ -45,6 +46,10 @@ public class ProcWeighVo {
     private LocalDateTime workStartTime;
     private LocalDateTime workEndTime;
     private String managerId;
+    private String tranYn;
+    private String endYn;
+
+
     private String userId;
 
 

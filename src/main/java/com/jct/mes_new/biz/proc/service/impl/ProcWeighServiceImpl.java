@@ -112,6 +112,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
      * @param vo
      * @return
      */
+    @Transactional(rollbackFor = BusinessException.class)
     public String saveWeighList(WeighInvInfo vo){
         ProcWeighVo mst = vo.getWeighInfo();
         List<ProcWeighVo> weighList = vo.getWeighList();
@@ -150,6 +151,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
      * @param vo
      * @return
      */
+    @Transactional(rollbackFor = BusinessException.class)
     public Long saveWeighInfo(WeighInfoVo vo) {
         ProcWeighVo mst = vo.getProcWeigh();
         List<ProcWeighBomVo> recipeList = vo.getWeightBomList();
@@ -188,19 +190,6 @@ public class ProcWeighServiceImpl implements ProcWeighService {
     public Long completeWeight(ProcWeighVo vo){
         String userId = UserUtil.getUserId();
 
-        //작업지시 업데이트 (공정)
-        if( procCommonMapper.updateProcStatusComplete(vo) <= 0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-        //작업지시 업데이트 (배치)
-        ProcCommonVo comVo = new ProcCommonVo();
-        comVo.setWorkProcId(vo.getWorkProcId());
-        comVo.setWorkBatchId(vo.getWorkBatchId());
-        comVo.setBatchStatus(vo.getBatchStatus());
-        comVo.setUserId(userId);
-        if ( procCommonMapper.updateBatchStatus(comVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
         //재고 마스터
         ProcWeighVo mst = this.getWeighHeadInfo(vo.getWorkProcId());
         TranVo invMst = new TranVo();
@@ -218,10 +207,11 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         invMst.setAreaCd(mst.getAreaCd());
         invMst.setFromStorageCd(mst.getStorageCd());
         invMst.setToStorageCd(fromStorage);
-        invMst.setManagerId(userId);
+        invMst.setManagerId(mst.getManagerId());
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
         invMst.setPoNo(mst.getPoNo());
+        invMst.setUserId(userId);
 
         if (  tranMapper.insertTranMst(invMst) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
@@ -231,7 +221,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
 
         for(ProcWeighVo item : weighInvList) {
             TranItemVo tranItemVo = new TranItemVo();
-log.info("=====================================invMst.getTranId()=========== : " + invMst.getTranId());
+
             tranItemVo.setTranId(invMst.getTranId());
             tranItemVo.setItemTypeCd(item.getItemTypeCd());
             tranItemVo.setItemCd(item.getItemCd());
@@ -246,6 +236,22 @@ log.info("=====================================invMst.getTranId()=========== : "
             if ( tranMapper.insertTranItem(tranItemVo) <= 0 ){
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
+        }
+
+        vo.setTranId(invMst.getTranId() );
+        vo.setUserId(userId);
+        //작업지시 업데이트 (공정)
+        if( procWeighMapper.updateWeighProcComplete(vo) <= 0 ){
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+        //작업지시 업데이트 (배치)
+        ProcCommonVo comVo = new ProcCommonVo();
+        comVo.setWorkProcId(vo.getWorkProcId());
+        comVo.setWorkBatchId(vo.getWorkBatchId());
+        comVo.setBatchStatus(vo.getBatchStatus());
+        comVo.setUserId(userId);
+        if ( procCommonMapper.updateBatchStatus(comVo) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
         return vo.getWorkProcId();
     }

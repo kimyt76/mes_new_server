@@ -38,4 +38,6 @@ public interface ProcWeighMapper {
     List<ProcWeighVo> getStockTestNoList(ProcWeighVo vo);
 
     List<ProcWeighVo> getWeighInvInfo(Long workProcId);
+
+    int updateWeighProcComplete(ProcWeighVo vo);
 }
