@@ -29,6 +29,7 @@ public class ProcWeighBomVo {
     private String makeYn;
     private String maker;
     private String makeConfirmer;
+    private String makeQty;
 
     private BigInteger orderDist;
 
