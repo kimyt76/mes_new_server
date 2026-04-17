@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.work.mapper;
 
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -29,4 +30,11 @@ public interface WorkOrderMapper {
     int deleteWorkOrderBatchByOrderIds(@Param("workOrderIds") List<Long> workOrderIds);
 
     int deleteWorkOrderMstByOrderIds(@Param("workOrderIds") List<Long> workOrderIds);
+
+    /**
+     * 작업지시 상세  (workProcId)
+     * @param workProcId
+     * @return
+     */
+    WorkOrderInfoVo getWorkOrderProcInfo(@Param("procCd") String procCd, @Param("workProcId") Long workProcId);
 }
