@@ -133,4 +133,78 @@
         </if>
         order by a.tran_date desc
     </select>
+
+    <select id="getWorkRecodeList">
+        select *
+        from   tb_work_recode
+        where  work_proc_id = #{workProcId}
+    </select>
+
+    <insert id="insertWorkRecode" >
+        INSERT INTO tb_work_recode
+            (
+             work_proc_id
+           , item_cd
+           , work_date
+           , work_start_time
+           , work_end_time
+           , worker_cnt
+           , use_Qty
+           , prod_Qty
+           , reg_id
+           , upd_id
+            )
+        VALUES (
+                 #{workProcId}
+               , #{itemCd}
+               , #{workDate}
+               , #{workStartTime}
+               , #{workEndTime}
+               , #{workerCnt}
+               , #{useQty}
+               , #{prodQty}
+               , #{userId}
+               , #{userId}
+               )
+    </insert>
+
+    <update id="updateWorkRecode" >
+        UPDATE tb_work_recode
+        SET work_proc_id     = #{workProcId}
+          , item_cd          = #{itemCd}
+          , work_date        = #{workDate}
+          , work_start_time  = #{workStartTime}
+          , work_end_time    = #{workEndTime}
+          , worker_cnt       = #{workerCnt}
+          , matUseQty        = #{matUseQty}
+          , coatingQty       = #{coatingQty}
+          , upd_id           = #{updId}
+          , upd_dt           = GETDATE()
+        WHERE work_recode_id = #{workRecodeId}
+    </update>
+
+    <select id="getProdList">
+        select    a.*
+                 ,b.mat_name
+                 ,c.test_nos
+                 ,dbo.getItemName(a.item_cd) as item_name
+                 ,b.spec_info
+                 ,b.ex_appearance
+                 ,b.packing_spec_value
+                 ,b.packing_spec_unit
+                 ,c.req_qty
+                 ,c.tot_Use_Qty
+                 ,c.bad_qty
+                 ,c.work_bad_qty
+                 ,(select unit from tb_item_mst where item_cd = isnull(c.item_cd, a.item_cd) ) as unit
+        from  TB_WORK_ORDER_PROC a
+              inner join tb_item_detail b
+              on b.item_cd = a.item_cd
+              left outer join tb_prod_info c
+              on a.work_proc_id = c.work_proc_id
+        where a.proc_cd = #{procCd}
+          and a.work_proc_id = #{workProcId}
+    </select>
+
+
 </mapper>
