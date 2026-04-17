@@ -28,8 +28,8 @@
                  ,a.expiry_date
                  ,a.shelf_life
         from    tb_item_test_no a
-                inner join tb_pur_item b
-                on a.test_no = b.test_no
+                left outer join tb_item_mst b
+                on a.item_cd = b.item_cd
         where   a.create_date between #{strDate} and #{endDate}
         <if test="testNo != null and testNo != ''">
             AND a.test_no = #{testNo}
@@ -62,7 +62,7 @@
                  ,a.make_no
                  ,a.qty
                  ,a.expiry_date
-                 ,dbo.getCustomerName(a.customer_cd) as customer_name0
+                 ,dbo.getCustomerName(a.customer_cd) as customer_name
                  ,dbo.getCommonName('pass_state', a.pass_state) as pass_state_name
                  ,a.pass_state
                  ,a.test_state
@@ -71,8 +71,8 @@
                  ,a.customer_cd
                  ,a.end_yn
         from    tb_item_test_no a
-                inner join tb_pur_item b
-                on a.test_no = b.test_no
+                left outer join tb_item_mst b
+                on a.item_cd = b.item_cd
         where   a.test_no = #{testNo}
     </select>
 
@@ -81,7 +81,7 @@
                  ,a.test_no
                  ,a.create_date
                  ,a.item_type_cd
-                 ,b.item_cd
+                 ,a.item_cd
                  ,b.item_name
                  ,a.lot_no
                  ,a.make_no
@@ -96,19 +96,18 @@
                  ,a.customer_cd
                  ,a.end_yn
         from    tb_item_test_no a
-                inner join tb_pur_item b
-                on a.test_no = b.test_no
+                left outer join tb_item_mst b
+                on a.item_cd = b.item_cd
         where   a.test_no = #{testNo}
     </select>
 
     <insert id="insertItemTestNo">
         insert into tb_item_test_no
-        ( TEST_NO, CREATE_DATE, AREA_CD, ITEM_type_cd, SEQ, ITEM_CD, item_name, QTY, CUSTOMER_CD, EXPIRY_DATE
-        , SHELF_LIFE, TEST_STATE, PASS_STATE, REG_ID,  UPD_ID  )
+        ( TEST_NO, CREATE_DATE, AREA_CD, ITEM_type_cd, SEQ, ITEM_CD, item_name, QTY
+          , CUSTOMER_CD, EXPIRY_DATE,lot_no, make_no , SHELF_LIFE, TEST_STATE, PASS_STATE, REG_ID,  UPD_ID  )
         values
          ( #{item.testNo}, #{item.createDate}, #{item.areaCd},  #{item.itemTypeCd}, #{item.seq}, #{item.itemCd},  #{item.itemName}, #{item.qty}
-         , #{item.customerCd}, #{item.expiryDate}
-         , #{item.shelfLife} , #{item.testState} , #{item.passState}, #{item.userId}, #{item.userId} )
+         , #{item.customerCd}, #{item.expiryDate}, #{item.lotNo}, #{item.makeNo}, #{item.shelfLife} , #{item.testState} , #{item.passState}, #{item.userId}, #{item.userId} )
     </insert>
 
     <!-- 구매 수정 용-->
