@@ -247,4 +247,37 @@
               ,prodDate    = #{prodDate}
         where  work_batch_id = #{workBatchId}
     </update>
+
+    <select id="getWorkOrderProcInfo">
+        select    dbo.getCommonName('area', c.area_cd) as area_cd
+                 ,dbo.getClientName(c.client_id) as client_Name
+                 ,a.prod_date
+                 ,a.order_qty
+                 ,dbo.getUserName(a.manager_id) as manager_name
+                 ,dbo.getStorageName(a.storage_cd ) as storage_name
+                 ,b.make_no
+                 ,b.lot_no
+                 ,b.lot_no2
+                 ,a.order_qty
+                 ,c.area_cd
+                 ,a.proc_cd
+                 ,a.storage_cd
+                 ,c.manager_id
+                 ,c.client_id
+                 ,b.batch_status
+                 ,a.proc_status
+                 ,a.work_proc_id
+                 ,a.work_batch_id
+                 ,a.work_order_id
+                 ,a.tran_yn
+                 ,a.end_yn
+                 ,a.test_no
+        from   TB_WORK_ORDER_PROC a
+                inner join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+                inner join TB_WORK_ORDER_MST c
+                on c.work_order_id = a.work_order_id
+        where  a.proc_cd = #{procCd}
+          and  a.work_proc_id = #{workProcId}
+    </select>
 </mapper>
