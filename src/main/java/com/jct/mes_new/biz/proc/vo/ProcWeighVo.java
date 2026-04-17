@@ -26,6 +26,7 @@ public class ProcWeighVo {
     private String itemName;
     private String makeNo;
     private String lotNo;
+    private BigDecimal prodQty;
     private BigDecimal orderQty;
     private BigDecimal weighQty;
     private String batchStatus;
