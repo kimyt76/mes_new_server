@@ -66,9 +66,9 @@
                left outer join tb_item_detail b
                on b.item_cd = a.item_cd
                left outer join tb_customer d
-                               on d.customer_cd = a.customer_cd
+               on d.customer_cd = a.customer_cd
                left outer join tb_common_code e
-                               on e.code = a.item_grp2
+               on e.code = a.item_grp2
         where  1=1
         and  a.item_cd = #{itemCd}
     </select>

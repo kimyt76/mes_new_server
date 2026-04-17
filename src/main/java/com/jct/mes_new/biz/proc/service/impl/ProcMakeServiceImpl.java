@@ -120,9 +120,10 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         qcTestVo.setReqDate(LocalDate.now());
         qcTestVo.setRetestYn("N");
         qcTestVo.setAreaCd(procMakeVo.getAreaCd());
-        qcTestVo.setReqTesterId(userId);
         qcTestVo.setStorageCd(procMakeVo.getStorageCd());
+        qcTestVo.setReqTesterId(userId);
         qcTestVo.setReqQty(BigDecimal.ZERO);
+
         if(qcTestMapper.insertSingleQcTest(qcTestVo, userId) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
