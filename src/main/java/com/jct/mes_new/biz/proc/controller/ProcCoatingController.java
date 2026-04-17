@@ -3,6 +3,8 @@ package com.jct.mes_new.biz.proc.controller;
 
 import com.jct.mes_new.biz.proc.service.ProcCoatingService;
 import com.jct.mes_new.biz.proc.vo.ProcCoatingVo;
+import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
+import com.jct.mes_new.biz.proc.vo.ProcProdInfoVo;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,10 @@ public class ProcCoatingController {
         return  procCoatingService.getCoatingList(vo);
     }
 
+    @PostMapping("/getCoatingInfo")
+    public ProcProdInfoVo getCoatingInfo (@RequestBody ProcCommonVo vo) {
+        return  procCoatingService.getCoatingInfo(vo);
+    }
 
 
 
