@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
+import java.time.LocalTime;
 
 @Data
 public class ProcWeighBomVo {
@@ -25,7 +27,7 @@ public class ProcWeighBomVo {
     private String confirmer;
 
     /* 제조 추가*/
-    private String makeTime;
+    private LocalTime makeTime;
     private String makeYn;
     private String maker;
     private String makeConfirmer;
