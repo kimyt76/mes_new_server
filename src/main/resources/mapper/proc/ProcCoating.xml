@@ -3,40 +3,67 @@
 
 <mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCoatingMapper">
     <select id="getCoatingList">
-        select   dbo.getCommonName('area', c.area_cd) as areaName
-                ,b.po_no
-                ,a.proc_order_date
-                ,b.make_No
-                ,b.lot_no
-                ,a.item_cd
-                ,d.item_name
-                ,a.order_qty
-                ,dbo.getCommonName('PROC_STATUS',
-                                                ( SELECT TOP 1 proc_status
-                                                    FROM TB_WORK_ORDER_PROC t
-                                                    WHERE t.po_no = a.po_no
-                                                    ORDER BY
-                                                    CASE
-                                                    WHEN t.proc_status = '00' THEN 0   -- 00은 제일 낮은 우선순위
-                                                    ELSE 1                             -- 공정 진행건은 우선
-                                                    END DESC,
-                                                    t.work_proc_id DESC
-                                                )
-                ) as processState
-                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatus
-                ,c.area_cd
-                ,a.proc_cd
-                ,c.work_order_id
-                ,b.work_batch_id
-                ,a.work_proc_id
-        from   TB_WORK_ORDER_PROC a
-                inner join TB_WORK_ORDER_BATCH b
-                on b.work_batch_id = a.work_batch_id
-                inner join TB_WORK_ORDER_MST c
-                on b.work_order_id = c.work_order_id
-                inner join tb_item_mst d
-                on d.item_cd = a.item_cd
-         where  a.proc_cd = 'PRC003'
+--         select   CONCAT(CONVERT(varchar(10),c.work_order_date,23),' - ',c.seq)  AS workOrderDateSeq
+--                 ,dbo.getCommonName('area', c.area_cd) as areaName
+--                 ,b.po_no
+--                 ,a.proc_order_date
+--                 ,b.make_No
+--                 ,b.lot_no
+--                 ,a.item_cd
+--                 ,d.item_name
+--                 ,a.order_qty
+--                 ,dbo.getCommonName('PROC_STATUS',
+--                                                 ( SELECT TOP 1 proc_status
+--                                                     FROM TB_WORK_ORDER_PROC t
+--                                                     WHERE t.po_no = a.po_no
+--                                                     ORDER BY
+--                                                     CASE
+--                                                     WHEN t.proc_status = '00' THEN 0   -- 00은 제일 낮은 우선순위
+--                                                     ELSE 1                             -- 공정 진행건은 우선
+--                                                     END DESC,
+--                                                     t.work_proc_id DESC
+--                                                 )
+--                 ) as processState
+--                 ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatus
+--                 ,c.area_cd
+--                 ,a.proc_cd
+--                 ,c.work_order_id
+--                 ,b.work_batch_id
+--                 ,a.work_proc_id
+--         from   TB_WORK_ORDER_PROC a
+--                 inner join TB_WORK_ORDER_BATCH b
+--                 on b.work_batch_id = a.work_batch_id
+--                 inner join TB_WORK_ORDER_MST c
+--                 on b.work_order_id = c.work_order_id
+--                 inner join tb_item_mst d
+--                 on d.item_cd = a.item_cd
+--          where  a.proc_cd = 'PRC003'
+        select   CONCAT(CONVERT(varchar(10),c.work_order_date,23),' - ',c.seq)  AS workOrderDateSeq
+                        ,dbo.getCommonName('area', c.area_cd) as areaName
+                        ,b.po_no
+                        ,a.proc_order_date
+                        ,b.make_No
+                        ,b.lot_no
+                        ,a.item_cd
+                        ,d.item_name
+                        ,a.order_qty
+                        ,dbo.getCommonName('BATCH_STATUS', b.batch_status) as batchStatusName
+                        ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatusName
+                        ,c.area_cd
+                        ,a.proc_cd
+                        ,a.proc_status
+                        ,b.batch_status
+                        ,c.work_order_id
+                        ,b.work_batch_id
+                        ,a.work_proc_id
+                from   TB_WORK_ORDER_PROC a
+                        inner join TB_WORK_ORDER_BATCH b
+                        on b.work_batch_id = a.work_batch_id
+                        inner join TB_WORK_ORDER_MST c
+                        on b.work_order_id = c.work_order_id
+                        inner join tb_item_mst d
+                        on d.item_cd = a.item_cd
+                 where  a.proc_cd = 'PRC003'
         <if test="strDate != null and strDate != ''">
             AND a.proc_order_date between #{strDate} and #{endDate}
         </if>
@@ -75,5 +102,24 @@
           and   a.work_proc_id = #{workProcId}
     </select>
 
+    <update id="startProcCoating">
+        update TB_WORK_ORDER_PROC
+        set    proc_status      = #{procStatus}
+              ,prod_date        = isnull(CAST(#{prodDate} AS date), CONVERT(date, GETDATE()))
+              ,storage_cd       = #{storageCd}
+              ,manager_id       = #{managerId}
+              ,work_start_time  = getdate()
+              ,upd_id           = #{userId}
+              ,upd_dt           = getDate()
+        where  work_proc_id     = #{workProcId}
+    </update>
 
+    <update id="updateCoatingTestNo">
+        update TB_WORK_ORDER_PROC
+        set    test_no      = #{testNo}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getDate()
+        where  proc_cd = 'PRC003'
+        and    work_batch_id = #{workBatchId}
+    </update>
 </mapper>
