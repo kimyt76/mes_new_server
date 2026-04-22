@@ -15,6 +15,7 @@ public class WorkOrderInfoVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate workOrderDate;
     private Integer seq;
+    private String workOrderDateSeq;
     private String areaCd;
     private String areaName;
     private String clientId;
@@ -38,6 +39,7 @@ public class WorkOrderInfoVo {
     private BigDecimal totUseQty;
     private BigDecimal prodQty;
     private BigDecimal makeQty;
+    private BigDecimal prodYield;
     private String procStatus;
     private String procStatusName;
     private String storageCd;
