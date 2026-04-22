@@ -29,7 +29,7 @@ public interface ProcCommonMapper {
     /**
      * 작업수행정보 (코팅, 충전, 포장)
      */
-    List<WorkRecodeVo> getWorkRecodeList(@Param("workProcId") Long workProcId);
+    List<WorkRecordVo> getWorkRecordList(@Param("workProcId") Long workProcId);
 
     /**
      * 공정별 투입자재 정보 조회

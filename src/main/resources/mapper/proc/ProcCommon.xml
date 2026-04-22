@@ -9,8 +9,8 @@
          ========================================================= -->
     <select id="getWorkerList">
         select worker_name
-             ,etc
-             ,worker_id
+              ,etc
+              ,worker_id
         from tb_worker_mst
         where  area_cd = #{areaCd}
         and    process_cd = #{procCd}
@@ -87,10 +87,10 @@
             where  a.proc_cd = #{procCd}
             and    a.tran_yn ='Y'
         )
-        select    dbo.getCommonName('area', a.area_cd ) as area_cd
+        select    dbo.getCommonName('area', a.area_cd ) as area_name
                  ,c.po_no
                  ,a.tran_date
-                 ,dbo.getStorageName(c.storage_cd) as storage_cd
+                 ,dbo.getStorageName(c.storage_cd) as storage_name
                  ,c.lot_no
                  ,c.lot_no2
                  ,c.item_name
@@ -102,6 +102,8 @@
 				 ,c.work_batch_id
 				 ,c.work_order_id
                  ,a.tran_id
+                 ,a.area_cd
+                 ,c.storage_cd
         from    tb_inv_tran_mst a
                 inner join (
                     select    x.tran_id
@@ -134,14 +136,14 @@
         order by a.tran_date desc
     </select>
 
-    <select id="getWorkRecodeList">
+    <select id="getWorkRecordList">
         select *
-        from   tb_work_recode
+        from   tb_work_record
         where  work_proc_id = #{workProcId}
     </select>
 
-    <insert id="insertWorkRecode" >
-        INSERT INTO tb_work_recode
+    <insert id="insertWorkRecord" >
+        INSERT INTO tb_work_record
             (
              work_proc_id
            , item_cd
@@ -168,8 +170,8 @@
                )
     </insert>
 
-    <update id="updateWorkRecode" >
-        UPDATE tb_work_recode
+    <update id="updateWorkRecord" >
+        UPDATE tb_work_record
         SET work_proc_id     = #{workProcId}
           , item_cd          = #{itemCd}
           , work_date        = #{workDate}
@@ -180,7 +182,7 @@
           , coatingQty       = #{coatingQty}
           , upd_id           = #{updId}
           , upd_dt           = GETDATE()
-        WHERE work_recode_id = #{workRecodeId}
+        WHERE work_record_id = #{workRecordId}
     </update>
 
     <select id="getProdList">
@@ -196,7 +198,8 @@
                  ,c.tot_Use_Qty
                  ,c.bad_qty
                  ,c.work_bad_qty
-                 ,(select unit from tb_item_mst where item_cd = isnull(c.item_cd, a.item_cd) ) as unit
+                 --,select unit from tb_item_mst where item_cd = a.item_cd  as unit
+                 ,c.prod_info_id
         from  TB_WORK_ORDER_PROC a
               inner join tb_item_detail b
               on b.item_cd = a.item_cd
@@ -206,5 +209,11 @@
           and a.work_proc_id = #{workProcId}
     </select>
 
+    <insert id="insertProdUse">
+        insert into tb_prod_use
+            (prod_Info_Id, test_no, item_cd, lot_no, req_qty, qty, bad_qty, work_Bad_Qty, tot_use_qty, reg_id, upd_id)
+        values
+            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{qty}, #{badQty}, #{workBadQty}, #{totUseQty}, #{userId}, #{userId} )
+    </insert>
 
 </mapper>

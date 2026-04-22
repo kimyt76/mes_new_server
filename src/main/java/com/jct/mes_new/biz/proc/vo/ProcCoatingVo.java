@@ -22,8 +22,10 @@ public class ProcCoatingVo {
     private String itemName;
     private BigDecimal orderQty;
     private String moveReqYn;
-    private String processState;
+    private String batchStatus;
+    private String batchStatusName;
     private String procStatus;
+    private String procStatusName;
     private String storageName;
     private String coatingStat;
 
