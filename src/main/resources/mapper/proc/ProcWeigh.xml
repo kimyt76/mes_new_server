@@ -5,11 +5,7 @@
     <select id="checkWeighCnt">
         select count(*) from tb_weigh_info where work_proc_id = #{workProcId}
     </select>
-    <!-- =========================================================
-         1) 메인 리스트 조회
-         WorkOrderVo getWorkOrderList(WorkOrderVo vo);
-         - 기본: work_order_date, area_cd, client_id, manager_id 등 조건이 있으면 적용
-         ========================================================= -->
+
     <select id="getWeighList">
         select   dbo.getCommonName('area', c.area_cd) as areaCd
                 ,b.po_no
@@ -19,8 +15,10 @@
                 ,a.item_cd
                 ,d.item_name
                 ,a.order_qty
-                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as proc_status
-                ,dbo.getCommonName('batch_STATUS', b.batch_status) as batch_status
+                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as proc_status_name
+                ,dbo.getCommonName('batch_STATUS', b.batch_status) as batch_status_name
+                ,a.proc_status
+                ,b.batch_status
                 ,a.proc_cd
                 ,c.work_order_id
                 ,b.work_batch_id

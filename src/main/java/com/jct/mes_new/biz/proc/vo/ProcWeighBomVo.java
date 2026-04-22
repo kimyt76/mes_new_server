@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.proc.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
