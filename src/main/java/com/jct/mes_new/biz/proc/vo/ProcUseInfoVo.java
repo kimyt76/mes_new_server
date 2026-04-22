@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Data
 public class ProcUseInfoVo {
 
-    private Long prodId;
+    private Long prodInfoId;
     private Long workProcId;
 
     private String itemTypeCd;
