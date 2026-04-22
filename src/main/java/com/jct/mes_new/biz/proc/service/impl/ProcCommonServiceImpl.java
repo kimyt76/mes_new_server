@@ -4,15 +4,14 @@ import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
-import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
-import com.jct.mes_new.biz.proc.vo.ProcTranVo;
-import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
-import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
+import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.jfree.util.Log;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -53,7 +52,6 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         return "수정되었습니다.";
     }
 
-
     /**
      * 제조출고 조회
      * @param vo
@@ -63,5 +61,34 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         return procCommonMapper.getProcTranList(vo);
     }
 
+
+    @Transactional(rollbackFor = Exception.class)
+    public Long saveProdInfo(ProcUseRequestVo vo){
+        String userId = UserUtil.getUserId();
+
+        ProcUseInfoVo mst = vo.getProdInfo();
+        List<ProcUseInfoVo> prodUseList = vo.getProdUseList();
+        mst.setUserId(userId);
+
+        //투입자재 정보 등록
+        Long prodInfoId = procCommonMapper.insertProdInfo(mst);
+
+        if ( prodInfoId == null || prodInfoId <= 0 ){
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
+        Log.info("========================prodInfoId============= : " + prodInfoId);
+        Log.info("========================mst.getProdInfoId()============= : " + mst.getProdInfoId());
+        //투입량 저장
+        for (ProcUseInfoVo prodUseInfo : prodUseList){
+            prodUseInfo.setProdInfoId(mst.getProdInfoId());
+            prodUseInfo.setUserId(userId);
+
+            if ( procCommonMapper.insertProdUseInfo(prodUseInfo)  <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }
+
+        return prodInfoId;
+    }
 
 }

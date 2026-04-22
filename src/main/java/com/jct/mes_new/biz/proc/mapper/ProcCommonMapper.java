@@ -38,4 +38,18 @@ public interface ProcCommonMapper {
      * @return
      */
     List<ProcUseInfoVo> getProdList(String procCd, Long workProcId);
+
+    /**
+     * 투입자재  등록
+     * @param vo
+     * @return prodInfoId
+     */
+    Long insertProdInfo(ProcUseInfoVo vo);
+
+    /**
+     * 투입량 정보 등록
+     * @param prodUseInfo
+     * @return
+     */
+    int insertProdUseInfo(ProcUseInfoVo prodUseInfo);
 }

@@ -10,6 +10,7 @@ public class ProcUseInfoVo {
 
     private Long prodInfoId;
     private Long workProcId;
+    private Long workBatchId;
 
     private String itemTypeCd;
     private String itemTypeName;
@@ -18,18 +19,17 @@ public class ProcUseInfoVo {
     private String testNos;
     private String specInfo;
     private String testNo;
-    private String spec;
     private String exAppearance;
     private String packingSpecValue;
     private String packingSpecUnit;
     private BigDecimal reqQty;
     private BigDecimal totUseQty;
     private BigDecimal badQty;
+    private BigDecimal useQty;
     private BigDecimal workBadQty;
     private String unit;
     private String unitQty;
-
-
+    private String lotNo;
     private String userId;
 
 

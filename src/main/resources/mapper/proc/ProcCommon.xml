@@ -195,10 +195,11 @@
                  ,b.packing_spec_value
                  ,b.packing_spec_unit
                  ,c.req_qty
-                 ,c.tot_Use_Qty
+                 ,c.use_qty
                  ,c.bad_qty
                  ,c.work_bad_qty
-                 --,select unit from tb_item_mst where item_cd = a.item_cd  as unit
+                 ,isnull(c.tot_Use_Qty,  c.use_qty-c.bad_qty-c.work_bad_qty) as tot_Use_Qty
+             --,select unit from tb_item_mst where item_cd = a.item_cd  as unit
                  ,c.prod_info_id
         from  TB_WORK_ORDER_PROC a
               inner join tb_item_detail b
@@ -209,11 +210,47 @@
           and a.work_proc_id = #{workProcId}
     </select>
 
-    <insert id="insertProdUse">
+    <insert id="insertProdInfo" parameterType="com.jct.mes_new.biz.proc.vo.ProcUseInfoVo" useGeneratedKeys="true" keyProperty="prodInfoId">
+        INSERT INTO tb_prod_info (
+                  test_nos
+                , spec_info
+                , ex_appearance
+                , packing_spec_value
+                , packing_spec_unit
+                , unitQty
+                , req_qty
+                , bad_Qty
+                , work_Bad_Qty
+                , tot_use_qty
+                , work_proc_id
+                , work_batch_id
+                , reg_id
+                , upd_id
+        )
+        VALUES (
+              #{testNos}
+            , #{specInfo}
+            , #{exAppearance}
+            , #{packingSpecValue}
+            , #{packingSpecUnit}
+            , #{unitQty}
+            , #{reqQty}
+            , #{badQty}
+            , #{workBadQty}
+            , #{totUseQty}
+            , #{workProcId}
+            , #{workBatchId}
+            , #{userId}
+            , #{userId}
+            )
+    </insert>
+
+
+    <insert id="insertProdUseInfo">
         insert into tb_prod_use
-            (prod_Info_Id, test_no, item_cd, lot_no, req_qty, qty, bad_qty, work_Bad_Qty, tot_use_qty, reg_id, upd_id)
+            (prod_Info_Id, test_no,  lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty, tot_use_qty, reg_id, upd_id)
         values
-            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{qty}, #{badQty}, #{workBadQty}, #{totUseQty}, #{userId}, #{userId} )
+            (#{prodInfoId}, #{testNo},  #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{totUseQty}, #{userId}, #{userId} )
     </insert>
 
 </mapper>

@@ -5,9 +5,10 @@ import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
 import com.jct.mes_new.biz.proc.vo.ProcTranVo;
+import com.jct.mes_new.biz.proc.vo.ProcUseInfoVo;
+import com.jct.mes_new.biz.proc.vo.ProcUseRequestVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
-import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -46,10 +47,16 @@ public class ProcCommonController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
-
     @PostMapping("/getProcTranList")
     public List<ProcTranVo> getProcTranList(@RequestBody SearchCommonVo vo) {
         return  procCommonService.getProcTranList(vo);
     }
+
+    @PostMapping("/saveProdInfo")
+    public ResponseEntity<ApiResponse<Long>> saveProdInfo(@RequestBody ProcUseRequestVo vo) {
+        Long prodInfoId = procCommonService.saveProdInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), prodInfoId));
+    }
+
 
 }
