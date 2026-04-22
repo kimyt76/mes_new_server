@@ -3,13 +3,12 @@ package com.jct.mes_new.biz.proc.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.time.LocalTime;
 
 @Data
-public class WorkRecodeVo {
+public class WorkRecordVo {
 
-    private Long workRecodeId;
+    private Long workRecordId;
     private Long workProcId;
     private String itemCd;
     private String workDate;
