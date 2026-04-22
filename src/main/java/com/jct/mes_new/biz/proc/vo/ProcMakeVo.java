@@ -24,6 +24,8 @@ public class ProcMakeVo {
     private String lotNo;
     private String lotNo2;
     private BigDecimal orderQty;
+    private BigDecimal prodQty;
+    private BigDecimal prodYield;
     private String batchStatus;
     private String procStatus;
     private String areaCd;

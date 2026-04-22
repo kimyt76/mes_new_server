@@ -21,4 +21,6 @@ public interface ProcMakeMapper {
     Long getWeighQty(Long weighId);
 
     int updateMakeRecipe(ProcWeighBomVo item);
+
+    int updateCoatingTestNo(String testNo, Long workBatchId, String userId);
 }
