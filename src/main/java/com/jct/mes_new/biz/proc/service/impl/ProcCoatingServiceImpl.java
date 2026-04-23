@@ -1,27 +1,36 @@
 package com.jct.mes_new.biz.proc.service.impl;
 
 import com.jct.mes_new.biz.base.mapper.ItemMapper;
+import com.jct.mes_new.biz.base.vo.ItemVo;
+import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.proc.mapper.ProcCoatingMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.service.ProcCoatingService;
-import com.jct.mes_new.biz.proc.vo.ProcCoatingVo;
-import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
-import com.jct.mes_new.biz.proc.vo.ProcProdInfoVo;
+import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.biz.qc.mapper.ItemTestMapper;
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
+import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import com.jct.mes_new.config.util.CodeUtil;
+import com.jct.mes_new.config.util.ExcelStyleUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Footer;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,17 +45,6 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
 
     public List<ProcCoatingVo> getCoatingList(ProcCoatingVo vo){
         return procCoatingMapper.getCoatingList(vo);
-    }
-
-    public ProcProdInfoVo getCoatingInfo(ProcCommonVo vo){
-        ProcProdInfoVo info = new ProcProdInfoVo();
-
-        info.setItemInfo(itemMapper.getItemInfo(vo.getItemCd()));
-        info.setProdList(procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId()));
-        info.setWorkOrderProcInfo(workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId()) );
-        info.setWorkRecordList(procCommonMapper.getWorkRecordList(vo.getWorkProcId()) );
-
-        return info;
     }
 
     @Transactional(rollbackFor = BusinessException.class)
@@ -124,10 +122,9 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
 
 
 
-
-
         return  "저장되었습니다.";
     }
+
 
 
 }

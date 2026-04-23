@@ -11,8 +11,6 @@ import java.util.List;
 public interface ProcCoatingService {
     List<ProcCoatingVo> getCoatingList(ProcCoatingVo vo);
 
-    ProcProdInfoVo getCoatingInfo(ProcCommonVo vo);
-
     String startProcCoating(ProcCoatingVo vo);
 
     String completeCoating(ProcCoatingVo vo);

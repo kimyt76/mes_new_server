@@ -10,9 +10,13 @@ import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -29,11 +33,6 @@ public class ProcCoatingController {
         return  procCoatingService.getCoatingList(vo);
     }
 
-    @PostMapping("/getCoatingInfo")
-    public ProcProdInfoVo getCoatingInfo (@RequestBody ProcCommonVo vo) {
-        return  procCoatingService.getCoatingInfo(vo);
-    }
-
     @PostMapping("/startProcCoating")
     public ResponseEntity<ApiResponse<Void>>  startProcCoating(@RequestBody ProcCoatingVo vo){
         String result = procCoatingService.startProcCoating(vo);
@@ -46,5 +45,23 @@ public class ProcCoatingController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
     }
 
+//    @PostMapping("/downloadCoatingRecord/{id}")
+//    public ResponseEntity<byte[]>  downloadCoatingRecord(@PathVariable Long workProcId){
+
+//    byte[] fileBytes = procCoatingService.downloadCoatingRecord(workProcId);
+//    String fileName = "성적서_" + qcTestId + ".xlsx";
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.parseMediaType(
+//            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+//            .header(HttpHeaders.CONTENT_DISPOSITION,
+//                    ContentDisposition.attachment()
+//                                .filename(fileName, StandardCharsets.UTF_8)
+//                                .build()
+//                                .toString())
+//            .body(fileBytes);
+//
+//
+//
+//    }
 
 }
