@@ -108,18 +108,15 @@
               ,prod_date        = isnull(CAST(#{prodDate} AS date), CONVERT(date, GETDATE()))
               ,storage_cd       = #{storageCd}
               ,manager_id       = #{managerId}
+              ,test_no          = #{testNo}
               ,work_start_time  = getdate()
               ,upd_id           = #{userId}
               ,upd_dt           = getDate()
         where  work_proc_id     = #{workProcId}
     </update>
 
-    <update id="updateCoatingTestNo">
-        update TB_WORK_ORDER_PROC
-        set    test_no      = #{testNo}
-              ,upd_id       = #{userId}
-              ,upd_dt       = getDate()
-        where  proc_cd = 'PRC003'
-        and    work_batch_id = #{workBatchId}
-    </update>
+
+
+
+
 </mapper>

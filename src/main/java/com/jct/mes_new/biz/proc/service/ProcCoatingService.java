@@ -13,5 +13,7 @@ public interface ProcCoatingService {
 
     ProcProdInfoVo getCoatingInfo(ProcCommonVo vo);
 
-    String startProcCoating(ProcCommonVo vo);
+    String startProcCoating(ProcCoatingVo vo);
+
+    String completeCoating(ProcCoatingVo vo);
 }

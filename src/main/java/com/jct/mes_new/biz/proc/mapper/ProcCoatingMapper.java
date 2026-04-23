@@ -10,5 +10,5 @@ import java.util.List;
 public interface ProcCoatingMapper {
     List<ProcCoatingVo> getCoatingList(ProcCoatingVo vo);
 
-    int startProcCoating(ProcCommonVo vo);
+    int startProcCoating(ProcCoatingVo vo);
 }

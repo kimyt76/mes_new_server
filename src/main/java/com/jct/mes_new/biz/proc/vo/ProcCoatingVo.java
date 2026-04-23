@@ -9,8 +9,9 @@ import java.math.BigDecimal;
 @Data
 public class ProcCoatingVo {
 
-    private String workProcId;
-    private String workOrderId;
+    private Long workProcId;
+    private Long workBatchId;
+    private Long workOrderId;
 
     private String areaCd;
     private String areaName;
@@ -27,11 +28,21 @@ public class ProcCoatingVo {
     private String procStatus;
     private String procStatusName;
     private String storageName;
-    private String coatingStat;
+    private String storageCd;
 
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String strDate;
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
     private String endDate;
+
+    private String testNo;
+    private String procCd;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    private String prodDate;
+    private String workStartTime;
+    private String workEndTime;
+    private String managerId;
+    private String userId;
+
 
 }

@@ -11,10 +11,7 @@ import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -38,8 +35,14 @@ public class ProcCoatingController {
     }
 
     @PostMapping("/startProcCoating")
-    public ResponseEntity<ApiResponse<Void>>  startProcCoating(@RequestBody ProcCommonVo vo){
+    public ResponseEntity<ApiResponse<Void>>  startProcCoating(@RequestBody ProcCoatingVo vo){
         String result = procCoatingService.startProcCoating(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
+    }
+
+    @PostMapping("/completeCoating")
+    public ResponseEntity<ApiResponse<Void>>  completeCoating(@RequestBody ProcCoatingVo vo){
+        String result = procCoatingService.completeCoating(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
     }
 
