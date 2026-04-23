@@ -14,6 +14,7 @@ public class ProcUseInfoVo {
 
     private String itemTypeCd;
     private String itemTypeName;
+    private String itemCd;
     private String itemName;
     private String matName;
     private String testNos;
