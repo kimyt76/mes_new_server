@@ -88,8 +88,6 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         if(procCommonMapper.updateBatchStatus(procCommonVo) <= 0){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
-        //코팅에 제조 테스트 번호 추가
-        int cnt = procMakeMapper.updateCoatingTestNo(vo.getTestNo(), vo.getWorkBatchId(), userId);
 
         LocalDate shelfLife = LocalDate.now().plusDays(365 * 2);
         LocalDate expiryDate = LocalDate.now().plusDays(365 * 2);
