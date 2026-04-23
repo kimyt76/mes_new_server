@@ -32,6 +32,7 @@ public class WorkOrderInfoVo {
     private String procCd;
     private String itemCd;
     private String itemName;
+    private String testNo;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate prodDate;
