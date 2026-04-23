@@ -52,4 +52,11 @@ public interface ProcCommonMapper {
      * @return
      */
     int insertProdUseInfo(ProcUseInfoVo prodUseInfo);
+
+    /**
+     * 사용량 등록 조회
+     * @param prodInfoId
+     * @return
+     */
+    List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
 }

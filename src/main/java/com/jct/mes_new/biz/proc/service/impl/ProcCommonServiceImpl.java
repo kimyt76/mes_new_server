@@ -81,6 +81,7 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         //투입량 저장
         for (ProcUseInfoVo prodUseInfo : prodUseList){
             prodUseInfo.setProdInfoId(mst.getProdInfoId());
+            prodUseInfo.setItemCd(mst.getItemCd());
             prodUseInfo.setUserId(userId);
 
             if ( procCommonMapper.insertProdUseInfo(prodUseInfo)  <= 0 ){
@@ -90,5 +91,24 @@ public class ProcCommonServiceImpl implements ProcCommonService {
 
         return prodInfoId;
     }
+
+    /**
+     *  사용량 입력 조회
+     * @param prodInfoId
+     * @return
+     */
+    public List<ProcUseInfoVo> getProdUseList(Long prodInfoId){
+        return procCommonMapper.getProdUseList(prodInfoId);
+    }
+
+
+
+
+
+
+
+
+
+
 
 }

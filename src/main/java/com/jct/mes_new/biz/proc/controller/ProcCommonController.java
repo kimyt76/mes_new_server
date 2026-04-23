@@ -3,10 +3,7 @@ package com.jct.mes_new.biz.proc.controller;
 
 import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
-import com.jct.mes_new.biz.proc.vo.ProcCommonVo;
-import com.jct.mes_new.biz.proc.vo.ProcTranVo;
-import com.jct.mes_new.biz.proc.vo.ProcUseInfoVo;
-import com.jct.mes_new.biz.proc.vo.ProcUseRequestVo;
+import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +53,11 @@ public class ProcCommonController {
     public ResponseEntity<ApiResponse<Long>> saveProdInfo(@RequestBody ProcUseRequestVo vo) {
         Long prodInfoId = procCommonService.saveProdInfo(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), prodInfoId));
+    }
+
+    @PostMapping("/getProdUseList/{id}")
+    public List<ProcUseInfoVo> getProdUseList (@PathVariable("id") Long prodInfoId) {
+        return  procCommonService.getProdUseList(prodInfoId);
     }
 
 

@@ -20,4 +20,6 @@ public interface ProcCommonService {
     List<ProcTranVo> getProcTranList(SearchCommonVo vo);
 
     Long saveProdInfo(ProcUseRequestVo vo);
+
+    List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
 }

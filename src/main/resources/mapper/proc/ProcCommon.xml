@@ -2,11 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCommonMapper">
-    <!-- =========================================================
-         1) 메인 리스트 조회
-         WorkOrderVo getWorkOrderList(WorkOrderVo vo);
-         - 기본: work_order_date, area_cd, client_id, manager_id 등 조건이 있으면 적용
-         ========================================================= -->
     <select id="getWorkerList">
         select worker_name
               ,etc
@@ -65,7 +60,6 @@
               ,upd_dt               = getDate()
         where  work_proc_id         = #{workProcId}
     </update>
-
 
     <select id="getProcTranList">
         with tmp_work_order as (
@@ -234,10 +228,10 @@
             , #{packingSpecValue}
             , #{packingSpecUnit}
             , #{unitQty}
+            , #{useQty}
             , #{reqQty}
             , #{badQty}
             , #{workBadQty}
-            , #{totUseQty}
             , #{workProcId}
             , #{workBatchId}
             , #{userId}
@@ -245,12 +239,17 @@
             )
     </insert>
 
-
     <insert id="insertProdUseInfo">
         insert into tb_prod_use
-            (prod_Info_Id, test_no,  lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty, tot_use_qty, reg_id, upd_id)
+            (prod_Info_Id, test_no,  item_cd, lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty, tot_use_qty, reg_id, upd_id)
         values
-            (#{prodInfoId}, #{testNo},  #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{totUseQty}, #{userId}, #{userId} )
+            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{totUseQty}, #{userId}, #{userId} )
     </insert>
+
+    <select id="getProdUseList">
+        select *
+        from   tb_prod_use
+        where  prod_info_id = #{prodInfoId}
+    </select>
 
 </mapper>

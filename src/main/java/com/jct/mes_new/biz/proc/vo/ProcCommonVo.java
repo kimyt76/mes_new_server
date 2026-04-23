@@ -31,6 +31,7 @@ public class ProcCommonVo {
     private String etc;
     private String memo;
     private String areaCd;
+    private String testNo;
 
     private String bagWeightName;
     private BigDecimal weight;
