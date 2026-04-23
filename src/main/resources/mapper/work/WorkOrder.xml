@@ -249,7 +249,8 @@
     </update>
 
     <select id="getWorkOrderProcInfo">
-        select    dbo.getCommonName('area', c.area_cd) as area_cd
+        select    CONCAT(CONVERT(varchar(10),c.work_order_date,23),' - ',c.seq) AS workOrderDateSeq
+                 ,dbo.getCommonName('area', c.area_cd) as area_name
                  ,dbo.getClientName(c.client_id) as client_Name
                  ,a.prod_date
                  ,a.order_qty
@@ -272,6 +273,9 @@
                  ,a.tran_yn
                  ,a.end_yn
                  ,a.test_no
+                 ,a.prod_qty
+                 ,a.prod_yield
+                 ,c.area_cd
         from   TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
