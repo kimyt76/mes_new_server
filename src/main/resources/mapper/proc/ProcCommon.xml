@@ -178,27 +178,54 @@
     </update>
 
     <select id="getProdList">
-        select    a.*
-                 ,b.mat_name
-                 ,c.test_nos
-                 ,dbo.getItemName(a.item_cd) as item_name
-                 ,b.spec_info
-                 ,b.ex_appearance
-                 ,b.packing_spec_value
-                 ,b.packing_spec_unit
-                 ,c.req_qty
-                 ,c.use_qty
-                 ,c.bad_qty
-                 ,c.work_bad_qty
-                 ,(select unit from tb_item_mst where item_cd = a.item_cd ) as unit
-                 ,c.prod_info_id
-        from  TB_WORK_ORDER_PROC a
-              inner join tb_item_detail b
-              on b.item_cd = a.item_cd
-              left outer join tb_prod_info c
-              on a.work_proc_id = c.work_proc_id
-        where a.proc_cd = #{procCd}
-          and a.work_proc_id = #{workProcId}
+        WITH PROC_CTE AS (
+            SELECT *
+                 ,CASE
+                      WHEN proc_cd = 'PRC001' THEN 1
+                      WHEN proc_cd = 'PRC002' THEN 2
+                      WHEN proc_cd = 'PRC003' THEN 3
+                      WHEN proc_cd = 'PRC004' THEN 4
+                      WHEN proc_cd = 'PRC005' THEN 5
+                END AS proc_seq
+            FROM TB_WORK_ORDER_PROC
+        ),
+        PROC_WITH_PREV AS (
+            SELECT   A.*,
+                     B.item_cd AS prev_item_cd
+            FROM PROC_CTE A
+                OUTER APPLY (
+                    SELECT TOP 1
+                            B.item_cd
+                    FROM PROC_CTE B
+                    WHERE B.work_order_id = A.work_order_id
+                    <![CDATA[
+                    AND B.proc_seq < A.proc_seq
+                   ]]>
+                    AND B.item_cd IS NOT NULL
+                    ORDER BY B.proc_seq DESC
+                ) B
+        )
+        SELECT a.*
+             ,b.mat_name
+             ,c.test_nos
+             ,dbo.getItemName(ISNULL(a.prev_item_cd, a.item_cd)) AS item_name
+             ,b.spec_info
+             ,b.ex_appearance
+             ,b.packing_spec_value
+             ,b.packing_spec_unit
+             ,c.req_qty
+             ,c.use_qty
+             ,c.bad_qty
+             ,c.work_bad_qty
+             ,( SELECT unit FROM tb_item_mst WHERE item_cd = ISNULL(a.prev_item_cd, a.item_cd) ) AS unit
+             ,c.prod_info_id
+        FROM PROC_WITH_PREV a
+             INNER JOIN tb_item_detail b
+             ON b.item_cd = ISNULL(a.prev_item_cd, a.item_cd)
+             LEFT OUTER JOIN tb_prod_info c
+             ON a.work_proc_id = c.work_proc_id
+        WHERE a.proc_cd = #{procCd}
+          AND a.work_proc_id = #{workProcId}
     </select>
 
     <insert id="insertProdInfo" parameterType="com.jct.mes_new.biz.proc.vo.ProcUseInfoVo" useGeneratedKeys="true" keyProperty="prodInfoId">
