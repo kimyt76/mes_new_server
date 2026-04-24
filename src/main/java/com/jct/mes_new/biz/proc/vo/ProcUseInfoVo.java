@@ -24,9 +24,9 @@ public class ProcUseInfoVo {
     private String packingSpecValue;
     private String packingSpecUnit;
     private BigDecimal reqQty;
-    private BigDecimal totUseQty;
     private BigDecimal badQty;
     private BigDecimal useQty;
+    private BigDecimal totUseQty;
     private BigDecimal workBadQty;
     private String unit;
     private String unitQty;

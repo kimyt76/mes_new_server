@@ -8,9 +8,13 @@ import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -60,5 +64,31 @@ public class ProcCommonController {
         return  procCommonService.getProdUseList(prodInfoId);
     }
 
+
+    @PostMapping("/getProcProdInfo")
+    public ProcProdInfoVo getProcProdInfo (@RequestBody ProcCommonVo vo) {
+        return  procCommonService.getProcProdInfo(vo);
+    }
+
+    @PostMapping("/saveWorkRecordInfo")
+    public ResponseEntity<ApiResponse<Void>> saveWorkRecordInfo(@RequestBody WorkRecordVo vo) {
+        String result = procCommonService.saveWorkRecordInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+    @PostMapping("/downloadRecord")
+    public ResponseEntity<byte[]> downloadRecord(@RequestBody ProcCommonVo vo){
+        byte[] fileBytes = procCommonService.downloadRecord(vo);
+        String fileName = "성적서_" + vo.getProcCd() + ".xlsx";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(fileName, StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
+                .body(fileBytes);
+    }
 
 }

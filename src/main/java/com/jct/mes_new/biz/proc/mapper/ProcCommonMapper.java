@@ -59,4 +59,20 @@ public interface ProcCommonMapper {
      * @return
      */
     List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
+
+    /**
+     * 투입량 업데이트
+     * @param vo
+     * @return
+     */
+    int updateProdByWorkOrderProc(ProcUseInfoVo vo);
+
+    /**
+     * 작업수행정보 등록
+     * @param vo
+     * @return
+     */
+    int insertWorkRecordInfo(WorkRecordVo vo);
+
+    int updateWorkRecordInfo(WorkRecordVo vo);
 }

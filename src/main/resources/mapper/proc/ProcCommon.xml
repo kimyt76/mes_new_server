@@ -166,15 +166,13 @@
 
     <update id="updateWorkRecord" >
         UPDATE tb_work_record
-        SET work_proc_id     = #{workProcId}
-          , item_cd          = #{itemCd}
-          , work_date        = #{workDate}
+        SET work_date        = #{workDate}
           , work_start_time  = #{workStartTime}
           , work_end_time    = #{workEndTime}
           , worker_cnt       = #{workerCnt}
-          , matUseQty        = #{matUseQty}
-          , coatingQty       = #{coatingQty}
-          , upd_id           = #{updId}
+          , use_Qty          = #{useQty}
+          , prod_Qty         = #{prodQty}
+          , upd_id           = #{userId}
           , upd_dt           = GETDATE()
         WHERE work_record_id = #{workRecordId}
     </update>
@@ -192,8 +190,7 @@
                  ,c.use_qty
                  ,c.bad_qty
                  ,c.work_bad_qty
-                 ,isnull(c.tot_Use_Qty,  c.use_qty-c.bad_qty-c.work_bad_qty) as tot_Use_Qty
-             --,select unit from tb_item_mst where item_cd = a.item_cd  as unit
+                 ,(select unit from tb_item_mst where item_cd = a.item_cd ) as unit
                  ,c.prod_info_id
         from  TB_WORK_ORDER_PROC a
               inner join tb_item_detail b
@@ -215,7 +212,7 @@
                 , req_qty
                 , bad_Qty
                 , work_Bad_Qty
-                , tot_use_qty
+                , use_qty
                 , work_proc_id
                 , work_batch_id
                 , reg_id
@@ -241,9 +238,9 @@
 
     <insert id="insertProdUseInfo">
         insert into tb_prod_use
-            (prod_Info_Id, test_no,  item_cd, lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty, tot_use_qty, reg_id, upd_id)
+            (prod_Info_Id, test_no,  item_cd, lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty,  reg_id, upd_id)
         values
-            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{totUseQty}, #{userId}, #{userId} )
+            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{userId}, #{userId} )
     </insert>
 
     <select id="getProdUseList">
@@ -251,5 +248,14 @@
         from   tb_prod_use
         where  prod_info_id = #{prodInfoId}
     </select>
+
+    <update id="updateProdByWorkOrderProc">
+        update TB_WORK_ORDER_PROC
+        set  use_qty = #{useQty}
+            ,upd_id   = #{userId}
+            ,upd_dt  = getdate()
+        where work_proc_id = #{workProcId}
+    </update>
+
 
 </mapper>
