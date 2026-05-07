@@ -11,6 +11,7 @@ import com.jct.mes_new.biz.lab.vo.IngredientVo;
 import com.jct.mes_new.biz.lab.vo.MaterialRequestVo;
 import com.jct.mes_new.biz.lab.vo.MaterialVo;
 import com.jct.mes_new.config.common.FileUpload;
+import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class MaterialServiceImpl implements MaterialService {
         String itemCd = vo.getMaterialInfo().getItemCd();
         String attachFileId = vo.getMaterialInfo().getAttachFileId();
         String historyId = vo.getMaterialInfo().getHistoryId();
-        String userId = vo.getMaterialInfo().getUserId();
+        String userId = UserUtil.getUserId();
 
         try {
             //변경이력

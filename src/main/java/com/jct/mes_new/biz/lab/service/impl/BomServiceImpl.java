@@ -96,7 +96,6 @@ public class BomServiceImpl implements BomService {
                 }
             }
         }
-
         // 3. 제조공정 저장
         //저장전에 삭제건이 있는지 확인
         if (vo.getDeleteBomProc() != null && !vo.getDeleteBomProc().isEmpty()) {
@@ -107,7 +106,7 @@ public class BomServiceImpl implements BomService {
             for (BomProcVo proc : bomProcList) {
                 proc.setBomId(bomId);
                 proc.setUserId(userId);
-log.info("============================proc.getBomProcId()=========================== : " + proc.getBomProcId());
+
                 if( proc.getBomProcId() == null || proc.getBomProcId().isEmpty()) {
                     proc.setBomProcId(CommonUtil.generateUUID());
 
@@ -167,5 +166,9 @@ log.info("============================proc.getBomProcId()=======================
         }
         return "저장되었습니다.";
     }
+
+
+
+
 
 }

@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.lab.mapper.RecipeMapper;
 import com.jct.mes_new.biz.lab.service.RecipeService;
 import com.jct.mes_new.biz.lab.vo.*;
 import com.jct.mes_new.config.common.CommonUtil;
+import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -40,11 +41,14 @@ public class RecipeServiceImpl implements RecipeService {
     @Transactional(rollbackFor = Exception.class)
     public String saveRecipeInfo(RecipeVo recipeInfo, List<RecipeDetailVo> recipeList){
         String recipe_id =recipeInfo.getRecipeId();
+        String userId = UserUtil.getUserId();
+
         try{
             if( recipe_id == null || recipe_id.isEmpty()){
                 recipe_id = CommonUtil.generateUUID();
                 recipeInfo.setRecipeId(recipe_id);
             }
+            recipeInfo.setUserId(userId);
             if( recipeMapper.saveRecipeInfo(recipeInfo) <= 0 ){
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
@@ -53,7 +57,7 @@ public class RecipeServiceImpl implements RecipeService {
 
                 for(RecipeDetailVo recipe : recipeList){
                     recipe.setRecipeId(recipe_id);
-                    recipe.setUserId(recipeInfo.getUserId());
+                    recipe.setUserId(userId);
                     if( recipeMapper.saveRecipeList(recipe) <= 0 ){
                         throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }

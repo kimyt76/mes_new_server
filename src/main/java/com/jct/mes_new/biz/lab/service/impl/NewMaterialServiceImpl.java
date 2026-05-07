@@ -7,6 +7,7 @@ import com.jct.mes_new.biz.lab.vo.IngredientVo;
 import com.jct.mes_new.biz.lab.vo.NewMaterialRequestVo;
 import com.jct.mes_new.biz.lab.vo.NewMaterialVo;
 import com.jct.mes_new.config.common.CommonUtil;
+import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.session.jdbc.OracleJdbcIndexedSessionRepositoryCustomizer;
@@ -41,7 +42,7 @@ public class NewMaterialServiceImpl implements NewMaterialService {
     @Transactional(rollbackFor = Exception.class)
     public String saveNewMaterialInfo(NewMaterialVo newMaterialInfo, List<IngredientVo> materialMappingList){
         String newMaterialId = newMaterialInfo.getNewMaterialId();
-        String userId = newMaterialInfo.getUserId();
+        String userId = UserUtil.getUserId();
 
         try {
             if (newMaterialId == null ){

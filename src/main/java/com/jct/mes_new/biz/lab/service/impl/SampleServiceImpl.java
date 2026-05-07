@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.lab.mapper.SampleMapper;
 import com.jct.mes_new.biz.lab.service.SampleService;
 import com.jct.mes_new.biz.lab.vo.SampleVo;
 import com.jct.mes_new.config.common.CommonUtil;
+import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class SampleServiceImpl implements SampleService {
 
     public String saveSampleInfo(SampleVo vo){
         String msg ="저장되었습니다.";
-
+        vo.setUserId(UserUtil.getUserId());
         int result = sampleMapper.saveSampleInfo(vo);
         if ( result <= 0  ) {
             throw new BusinessException("샘플 저장에 실패했습니다.");

@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.lab.service.impl;
 import com.jct.mes_new.biz.lab.mapper.IngredientMapper;
 import com.jct.mes_new.biz.lab.service.IngredientService;
 import com.jct.mes_new.biz.lab.vo.IngredientVo;
+import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class IngredientServiceImpl implements IngredientService {
         String msg = "저장되었습니다.";
         String limit = "L";
         String ban = "B";
+        vo.setUserId(UserUtil.getUserId());
 
         try{
             if (vo.getIngredientCode() == null ){
