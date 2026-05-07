@@ -90,15 +90,16 @@
     <select id="getBomProcList">
         select    a.order_dist
                  ,a.phase
-                 ,a.proc_gb
                  ,a.proc_type
                  ,a.mat_proc
-                 ,a.ho
-                 ,a.pd
+                 ,a.h
+                 ,a.p
                  ,a.d1
                  ,a.d2
                  ,a.t
                  ,a.m
+                 ,a.p2
+                 ,a.rt
                  ,a.etc
                  ,a.bom_proc_id
                  ,a.bom_id
@@ -107,31 +108,92 @@
         order by a.order_dist
     </select>
 
-    <update id="saveBomInfo">
-        merge into tb_bom_mst a
-        using  (select #{bomId} as bom_id ) b
-        on     a.bom_id = b.bom_id
-        WHEN MATCHED THEN
-            UPDATE SET
-                     item_cd 	    = #{itemCd}
-                    ,client_id  	= #{clientId}
-                    ,manager_id  	= #{managerId}
-                    ,lab_no 	    = #{labNo}
-                    ,prod_type	    = #{prodType}
-                    ,usage 	        = #{usage}
-                    ,caution 	    = #{caution}
-                    ,note 	        = #{note}
-                    ,significant 	= #{significant}
-                    ,qty 	        = isnull(#{qty}, 0)
-                    ,approval_state = #{approvalState}
-                    ,etc 	        = #{etc}
-                    ,upd_id         = #{userId}
-                    ,upd_dt         = getdate()
-        WHEN NOT MATCHED THEN
-            INSERT (bom_id, bom_ver, item_cd, client_id, manager_id, lab_no, prod_type,  usage,  caution , significant, note,  qty, approval_state, etc, default_yn, reg_id, upd_id)
-            VALUES
-                (#{bomId}, (select convert(nvarchar(10), getdate(), 23)) ,#{itemCd}, #{clientId}, #{managerId}, #{labNo}, #{prodType}, #{usage}, #{caution},#{significant},#{note},isnull(#{qty}, 0),#{approvalState},#{etc}, 'Y', #{userId}, #{userId})
-        ;
+    <insert id="insertBomMst">
+        INSERT into  tb_bom_mst
+            (bom_id, bom_ver, item_cd, client_id, manager_id, lab_no, prod_type,  usage,  caution , significant, note,  qty, approval_state, etc, default_yn, reg_id, upd_id)
+        VALUES
+            (#{bomId}, (select convert(nvarchar(10), getdate(), 23)) ,#{itemCd}, #{clientId}, #{managerId}, #{labNo}, #{prodType}, #{usage}, #{caution},#{significant},#{note},isnull(#{qty}, 0),#{approvalState},#{etc}, 'Y', #{userId}, #{userId})
+
+    </insert>
+
+    <update id="updateBomMst">
+            UPDATE tb_bom_mst
+            SET  item_cd 	    = #{itemCd}
+                ,client_id  	= #{clientId}
+                ,manager_id  	= #{managerId}
+                ,lab_no 	    = #{labNo}
+                ,prod_type	    = #{prodType}
+                ,usage 	        = #{usage}
+                ,caution 	    = #{caution}
+                ,note 	        = #{note}
+                ,significant 	= #{significant}
+                ,qty 	        = isnull(#{qty}, 0)
+                ,approval_state = #{approvalState}
+                ,etc 	        = #{etc}
+                ,upd_id         = #{userId}
+                ,upd_dt         = getdate()
+        where   bom_id = #{bomId}
+    </update>
+
+    <delete id="deleteBomRecipe">
+        delete from tb_bom_recipe
+        where bom_item_id in
+        <foreach collection="deleteBomRecipe" item="bomItemId" open="(" separator="," close=")">
+            #{bomItemId}
+        </foreach>
+    </delete>
+
+    <insert id="insertBomRecipe">
+        insert into tb_bom_recipe
+            (bom_item_id,bom_id, phase, item_cd,  real_content,  qty, etc, order_dist, reg_id, upd_id)
+        values
+            (#{bomItemId}, #{bomId}, #{phase}, #{realItemCd},#{realContent} #{qty},#{etc},#{orderDist}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateBomRecipe">
+        UPDATE tb_bom_recipe
+        SET    phase 	    = #{phase}
+              ,item_cd  	= #{realItemCd}
+              ,real_content = #{realContent}
+              ,qty 	        = #{qty}
+              ,etc	        = #{etc}
+              ,order_dist 	= #{orderDist}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  bom_item_id = #{bomItemId}
+    </update>
+
+    <delete id="deleteBomProc">
+        delete from tb_bom_proc
+        where bom_proc_id in
+        <foreach collection="deleteBomProc" item="bomProcId" open="(" separator="," close=")">
+            #{bomProcId}
+        </foreach>
+    </delete>
+
+    <insert id="insertBomProc">
+        insert into tb_bom_proc
+        (bom_proc_id, bom_id, phase, proc_type, mat_proc, h, p  ,d1 ,d2 ,t , m, p2, rt,  etc , order_dist, reg_id, upd_id)
+        values
+        (#{bomProcId}, #{bomId}, #{phase}, #{procType}, #{matProc},  #{h}, #{p},#{d1},#{d2},#{t},#{m},#{p2},#{rt},#{etc},#{orderDist}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateBomProc">
+        UPDATE tb_bom_proc
+        SET    phase 	    = #{phase}
+              ,proc_type    = #{procType}
+              ,mat_proc     = #{matProc}
+              ,h 	        = #{h}
+              ,p	        = #{p}
+              ,d1 	        = #{d1}
+              ,d2 	        = #{d2}
+              ,t 	        = #{t}
+              ,m 	        = #{m}
+              ,p2 	        = #{p2}
+              ,rt 	        = #{rt}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  bom_proc_id = #{bomProcId}
     </update>
 
     <update id="updateBomVer">
@@ -139,28 +201,6 @@
         set    default_yn = 'N'
         where  bom_id = #{asBomId}
     </update>
-
-    <delete id="deleteBomRecipeList">
-        delete from tb_bom_recipe where bom_id = #{bomId}
-    </delete>
-
-    <insert id="saveBomRecipeList">
-        insert into tb_bom_recipe
-        (bom_item_id,bom_id, phase, item_cd,  real_content, std_content, qty, etc, order_dist, reg_id, upd_id)
-        values
-        (#{bomItemId}, #{bomId}, #{phase}, #{realItemCd},#{realContent}, #{stdContent}, #{qty},#{etc},#{orderDist}, #{userId}, #{userId})
-    </insert>
-
-    <delete id="deleteBomProcList">
-        delete from tb_bom_proc where bom_id = #{bomId}
-    </delete>
-
-    <insert id="saveBomProcList">
-        insert into tb_bom_proc
-        (bom_proc_id, bom_id, phase, proc_gb,  proc_type, mat_proc, ho, pd  ,d1 ,d2 ,t , m, etc , order_dist, reg_id, upd_id)
-        values
-           (#{bomProcId}, #{bomId}, #{phase}, #{procGb},#{procType}, #{matProc},  #{ho}, #{pd},#{d1},#{d2},#{t},#{m},#{etc},#{orderDist}, #{userId}, #{userId})
-    </insert>
 
     <select id="getProdTypeInfo" resultType="hashmap">
         select   prod_ko_name as prodTypeName
@@ -202,7 +242,6 @@
         where  a.item_name is not null
     </select>
 
-
     <select id="getBomMatList">
         select   a.item_cd
                 ,b.item_name
@@ -241,7 +280,32 @@
         order by a.item_cd , a.bom_ver desc
     </select>
 
+    <select id="getBomProcInfo">
+        select    b.order_dist
+                 ,b.phase
+                 ,b.proc_type
+                 ,b.mat_proc
+                 ,b.h
+                 ,b.p
+                 ,b.d1
+                 ,b.d2
+                 ,b.t
+                 ,b.m
+                 ,b.p2
+                 ,b.rt
+                 ,a.significant
+                 ,a.note
+                 ,a.bom_id
+                 ,a.item_cd
+                 ,a.bom_ver
+        from   tb_bom_mst a
+                inner join tb_bom_proc b
+                on b.bom_id = a.bom_id
+        where   a.default_yn ='Y'
+          and    a.item_cd = #{itemCd}
+        order by b.order_dist
 
+    </select>
 
 </mapper>
 

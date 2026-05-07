@@ -76,16 +76,12 @@ public class BomController {
 
     /**
      * BOM 저장
-     * @param request
+     * @param vo
      * @return
      */
     @PostMapping("/saveBomInfo")
-    public ResponseEntity<ApiResponse<Void>> saveBomInfo(@RequestBody BomRequestVo request ) {
-        BomVo bomInfo = request.getBomInfo();
-        List<BomRecipeVo> bomRecipeList = request.getBomRecipeList();
-        List<BomProcVo> bomProcList = request.getBomProcList();
-
-        String result = bomService.saveBomInfo(bomInfo, bomRecipeList, bomProcList);
+    public ResponseEntity<ApiResponse<Void>> saveBomInfo(@RequestBody BomRequestVo vo ) {
+        String result = bomService.saveBomInfo(vo);
 
         Map<String, String> response = Map.of("message", result);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
@@ -97,12 +93,8 @@ public class BomController {
      * @return
      */
     @PostMapping("/saveBomVerInfo")
-    public ResponseEntity<ApiResponse<Void>> saveBomVerInfo(@RequestBody BomRequestVo request ) {
-        BomVo bomInfo = request.getBomInfo();
-        List<BomRecipeVo> bomRecipeList = request.getBomRecipeList();
-        List<BomProcVo> bomProcList = request.getBomProcList();
-
-        String result = bomService.saveBomVerInfo(bomInfo, bomRecipeList, bomProcList);
+    public ResponseEntity<ApiResponse<Void>> saveBomVerInfo(@RequestBody BomRequestVo vo ) {
+        String result = bomService.saveBomVerInfo(vo);
 
         Map<String, String> response = Map.of("message", result);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));

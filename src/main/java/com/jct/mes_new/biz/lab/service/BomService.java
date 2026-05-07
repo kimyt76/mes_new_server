@@ -16,9 +16,9 @@ public interface BomService {
 
     BomVo getProductTypeInfo(String prodCd);
 
-    String saveBomInfo(BomVo bomInfo, List<BomRecipeVo> bomRecipeList, List<BomProcVo> bomProcList);
+    String saveBomInfo(BomRequestVo vo);
 
-    String saveBomVerInfo(BomVo bomInfo, List<BomRecipeVo> bomRecipeList, List<BomProcVo> bomProcList);
+    String saveBomVerInfo(BomRequestVo vo);
 
     List<BomRecipeVo> getItemBomList(String itemCd);
 

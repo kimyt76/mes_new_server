@@ -1,9 +1,13 @@
 package com.jct.mes_new.biz.lab.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 
 @Data
 public class BomProcVo {
@@ -18,14 +22,20 @@ public class BomProcVo {
     private String matType;
     private String matTypeName;
     private String matProc;
-    private BigInteger ho;
-    private BigInteger pd;
-    private BigInteger d1;
-    private BigInteger d2;
-    private BigInteger t;
-    private BigInteger m;
+    private String h;
+    private String p;
+    private String d1;
+    private String d2;
+    private String t;
+    private String m;
+    private String p2;
+    private String rt;
     private String etc;
     private String useYn;
+    private String bomVer;
+    private String significant;
+
+    private String note;
 
     private String userId;
 }
