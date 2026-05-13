@@ -40,4 +40,6 @@ public interface ProcWeighMapper {
     List<ProcWeighVo> getWeighInvInfo(Long workProcId);
 
     int updateWeighProcComplete(ProcWeighVo vo);
+
+    int countWeighInvItem(ProcWeighVo item);
 }

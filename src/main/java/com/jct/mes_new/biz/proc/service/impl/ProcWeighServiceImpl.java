@@ -128,7 +128,10 @@ public class ProcWeighServiceImpl implements ProcWeighService {
             for (ProcWeighVo item : weighList) {
                 item.setWeighId(mst.getWeighId());
                 item.setUserId(userId);
-                if (item.getWeighInvId() == null) {
+
+                int existsCnt = procWeighMapper.countWeighInvItem(item);
+
+                if (existsCnt == 0) {
                     // 신규 등록
                     int insertCnt = procWeighMapper.insertWeighInvItem(item);
                     if (insertCnt <= 0) {
@@ -143,6 +146,14 @@ public class ProcWeighServiceImpl implements ProcWeighService {
                 }
             }
         }
+        //칭량 bom 정보 업데이트
+        ProcWeighBomVo weigh = new ProcWeighBomVo();
+        weigh.setWeighId(mst.getWeighId());
+        weigh.setWeighQty(mst.getWeighQty());
+        weigh.setTestNo(mst.getTestNo());
+        weigh.setWeighYn("Y");
+        procWeighMapper.updateWeighRecipe(weigh);
+
         return "칭량정보를 저장했습니다.";
     }
 

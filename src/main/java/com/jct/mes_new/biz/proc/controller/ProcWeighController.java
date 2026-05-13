@@ -85,7 +85,6 @@ public class ProcWeighController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
 
-
     @PostMapping("/printWeighLabel")
     public ResponseEntity<Resource> printWeighLabel(@RequestBody ProcWeighBomVo[] labelItems) throws Exception {
         List<WeighLabelPrint> labelPrintList = new ArrayList<>();

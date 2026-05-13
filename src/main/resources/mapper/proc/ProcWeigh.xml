@@ -78,56 +78,50 @@
     </select>
 
     <select id="getBomWeighList">
-        select b.item_cd
-             ,dbo.getItemName(b.item_cd) as item_name
-             ,b.phase
-             ,c.appearance
-             ,b.real_content as orderQty
-             ,0 as weigh_qty
-             ,0 as bag_weight
-             , ROW_NUMBER() OVER (
-				 PARTITION BY b.phase
-				 ORDER BY b.order_dist
-			   ) AS order_dist
-        from  tb_bom_mst a
-              inner join tb_bom_recipe b
-              on b.bom_id = a.bom_id
-              and  a.item_cd = #{itemCd}
-              inner join tb_item_detail c
-              on c.item_cd = b.item_cd
-        where a.default_yn = 'Y'
-        order by b.phase, b.order_dist
+        select    c.item_cd
+                 ,d.item_name
+                 ,(select  appearance from tb_item_detail where item_cd = c.item_cd ) as appearance
+                 ,c.phase
+                 ,ROUND(a.order_qty * ISNULL(c.real_content, 0) / 100,6) AS order_qty
+                 ,0 as weigh_qty
+                 ,0 as bag_weight
+                 ,ROW_NUMBER() OVER (PARTITION BY c.phase ORDER BY c.order_dist ) AS order_dist
+        from   TB_WORK_ORDER_PROC a
+                inner join tb_bom_mst b
+                on b.item_cd = a.item_cd
+                inner join tb_bom_recipe c
+                on c.bom_id = b.bom_id
+                inner join tb_item_mst d
+                on c.item_cd = d.item_cd
+        where   a.proc_cd = 'PRC001'
+          and   a.work_proc_id = #{workProcId}
+          and   b.default_yn = 'Y'
+        order by c.phase, c.order_dist
     </select>
 
     <select id="getRealBomWeighList">
-        select b.item_cd
-             ,dbo.getItemName(b.item_cd) as item_name
-             ,isnull(c.phase, b.phase ) as phase
-             ,(select  appearance from tb_item_detail where item_cd = b.item_cd ) as appearance
-             ,b.real_content as orderQty
-             ,c.weigh_qty
-             ,c.bag_weight
-             ,c.test_no
-             ,c.weigh_yn
-             ,c.weigher
-             ,c.confirmer
-             ,c.weigh_id
-             ,c.work_proc_id
-             ,c.work_batch_id
-             ,isnull(c.order_dist,
-                     (ROW_NUMBER() OVER (
-				 PARTITION BY ISNULL(c.phase, c.phase)
-				 ORDER BY c.order_dist
-			   ) )) as  order_dist
-        from  tb_bom_mst a
-              inner join tb_bom_recipe b
-              on b.bom_id = a.bom_id
-              and  a.item_cd = #{itemCd}
-              inner join tb_weigh_info c
-              on  b.item_cd = c.item_cd
-        where   c.work_proc_id = #{workProcId}
-          and   a.default_yn = 'Y'
-        order by b.phase, c.order_dist
+        select  a.item_cd
+                 ,b.item_name
+                 ,c.appearance
+                 ,a.phase
+                 ,a.order_qty
+                 ,a.weigh_qty
+                 ,a.bag_weight
+                 ,a.test_no
+                 ,a.weigh_yn
+                 ,a.weigher
+                 ,a.confirmer
+                 ,a.weigh_id
+                 ,a.work_proc_id
+                 ,a.work_batch_id
+                 ,isnull(a.order_dist, (ROW_NUMBER() OVER ( PARTITION BY a.phase ORDER BY a.order_dist) )) as  order_dist
+        from    tb_weigh_info a
+                inner join tb_item_mst b
+                on a.item_cd = b.item_cd
+                inner join tb_item_detail c
+                on a.item_cd = c.item_cd
+        where   a.work_proc_id = #{workProcId}
+        order by a.phase, a.order_dist
     </select>
 
     <update id="updateProcWeigh">
@@ -141,7 +135,7 @@
         set    proc_status = #{procStatus}
               ,work_end_time = getDate()
               ,tran_yn      = 'Y'
-              ,tranId       = #{tranId}
+              ,tran_id       = #{tranId}
               ,upd_id       = #{userId}
               ,upd_dt       = getdate()
         where  work_proc_id = #{workProcId}
@@ -175,7 +169,6 @@
               , weigh_yn   =#{weighYn}
               , weigher    =#{weigher}
               , confirmer  =#{confirmer}
-              , order_dist =#{orderDist}
               , upd_id     =#{userId}
               ,upd_dt      = getDate()
         where weigh_id     = #{weighId}
@@ -200,6 +193,13 @@
             #{weighId}
         </foreach>
     </delete>
+
+    <select id="countWeighInvItem">
+        SELECT COUNT(1)
+        FROM   tb_weigh_inv
+        WHERE  weigh_id = #{weighId}
+          AND  test_no = #{testNo}
+    </select>
 
     <insert id="insertWeighInvItem">
         INSERT INTO tb_weigh_inv
