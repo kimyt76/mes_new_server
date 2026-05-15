@@ -273,9 +273,10 @@
                  ,a.tran_yn
                  ,a.end_yn
                  ,a.test_no
-                 ,a.prod_qty
+                 ,( select prod_qty from TB_WORK_ORDER_PROC where proc_cd = 'PRC002' and work_batch_id = a.work_batch_id) as make_qty
                  ,a.prod_yield
                  ,c.area_cd
+                 ,a.work_equipment_Cd
         from   TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
