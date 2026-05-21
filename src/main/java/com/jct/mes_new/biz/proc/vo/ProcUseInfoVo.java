@@ -1,14 +1,19 @@
 package com.jct.mes_new.biz.proc.vo;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class ProcUseInfoVo {
 
     private Long prodInfoId;
+    private Long prodUseId;
     private Long workProcId;
     private Long workBatchId;
 
@@ -31,6 +36,10 @@ public class ProcUseInfoVo {
     private String unit;
     private String unitQty;
     private String lotNo;
+    private String procCd;
+    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    private LocalDate expiryDate;
+    private String storageCd;
     private String userId;
 
 
