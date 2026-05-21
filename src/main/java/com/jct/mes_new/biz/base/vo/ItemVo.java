@@ -55,7 +55,7 @@ public class ItemVo {
     private String prodType;/*제품타입*/
     private BigDecimal sheetWidth;/*사용안함*/
     private BigDecimal sheetLength;/*사용안함*/
-    private BigDecimal sheetStacking;/*적층 수*/
+    private Integer sheetStacking;/*적층 수*/
     private String stdWeight;/*기준무게*/
     private String stdSize;/*기준사이즈*/
     private String matName;/*재료명*/
