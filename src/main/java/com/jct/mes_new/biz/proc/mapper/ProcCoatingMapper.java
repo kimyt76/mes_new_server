@@ -11,4 +11,6 @@ public interface ProcCoatingMapper {
     List<ProcCoatingVo> getCoatingList(ProcCoatingVo vo);
 
     int startProcCoating(ProcCoatingVo vo);
+
+    ProcCoatingVo getCoatingHeadInfo(Long workProcId);
 }

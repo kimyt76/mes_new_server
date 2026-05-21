@@ -83,7 +83,7 @@
     </select>
 
     <select id="getCoatingHeadInfo">
-        select  b.make_No
+        select    b.make_No
                  ,a.item_cd
                  ,dbo.getItemName(a.item_cd)  as itemName
                  ,a.proc_order_date
@@ -114,7 +114,6 @@
               ,upd_dt           = getDate()
         where  work_proc_id     = #{workProcId}
     </update>
-
 
 
 
