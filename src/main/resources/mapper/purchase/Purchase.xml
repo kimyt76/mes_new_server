@@ -151,7 +151,7 @@
             ,#{vatPrice}
             ,#{lotNo}
             ,#{testNo}
-            ,#{expiryDate}
+            ,#{expiryDate, jdbcType=DATE}
             ,#{etc}
             ,#{purOrderItemId}
             ,#{userId}

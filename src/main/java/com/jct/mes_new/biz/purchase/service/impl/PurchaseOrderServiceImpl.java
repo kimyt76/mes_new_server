@@ -55,7 +55,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return vo;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public String savePurchaseOrder(PurchaseOrderRequestVo vo){
         String msg = "저장되었습니다.";
         String userId = UserUtil.getUserId();
@@ -78,8 +78,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
         return msg;
     }
-    
-    @Transactional
+
+    @Transactional(rollbackFor = Exception.class)
     public String updatePurchaseOrder(PurchaseOrderRequestVo vo){
         String msg = "수정되었습니다.";
         String userId = UserUtil.getUserId();

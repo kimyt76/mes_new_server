@@ -23,10 +23,10 @@
                 ,dbo.getUserName(a.manager_id) as manager_name
                 ,a.pur_order_id
                 ,b.pur_order_item_id
-        from   tb_pur_order_mst a
-        inner join tb_pur_order_item b
-        on a.pur_order_id = b.pur_order_id
-        where 1=1
+        from    tb_pur_order_mst a
+                inner join tb_pur_order_item b
+                on a.pur_order_id = b.pur_order_id
+        where  a.end_yn ='N'
         <if test="strDate != null">
           and   a.pur_order_date between #{strDate} and #{endDate}
         </if>
@@ -377,7 +377,7 @@
 
     <update id="updateInYn">
         update tb_pur_order_item
-        set in_yn ='Y'
+        set  in_yn ='Y'
             ,upd_id = #{userId}
             ,upd_dt = getdate()
         where pur_order_item_id = #{purOrderItemId}

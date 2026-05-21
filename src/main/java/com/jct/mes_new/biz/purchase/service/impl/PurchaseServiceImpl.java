@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -117,13 +118,14 @@ public class PurchaseServiceImpl implements PurchaseService {
                 if (purchaseMapper.savePurchaseItemList(item) <= 0) {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
-                //7. 발주서 품목 입고
-                if ( purchaseOrderService.updateInYn(item.getPurOrderItemId(), userId) <= 0 ) {
-                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                if (item.getPurOrderItemId() != null   ) {
+                    //7. 발주서 품목 입고
+                    if ( purchaseOrderService.updateInYn(item.getPurOrderItemId(), userId) <= 0 ) {
+                        throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                    }
+                    //8. 발주서 마스터 end 조건 업데이트
+                    purchaseOrderService.updateEndYn(item.getPurOrderItemId(), userId);
                 }
-
-                //8. 발주서 마스터 end 조건 업데이트
-                purchaseOrderService.updateEndYn(item.getPurOrderItemId(), userId);
             }
         }
 
@@ -134,7 +136,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         if (tranId == null) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-
         //5 .Qc품질검사 등록
         List<QcTestVo> qcTestList = makeQcTest(vo,  userId);
 
@@ -327,6 +328,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         PurchaseVo mst = vo.getPurchaseInfo();
         List<ItemTestVo> itemTestNoList = new ArrayList<>();
 
+
         if (vo.getPurchaseItemList() != null && !vo.getPurchaseItemList().isEmpty()) {
             for (PurchaseVo.PurchaseListVo purchaseItem : vo.getPurchaseItemList()) {
                 ItemTestVo itemTest = new ItemTestVo();
@@ -341,8 +343,19 @@ public class PurchaseServiceImpl implements PurchaseService {
                 itemTest.setQty(purchaseItem.getQty());
                 itemTest.setLotNo(purchaseItem.getLotNo());
                 itemTest.setMakeNo("");
-                itemTest.setExpiryDate(purchaseItem.getExpiryDate());
-                itemTest.setShelfLife(purchaseItem.getExpiryDate());
+                LocalDate shelfLife = LocalDate.now().plusDays(365 * 2);
+                LocalDate expiryDate = LocalDate.now().plusDays(365 * 2);
+
+                itemTest.setExpiryDate(
+                        purchaseItem.getExpiryDate() != null
+                                ? purchaseItem.getExpiryDate()
+                                : LocalDate.now().plusYears(2)
+                );
+                itemTest.setShelfLife(
+                        purchaseItem.getExpiryDate() != null
+                                ? purchaseItem.getExpiryDate()
+                                : LocalDate.now().plusYears(2)
+                );
                 itemTest.setPassState("REQ");
                 itemTest.setTestState("REQ");
                 itemTest.setUserId(userId);
