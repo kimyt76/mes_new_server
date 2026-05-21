@@ -28,8 +28,8 @@
         from    tb_qc_test_mst a
                 inner join tb_item_test_no b
                 on a.test_no = b.test_no
-                inner join tb_pur_item c
-                on a.test_no = c.test_no
+                inner join tb_item_mst c
+                on b.item_cd = c.item_cd
         where
         <choose>
             <when test='"R".equals(menuType)'>
@@ -102,18 +102,14 @@
                  ,b.expiry_date
                  ,b.customer_cd
                  ,dbo.getCustomerName(b.customer_cd) as customer_Name
-                 ,d.order_type
+                 ,a.order_type
                  ,a.etc
                  ,a.qc_cd
         from    tb_qc_test_mst a
                 inner join tb_item_test_no b
                 on a.test_no = b.test_no
-                inner join tb_pur_item c
-                on a.test_no = c.test_no
-                inner join tb_pur_mst d
-                on c.pur_id = d.pur_id
-
-
+                inner join tb_item_mst c
+                on b.item_cd = c.item_cd
         where  a.qc_test_id = #{qcTestId}
     </select>
 
