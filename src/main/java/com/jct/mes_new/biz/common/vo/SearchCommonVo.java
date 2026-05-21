@@ -3,16 +3,20 @@ package com.jct.mes_new.biz.common.vo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
 @Data
 public class SearchCommonVo {
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
     @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate stdDate;
 
     private String areaCd;
