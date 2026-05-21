@@ -24,7 +24,7 @@ public class CodeUtil {
             case "M0" -> "4";
             case "M1" -> "1";
             case "M2" -> "2";
-            case "M3" -> "4";
+            case "M3" -> "3";
             case "M4" -> "7";
             case "M5" -> "5";
             case "M6" -> "6";
