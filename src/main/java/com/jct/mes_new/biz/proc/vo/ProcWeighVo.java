@@ -44,6 +44,7 @@ public class ProcWeighVo {
     private LocalDate prodDate;    //칭량일
 
     private String testNo;
+    private String testNos;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;
     private String procCd;
