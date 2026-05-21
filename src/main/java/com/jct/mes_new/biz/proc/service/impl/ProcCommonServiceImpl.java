@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +72,7 @@ public class ProcCommonServiceImpl implements ProcCommonService {
      * @param vo
      * @return
      */
-    public List<ProcTranVo> getProcTranList(SearchCommonVo vo){
+    public List<ProcTranVo> getProcTranList(ProcTranVo vo){
         return procCommonMapper.getProcTranList(vo);
     }
 
@@ -83,7 +84,6 @@ public class ProcCommonServiceImpl implements ProcCommonService {
     @Transactional(rollbackFor = Exception.class)
     public Long saveProdInfo(ProcUseRequestVo vo){
         String userId = UserUtil.getUserId();
-
         ProcUseInfoVo mst = vo.getProdInfo();
         List<ProcUseInfoVo> prodUseList = vo.getProdUseList();
         mst.setUserId(userId);
@@ -94,54 +94,86 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         if ( prodInfoId == null || prodInfoId <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        log.info("========================prodInfoId============= : " + prodInfoId);
-        log.info("========================mst.getProdInfoId()============= : " + mst.getProdInfoId());
         //투입량 저장
         for (ProcUseInfoVo prodUseInfo : prodUseList){
             prodUseInfo.setProdInfoId(mst.getProdInfoId());
-            prodUseInfo.setItemCd(mst.getItemCd());
             prodUseInfo.setUserId(userId);
 
             if ( procCommonMapper.insertProdUseInfo(prodUseInfo) <= 0 ){
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
         }
+
+
         //work_order_proc 작업지시에 투입량 정보 업데이트
-        if ( procCommonMapper.updateProdByWorkOrderProc(mst) <= 0  ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+//        if ( procCommonMapper.updateProdByWorkOrderProc(mst) <= 0  ){
+//            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+//        }
 
         return prodInfoId;
     }
 
+    public WorkRecordVo getWorkRecordInfo(Long workRecordId){
+        return procCommonMapper.getWorkRecordInfo(workRecordId);
+    }
+
     /**
      * 작업수행정보 등록
-     * @param vo
+     * @param recordList
      * @return
      */
-    public String saveWorkRecordInfo(WorkRecordVo vo){
+    @Transactional(rollbackFor = Exception.class)
+    public String saveWorkRecordInfo(List<WorkRecordVo> recordList){
         String userId = UserUtil.getUserId();
-        vo.setUserId(userId);
+        Long workProcId = recordList.get(0).getWorkProcId();
+        String itemCd = recordList.get(0).getItemCd();
+        BigDecimal yieldRate = BigDecimal.ZERO;
+        BigDecimal useQty = BigDecimal.ZERO;
+        BigDecimal prodQty = BigDecimal.ZERO;
 
-        if ( vo.getWorkRecordId() == null || vo.getWorkRecordId() <= 0 ){
-            if ( procCommonMapper.insertWorkRecordInfo(vo) <= 0 ){
-                throw new BusinessException(ErrorCode.FAIL_CREATED);
+        for (WorkRecordVo record : recordList){
+            record.setUserId(userId);
+
+            if ( record.getWorkRecordId() == null || record.getWorkRecordId() <= 0 ){
+                if ( procCommonMapper.insertWorkRecordInfo(record) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }else{
+                if ( procCommonMapper.updateWorkRecordInfo(record) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                }
             }
-        }else{
-            if ( procCommonMapper.updateWorkRecordInfo(vo) <= 0 ){
-                throw new BusinessException(ErrorCode.FAIL_UPDATED);
-            }
+
+            useQty = useQty.add(record.getUseQty());
+            prodQty = prodQty.add(record.getProdQty());
+        }
+
+        WorkOrderInfoVo workOrderInfoVo = new WorkOrderInfoVo();
+        ItemVo itemVo = itemMapper.getItemInfo(itemCd);
+        BigDecimal theoryNumber = (itemVo.getTheoryProdNumber1() != null && !itemVo.getTheoryProdNumber1().equals(BigDecimal.ZERO))?
+                itemVo.getTheoryProdNumber1() : BigDecimal.ONE;
+
+        yieldRate = prodQty.divide(useQty.multiply(theoryNumber), 6, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100));
+
+        workOrderInfoVo.setWorkProcId( workProcId );
+        workOrderInfoVo.setProdQty( prodQty );
+        workOrderInfoVo.setProdYield( yieldRate );
+        workOrderInfoVo.setUserId(userId);
+
+        //proc에 생산량 업데이트
+        if (  procCommonMapper.updateProdUseQty(workOrderInfoVo) <= 0 ) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
         return "저장되었습니다.";
     }
 
     /**
      *  사용량 입력 조회
-     * @param prodInfoId
+     * @param prodUseId
      * @return
      */
-    public List<ProcUseInfoVo> getProdUseList(Long prodInfoId){
-        return procCommonMapper.getProdUseList(prodInfoId);
+    public List<ProcUseInfoVo> getProdUseList(Long prodUseId){
+        return procCommonMapper.getProdUseList(prodUseId);
     }
 
     public ProcProdInfoVo getProcProdInfo(ProcCommonVo vo){

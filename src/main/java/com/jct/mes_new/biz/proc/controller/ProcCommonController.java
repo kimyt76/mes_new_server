@@ -49,7 +49,7 @@ public class ProcCommonController {
     }
 
     @PostMapping("/getProcTranList")
-    public List<ProcTranVo> getProcTranList(@RequestBody SearchCommonVo vo) {
+    public List<ProcTranVo> getProcTranList(@RequestBody ProcTranVo vo) {
         return  procCommonService.getProcTranList(vo);
     }
 
@@ -59,20 +59,24 @@ public class ProcCommonController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), prodInfoId));
     }
 
-    @PostMapping("/getProdUseList/{id}")
-    public List<ProcUseInfoVo> getProdUseList (@PathVariable("id") Long prodInfoId) {
-        return  procCommonService.getProdUseList(prodInfoId);
+    @GetMapping("/getProdUseList/{id}")
+    public List<ProcUseInfoVo> getProdUseList (@PathVariable("id") Long prodUseId) {
+        return  procCommonService.getProdUseList(prodUseId);
     }
-
 
     @PostMapping("/getProcProdInfo")
     public ProcProdInfoVo getProcProdInfo (@RequestBody ProcCommonVo vo) {
         return  procCommonService.getProcProdInfo(vo);
     }
 
+    @GetMapping("/getWorkRecordInfo/{id}")
+    public WorkRecordVo getWorkRecordInfo (@PathVariable("id") Long workRecordId) {
+        return  procCommonService.getWorkRecordInfo(workRecordId);
+    }
+
     @PostMapping("/saveWorkRecordInfo")
-    public ResponseEntity<ApiResponse<Void>> saveWorkRecordInfo(@RequestBody WorkRecordVo vo) {
-        String result = procCommonService.saveWorkRecordInfo(vo);
+    public ResponseEntity<ApiResponse<Void>> saveWorkRecordInfo(@RequestBody List<WorkRecordVo> recordList) {
+        String result = procCommonService.saveWorkRecordInfo(recordList);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 

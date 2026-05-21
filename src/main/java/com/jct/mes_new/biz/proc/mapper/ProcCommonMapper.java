@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.proc.mapper;
 
 import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,7 +24,7 @@ public interface ProcCommonMapper {
 
     int updateProcEtc(ProcCommonVo vo);
 
-    List<ProcTranVo> getProcTranList(SearchCommonVo vo);
+    List<ProcTranVo> getProcTranList(ProcTranVo vo);
 
 
     /**
@@ -55,10 +56,10 @@ public interface ProcCommonMapper {
 
     /**
      * 사용량 등록 조회
-     * @param prodInfoId
+     * @param prodUseId
      * @return
      */
-    List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
+    List<ProcUseInfoVo> getProdUseList(Long prodUseId);
 
     /**
      * 투입량 업데이트
@@ -75,4 +76,17 @@ public interface ProcCommonMapper {
     int insertWorkRecordInfo(WorkRecordVo vo);
 
     int updateWorkRecordInfo(WorkRecordVo vo);
+
+    List<ProcUseInfoVo> getProdUseInfo(Long workProcId);
+
+    int updateProdUseQty(WorkOrderInfoVo vo);
+
+    WorkRecordVo getWorkRecordInfo(Long workRecordId);
+
+    /**
+     * 공정별 사용량 (재고용)
+     * @param workProcId
+     * @return
+     */
+    List<ProcUseInfoVo> getProdUse(Long workProcId);
 }

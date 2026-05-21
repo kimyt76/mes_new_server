@@ -14,15 +14,17 @@ public interface ProcCommonService {
 
     List<ProcCommonVo> getBagWeightList();
 
-    List<ProcTranVo> getProcTranList(SearchCommonVo vo);
+    List<ProcTranVo> getProcTranList(ProcTranVo vo);
 
     Long saveProdInfo(ProcUseRequestVo vo);
 
-    List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
+    List<ProcUseInfoVo> getProdUseList(Long prodUseId);
 
     byte[] downloadRecord(ProcCommonVo vo);
 
     ProcProdInfoVo getProcProdInfo(ProcCommonVo vo);
 
-    String saveWorkRecordInfo(WorkRecordVo vo);
+    String saveWorkRecordInfo( List<WorkRecordVo> recordList);
+
+    WorkRecordVo getWorkRecordInfo(Long workRecordId);
 }

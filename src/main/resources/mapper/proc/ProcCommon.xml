@@ -136,7 +136,22 @@
         where  work_proc_id = #{workProcId}
     </select>
 
-    <insert id="insertWorkRecord" >
+    <select id="getWorkRecordInfo">
+        select work_proc_id
+             , item_cd
+             , work_date
+             , work_start_time
+             , work_end_time
+             , worker_cnt
+             , use_Qty
+             , prod_Qty
+             , work_Record_Id
+             , work_proc_id
+        from  tb_work_record
+        where  work_Record_Id = #{workRecordId}
+    </select>
+
+    <insert id="insertWorkRecordInfo" >
         INSERT INTO tb_work_record
             (
              work_proc_id
@@ -164,7 +179,7 @@
                )
     </insert>
 
-    <update id="updateWorkRecord" >
+    <update id="updateWorkRecordInfo" >
         UPDATE tb_work_record
         SET work_date        = #{workDate}
           , work_start_time  = #{workStartTime}
@@ -178,54 +193,57 @@
     </update>
 
     <select id="getProdList">
-        WITH PROC_CTE AS (
-            SELECT *
-                 ,CASE
-                      WHEN proc_cd = 'PRC001' THEN 1
-                      WHEN proc_cd = 'PRC002' THEN 2
-                      WHEN proc_cd = 'PRC003' THEN 3
-                      WHEN proc_cd = 'PRC004' THEN 4
-                      WHEN proc_cd = 'PRC005' THEN 5
-                END AS proc_seq
-            FROM TB_WORK_ORDER_PROC
-        ),
-        PROC_WITH_PREV AS (
-            SELECT   A.*,
-                     B.item_cd AS prev_item_cd
-            FROM PROC_CTE A
-                OUTER APPLY (
-                    SELECT TOP 1
-                            B.item_cd
-                    FROM PROC_CTE B
-                    WHERE B.work_order_id = A.work_order_id
-                    <![CDATA[
-                    AND B.proc_seq < A.proc_seq
-                   ]]>
-                    AND B.item_cd IS NOT NULL
-                    ORDER BY B.proc_seq DESC
-                ) B
-        )
-        SELECT a.*
-             ,b.mat_name
-             ,c.test_nos
-             ,dbo.getItemName(ISNULL(a.prev_item_cd, a.item_cd)) AS item_name
-             ,b.spec_info
-             ,b.ex_appearance
-             ,b.packing_spec_value
-             ,b.packing_spec_unit
-             ,c.req_qty
-             ,c.use_qty
-             ,c.bad_qty
-             ,c.work_bad_qty
-             ,( SELECT unit FROM tb_item_mst WHERE item_cd = ISNULL(a.prev_item_cd, a.item_cd) ) AS unit
-             ,c.prod_info_id
-        FROM PROC_WITH_PREV a
-             INNER JOIN tb_item_detail b
-             ON b.item_cd = ISNULL(a.prev_item_cd, a.item_cd)
-             LEFT OUTER JOIN tb_prod_info c
-             ON a.work_proc_id = c.work_proc_id
-        WHERE a.proc_cd = #{procCd}
-          AND a.work_proc_id = #{workProcId}
+        select b.test_nos
+             ,a.mat_name
+             ,a.spec_info
+             ,a.ex_Appearance
+             ,a.packing_spec_value
+             ,a.packing_spec_unit
+             ,a.unit
+             ,b.req_qty
+             ,b.use_qty
+             ,b.bad_qty
+             ,b.work_bad_qty
+             ,a.item_cd
+             ,a.item_name
+             ,b.prod_info_id
+             ,b.prod_use_id
+             ,a.work_batch_id
+             ,a.work_order_id
+             ,a.work_proc_id
+        from (
+                 select a.work_batch_id
+                      ,a.work_proc_id
+                      ,a.work_order_id
+                      ,c.item_cd
+                      ,e.mat_name
+                      ,e.spec_info
+                      ,e.ex_Appearance
+                      ,e.packing_spec_value
+                      ,e.packing_spec_unit
+                      ,d.unit
+                      ,dbo.getItemName(c.item_cd) as item_name
+                 from TB_WORK_ORDER_PROC a
+                          inner join tb_bom_mst b
+                                     on a.item_cd = b.item_cd
+                                         and b.default_yn = 'Y'
+                          inner join tb_bom_recipe c
+                                     on c.bom_id = b.bom_id
+                          inner join tb_item_mst d
+                                     on c.item_cd = d.item_cd
+                          inner join tb_item_detail e
+                                     on e.item_cd = d.item_cd
+                 where a.work_proc_id =  #{workProcId}
+             ) a
+                 left outer join (
+            select a.*
+                 ,b.prod_use_id
+            from tb_prod_info a
+                     left outer join tb_prod_use b
+                                     on b.prod_info_id = a.prod_info_id
+        ) b
+                                 on a.work_proc_id = b.work_proc_id
+                                     and a.item_cd = b.item_cd
     </select>
 
     <insert id="insertProdInfo" parameterType="com.jct.mes_new.biz.proc.vo.ProcUseInfoVo" useGeneratedKeys="true" keyProperty="prodInfoId">
@@ -235,13 +253,14 @@
                 , ex_appearance
                 , packing_spec_value
                 , packing_spec_unit
-                , unitQty
                 , req_qty
+                , use_qty
                 , bad_Qty
                 , work_Bad_Qty
-                , use_qty
                 , work_proc_id
                 , work_batch_id
+                , proc_cd
+                , item_cd
                 , reg_id
                 , upd_id
         )
@@ -251,13 +270,14 @@
             , #{exAppearance}
             , #{packingSpecValue}
             , #{packingSpecUnit}
-            , #{unitQty}
-            , #{useQty}
             , #{reqQty}
+            , #{useQty}
             , #{badQty}
             , #{workBadQty}
             , #{workProcId}
             , #{workBatchId}
+            , #{procCd}
+            , #{itemCd}
             , #{userId}
             , #{userId}
             )
@@ -273,7 +293,7 @@
     <select id="getProdUseList">
         select *
         from   tb_prod_use
-        where  prod_info_id = #{prodInfoId}
+        where  prod_use_id = #{prodUseId}
     </select>
 
     <update id="updateProdByWorkOrderProc">
@@ -284,5 +304,54 @@
         where work_proc_id = #{workProcId}
     </update>
 
+    <select id="getProdUseInfo">
+        select   d.item_type_cd
+                 ,a.item_cd
+                 ,dbo.getItemName(a.item_cd) as item_name
+                 ,c.lot_no
+                 ,d.test_no
+                 ,d.expiry_date
+                 ,c.use_qty
+                 ,b.prod_info_id
+        from    TB_WORK_ORDER_PROC a
+                inner join tb_prod_info b
+                on a.work_proc_id = b.work_proc_id
+                inner join tb_prod_use c
+                on c.prod_info_id = b.prod_info_id
+                inner join tb_item_test_no d
+                on d.test_no = a.test_no
+        where  a.work_proc_id = #{workProcId}
+    </select>
+
+    <update id="updateProdUseQty">
+        update TB_WORK_ORDER_PROC
+        set    prod_qty     = #{prodQty}
+              ,prod_yield   = #{prodYield}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+
+    <select id="getProdUse">
+        select b.item_cd
+             ,dbo.getItemName(b.item_cd) as item_name
+             ,b.test_no
+             ,b.lot_no
+             ,b.use_qty
+             ,c.item_type_cd
+             ,c.spec
+             ,(select storage_cd from TB_WORK_ORDER_PROC where work_proc_id = a.work_proc_id) as storage_cd
+             ,d.expiry_Date
+        from  tb_prod_info a
+                  inner join tb_prod_use b
+                             on b.prod_info_id = a.prod_info_id
+                  inner join tb_item_mst c
+                             on b.item_cd = c.item_cd
+                  inner join tb_item_test_no d
+                             on b.test_no = d.test_no
+        where   a.work_proc_id = #{workProcId}
+
+    </select>
 
 </mapper>
