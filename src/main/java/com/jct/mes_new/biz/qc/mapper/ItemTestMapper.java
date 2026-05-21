@@ -5,6 +5,7 @@ import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -74,4 +75,6 @@ public interface ItemTestMapper {
     int updateState(QcTestVo qcTestMst);
 
     List<ItemTestVo> getItemTestNoInfoList(String testNo);
+
+    int updateQty(@Param("testNo") String testNo, @Param("qty") BigDecimal prodQty, @Param("userId") String userId);
 }

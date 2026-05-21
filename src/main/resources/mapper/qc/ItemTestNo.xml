@@ -107,7 +107,7 @@
           , CUSTOMER_CD, EXPIRY_DATE,lot_no, make_no , SHELF_LIFE, TEST_STATE, PASS_STATE, REG_ID,  UPD_ID  )
         values
          ( #{item.testNo}, #{item.createDate}, #{item.areaCd},  #{item.itemTypeCd}, #{item.seq}, #{item.itemCd},  #{item.itemName}, #{item.qty}
-         , #{item.customerCd}, #{item.expiryDate}, #{item.lotNo}, #{item.makeNo}, #{item.shelfLife} , #{item.testState} , #{item.passState}, #{item.userId}, #{item.userId} )
+         , #{item.customerCd}, #{item.expiryDate, jdbcType=DATE} , #{item.lotNo}, #{item.makeNo}, #{item.shelfLife} , #{item.testState} , #{item.passState}, #{item.userId}, #{item.userId} )
     </insert>
 
     <!-- 구매 수정 용-->
@@ -135,6 +135,14 @@
            ,upd_id       = #{userId}
            ,upd_dt       = getdate()
         where  test_no   = #{testNo}
+    </update>
+
+    <update id="updateQty">
+        update tb_item_test_no
+        set    qty      = #{qty}
+              ,upd_id   = #{userId}
+              ,upd_dt   = getdate()
+        where  test_no  = #{testNo}
     </update>
 
 
