@@ -18,4 +18,8 @@ public interface ProcMakeService {
     String saveMakeInfo(MakeInfoVo vo);
 
     String insertRowMake(ProcWeighBomVo vo);
+
+    byte[] downloadMatProc(ProcMakeVo vo);
+
+    Long completeMake(ProcMakeVo vo);
 }

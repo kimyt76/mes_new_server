@@ -80,10 +80,14 @@
                  ,(select area_cd from tb_work_order_mst where work_order_id = a.work_order_id) as area_cd
                  ,b.lot_no
                  ,b.lot_no2
+                 ,dbo.getClientName( (select client_id
+                                      from TB_WORK_ORDER_MST
+                                      where work_order_id = a.work_order_id))  as client_name
                  ,(select client_id
                    from TB_WORK_ORDER_MST
                    where work_order_id = a.work_order_id)  as client_id
                  ,a.test_no
+                 ,a.prod_qty
         from    TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
@@ -94,7 +98,8 @@
     </select>
 
     <select id="getRealBomMakeList">
-        select a.phase
+        select a.order_dist
+              ,a.phase
               ,a.item_cd
               ,dbo.getItemName(a.item_cd) as item_name
               ,a.order_qty
@@ -111,7 +116,7 @@
 
     </select>
 
-    <update id="updateProcMake">
+    <update id="startProcMake">
         update TB_WORK_ORDER_PROC
         set    proc_status          = #{procStatus}
               ,storage_cd           = #{storageCd}
@@ -125,20 +130,124 @@
         where  work_proc_id         = #{workProcId}
     </update>
 
+    <update id="updateMakeProcComplete">
+        update TB_WORK_ORDER_PROC
+        set    proc_status      = #{procStatus}
+              ,tran_id          = #{tranId}
+              ,work_end_time    = getDate()
+              ,upd_id           = #{userId}
+              ,upd_dt           = getDate()
+        where  work_proc_id     = #{workProcId}
+    </update>
+
+    <update id="updateProdQty">
+        update TB_WORK_ORDER_PROC
+        set    prod_qty      = #{prodQty}
+              ,etc           = #{etc}
+              ,upd_id        = #{userId}
+              ,upd_dt        = getDate()
+        where  work_proc_id  = #{workProcId}
+    </update>
+
     <update id="updateMakeRecipe">
         update tb_weigh_info
-        set     make_yn         =#{makeYn}
-              , make_time        =#{makeTime}
-              , maker           =#{maker}
-              , make_confirmer  =#{makeConfirmer}
-              , make_Qty        =#{makeQty}
-              , upd_id          =#{userId}
-              , upd_dt          = getDate()
-        where  weigh_id         = #{weighId}
+        set    maker       = #{maker}
+              ,make_Qty    = #{makeQty}
+              ,upd_id      = #{userId}
+              ,upd_dt      = getDate()
+        where  weigh_id    = #{weighId}
     </update>
 
     <select id="getWeighQty">
         select weigh_qty as weighQty from tb_weigh_info where weigh_id = #{weighId}
     </select>
+
+    <select id="getMakeEtcInfo">
+        select  make_etc_id
+                 ,work_proc_id
+                 ,item_cd
+                 ,bom_ver
+                 ,maker
+                 ,confirmer
+                 ,mat_Proc
+                 ,manipulate
+                 ,process_Time
+                 ,significant
+                 ,note
+                 ,filter_cnt
+                 ,filter_Type
+                 ,filter_Damage
+                 ,substance_check
+        from   tb_make_etc
+        where  work_proc_id = #{workProcId}
+    </select>
+
+    <insert id="insertMakeEtcInfo">
+        insert into tb_make_etc (
+             work_proc_id
+            ,item_cd
+            ,bom_ver
+            ,maker
+            ,confirmer
+            ,mat_Proc
+            ,manipulate
+            ,process_Time
+            ,significant
+            ,note
+            ,filter_cnt
+            ,filter_Type
+            ,filter_Damage
+            ,substance_check
+            ,reg_id
+            ,upd_id
+        ) values (
+                  #{workProcId}
+                 ,#{itemCd}
+                 ,#{bomVer}
+                 ,#{maker}
+                 ,#{confirmer}
+                 ,#{matProc}
+                 ,#{manipulate}
+                 ,#{processTime}
+                 ,#{significant}
+                 ,#{note}
+                 ,#{filterCnt}
+                 ,#{filterType}
+                 ,#{filterDamage}
+                 ,#{substanceCheck}
+                 ,#{userId}
+                 ,#{userId}
+         )
+    </insert>
+
+    <update id="updateMakeEtc">
+        update tb_make_etc
+        set    bom_ver  =  #{bomVer}
+              ,maker    = #{maker}
+              ,confirmer = #{confirmer}
+              ,process_Time = #{processTime}
+              ,mat_Proc = #{matProc}
+              ,manipulate = #{manipulate}
+              ,significant = #{significant}
+              ,note     = #{note}
+              ,filter_cnt = #{filterCnt}
+              ,filter_Type = #{filterType}
+              ,filter_Damage = #{filterDamage}
+              ,substance_check = #{substanceCheck}
+              ,upd_id  = #{userId}
+              ,upd_dt = getDate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <update id="updateWeighProcComplete">
+        update TB_WORK_ORDER_PROC
+        set    proc_status = #{procStatus}
+              ,work_end_time = getDate()
+              ,tran_yn      = 'Y'
+              ,tran_id       = #{tranId}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  work_proc_id = #{workProcId}
+    </update>
 
 </mapper>

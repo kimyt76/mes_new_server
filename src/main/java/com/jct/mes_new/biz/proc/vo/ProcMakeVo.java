@@ -13,6 +13,7 @@ public class ProcMakeVo {
     private Long workProcId;
     private Long workBatchId;
     private Long workOrderId;
+    private Long makeEtcId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate procOrderDate;    //지시일
@@ -40,6 +41,7 @@ public class ProcMakeVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate prodDate;    //칭량일
 
+    private Long tranId;
     private String testNo;
     private String procCd;
     private String workStartTime;

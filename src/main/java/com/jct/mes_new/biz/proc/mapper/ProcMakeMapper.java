@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.proc.mapper;
 
+import com.jct.mes_new.biz.proc.vo.MakeEtcVo;
 import com.jct.mes_new.biz.proc.vo.ProcMakeVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import org.apache.ibatis.annotations.Mapper;
@@ -21,4 +22,16 @@ public interface ProcMakeMapper {
     Long getWeighQty(Long weighId);
 
     int updateMakeRecipe(ProcWeighBomVo item);
+
+    MakeEtcVo getMakeEtcInfo(Long workProcId);
+
+    int updateMakeEtc(MakeEtcVo makeEtcInfo);
+
+    int insertMakeEtcInfo(MakeEtcVo vo);
+
+    int updateMakeProcComplete(ProcMakeVo vo);
+
+    int startProcMake(ProcMakeVo vo);
+
+    int updateProdQty(ProcMakeVo mst);
 }
