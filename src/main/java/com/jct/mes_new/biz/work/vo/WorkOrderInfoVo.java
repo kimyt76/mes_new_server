@@ -14,6 +14,8 @@ public class WorkOrderInfoVo {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate workOrderDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate expiryDate;
     private Integer seq;
     private String workOrderDateSeq;
     private String areaCd;
@@ -37,10 +39,11 @@ public class WorkOrderInfoVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate prodDate;
     private BigDecimal orderQty;
-    private BigDecimal totUseQty;
+    private BigDecimal useQty;
     private BigDecimal prodQty;
     private BigDecimal makeQty;
     private BigDecimal prodYield;
+    private String workEquipmentCd;
     private String procStatus;
     private String procStatusName;
     private String storageCd;
@@ -49,5 +52,7 @@ public class WorkOrderInfoVo {
     private String etc;
     private String tranYn;
     private String endYn;
+
+    private String userId;
 
 }
