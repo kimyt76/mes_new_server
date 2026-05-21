@@ -63,7 +63,7 @@
         from    TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
-        where   a.proc_cd = 'PRC003'
+        where   a.proc_cd = 'PRC004'
           and   a.work_proc_id = #{workProcId}
     </select>
 
@@ -79,7 +79,6 @@
               ,upd_dt           = getDate()
         where  work_proc_id     = #{workProcId}
     </update>
-
 
 
 

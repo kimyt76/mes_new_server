@@ -8,4 +8,8 @@ import java.util.List;
 
 public interface ProcChargeService {
     List<ProcChargeVo> getChargeList(ProcChargeVo vo);
+
+    String startProcCharge(ProcChargeVo vo);
+
+    String completeCharge(ProcChargeVo vo);
 }
