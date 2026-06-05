@@ -1,7 +1,6 @@
 package com.jct.mes_new.biz.order.mapper;
 
-import com.jct.mes_new.biz.order.vo.ApprovalVo;
-import com.jct.mes_new.biz.order.vo.BoardVo;
+import com.jct.mes_new.biz.order.vo.DraftApprovalVo;
 import com.jct.mes_new.biz.order.vo.DraftVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -13,25 +12,31 @@ public interface DraftMapper {
 
     public List<DraftVo> getDraftList(DraftVo draftVo);
 
-    boolean saveDraftInfo(DraftVo draftVo);
+    /**
+     * 사양서 전체 조회
+     * @param draftId
+     * @return
+     */
+    DraftVo getDraftInfo(@Param("draftId") Long draftId);
+    List<DraftApprovalVo> getDraftApprovalList(Long draftId);
 
-    int getSeq();
+    /**
+     * 사양서 신규
+     * @param mst
+     * @return
+     */
+    int insertDraftInfo(DraftVo mst);
+    int insertDraftApprovalInfo(DraftApprovalVo approvalVo);
 
-    ApprovalVo getApprovalInfo(@Param("approvalId") String approvalId);
+    String getDraftAttachFileId(Long draftId);
 
-    DraftVo getDraftInfo(@Param("draftId") String draftId);
+    /**
+     * 사양서 수정
+     * @param mst
+     * @return
+     */
+    int updateDraftInfo(DraftVo mst);
 
-    boolean saveApprovalInfo(@Param("approvalId") String approvalId, @Param("labUserId") String labUserId);
 
-    boolean saveBoardInfo(BoardVo boardVo);
 
-    List<BoardVo> getBoardInfo(@Param("boardId") String boardId);
-
-    boolean updateApproval(String field, String appDate, String approvalId);
-
-    void saveBoardId(String boardId, String draftId);
-
-    boolean updateApprovalInfo(String approvalId, String labUserId);
-
-    void updateStatType(String draftId, String statusType);
 }

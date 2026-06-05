@@ -4,9 +4,8 @@ import com.jct.mes_new.biz.common.mapper.FileHandlerMapper;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.mapper.DraftMapper;
 import com.jct.mes_new.biz.order.service.DraftService;
-import com.jct.mes_new.biz.order.vo.ApprovalVo;
-import com.jct.mes_new.biz.order.vo.BoardVo;
-import com.jct.mes_new.biz.order.vo.ContractItemVo;
+import com.jct.mes_new.biz.order.vo.DraftApprovalVo;
+import com.jct.mes_new.biz.order.vo.DraftRequestVo;
 import com.jct.mes_new.biz.order.vo.DraftVo;
 import com.jct.mes_new.config.common.CommonUtil;
 import com.jct.mes_new.config.common.FileUpload;
@@ -39,146 +38,126 @@ public class DraftServiceImpl implements DraftService {
     public List<DraftVo> getDraftList(DraftVo draftVo) {return draftMapper.getDraftList(draftVo);}
 
     /**
-     * 발주서 정보 등록
-     * @param draftVo  발주정보
-     * @param approvalVo  결재정보
-     * @param attachFileList  첨부파일
-     * @return
-     * @throws Exception
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public String saveDraftInfo(DraftVo draftVo, ApprovalVo approvalVo, List<MultipartFile> attachFileList) {
-
-        String msg = "저장되었습니다.";
-        draftVo.setUserId(UserUtil.getUserId());
-        log.info("======================draftVo===========: " + draftVo);
-        try {
-            if (draftVo.getDraftId() == null) {
-                draftVo.setDraftId(CommonUtil.createUUId());
-                draftVo.setApprovalId(CommonUtil.createUUId());
-                log.info("======================approvalVo===========: " + approvalVo);
-                //결재정보 저장
-                if (!draftMapper.saveApprovalInfo(draftVo.getApprovalId(), approvalVo.getLabUserId())) {
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
-                }
-            }else{
-                if (!draftMapper.updateApprovalInfo(draftVo.getApprovalId(), approvalVo.getLabUserId())) {
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
-                }
-            }
-
-
-            log.info("======================attachFileList===========: " + attachFileList);
-            if (attachFileList != null && !attachFileList.isEmpty()) {
-                List<FileVo> fileVoList = FileUpload.multiFileUpload(attachFileList);
-                // 업로드 결과가 비정상인 경우 방어
-                if (fileVoList == null || fileVoList.isEmpty() || fileVoList.get(0).getAttachFileId() == null) {
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
-                }
-                draftVo.setAttachFileId(fileVoList.get(0).getAttachFileId());
-
-                for (FileVo f : fileVoList) {
-                    f.setUserId(draftVo.getUserId());
-                    if (!fileHandlerMapper.saveFile(f)) {
-                        throw new BusinessException(ErrorCode.FAIL_CREATED);
-                    }
-                }
-            }
-            log.info("======================draftVo===========: " + draftVo);
-            // 발주서 저장
-            if (!draftMapper.saveDraftInfo(draftVo)) {
-                throw new Exception("발주서 정보 저장 실패");
-            }
-        }catch (Exception e){
-            throw new RuntimeException("저장에 실패했습니다.: " + e.getMessage(), e);
-        }
-        return msg;
-    }
-
-    /**
-     * 문서번호 seq 추출
-     * @return
-     */
-    public int getSeq() {
-        return draftMapper.getSeq();
-    }
-
-    /**
-     * 결재정보 조회
-     * @param type
-     * @return
-     */
-    public ApprovalVo getApprovalInfo(String type){
-        return draftMapper.getApprovalInfo(type);
-    }
-
-    /**
      * 기안서정보 조회
      * @param draftId
      * @return
      */
-    public Map<String, Object> getDraftInfo(String draftId){
-        Map<String, Object> map = new HashMap<>();
-        DraftVo draftVo = draftMapper.getDraftInfo(draftId);
-        List<BoardVo> boardList = draftMapper.getBoardInfo(draftVo.getBoardId());
-        int seq = 1;
-        //발주정보
-        map.put("draftInfo", draftVo);
-        //첨부파일 정보
-        map.put("orderAttachFileInfo",  fileHandlerMapper.getAttachFileInfo(draftVo.getOrderAttachFileId() , seq) );
-        map.put("prodAttachFileInfo", fileHandlerMapper.getAttachFileInfo(draftVo.getProdAttachFileId(), seq) );
-        //결재정보
-        map.put("approvalInfo", draftMapper.getApprovalInfo(draftVo.getApprovalId()) );
-        //댓글 정보
-        map.put("boardInfo", boardList );
+    public DraftRequestVo getDraftInfo(Long draftId){
+        DraftRequestVo vo = new DraftRequestVo();
 
-        return map;
+        vo.setDraftInfo( draftMapper.getDraftInfo(draftId) );
+        vo.setDraftApprovalList( draftMapper.getDraftApprovalList(draftId) );
+        String  attachFileId = draftMapper.getDraftAttachFileId(draftId);
+
+        if (attachFileId != null && !attachFileId.isEmpty()) {
+            vo.setAttachFileInfo(fileHandlerMapper.getAttachFileList(attachFileId)  );
+        }
+
+        return vo;
     }
+
+    @Transactional(rollbackFor = BusinessException.class)
+    public Long saveDraftInfo(DraftRequestVo draftRequest){
+        String userId = UserUtil.getUserId();
+        DraftVo mst = draftRequest.getDraftInfo();
+        List<DraftApprovalVo> approvalList = draftRequest.getDraftApprovalList();
+        List<MultipartFile> newFiles = draftRequest.getNewFiles();
+        List<FileVo> deleteFileIds = draftRequest.getDeleteFileList();
+
+        mst.setUserId(userId);
+
+        if ( mst.getDraftId() == null || mst.getDraftId() == 0 ) {
+            //신규
+            if (newFiles != null && !newFiles.isEmpty()) {
+                List<FileVo> fileVoList = FileUpload.multiFileUpload(newFiles);
+                // 업로드 결과가 비정상인 경우 방어
+                if (fileVoList == null || fileVoList.isEmpty() || fileVoList.get(0).getAttachFileId() == null) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+                mst.setAttachFileId(fileVoList.get(0).getAttachFileId());
+
+                for (FileVo f : fileVoList) {
+                    f.setUserId(userId);
+                    if (!fileHandlerMapper.saveFile(f)) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
+                }
+                //마스터 생성
+                if( draftMapper.insertDraftInfo(mst) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+                //결재 생성
+                for( DraftApprovalVo approvalVo: approvalList){
+                    approvalVo.setUserId(userId);
+                    approvalVo.setDraftId(mst.getDraftId());
+
+                    if(draftMapper.insertDraftApprovalInfo(approvalVo) <= 0 ) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
+                }
+            }
+        }else{
+            //수정
+//            //첨부파일 삭제
+//            if (deleteFileIds != null && !deleteFileIds.isEmpty()) {
+//                for (Long deleteFileId : deleteFileIds) {
+//                    fileHandlerMapper.deleteFile(deleteFileId, seq);
+//                }
+//
+//                draftRequest.getDeleteFileIds();
+//
+//            //신규파일등록
+//
+//
+//            //마스터 업데이트
+//            if( draftMapper.updateDraftInfo(mst) <= 0 ){
+//                throw new BusinessException(ErrorCode.FAIL_UPDATED);
+//            }
+        }
+
+        return mst.getDraftId();
+    }
+
 
     /**
      * 발주 정보 수정정보 업데이트
      * @param info
      * @return
      * @throws Exception
-     */
+    */
     @Transactional(rollbackFor = Exception.class)
-    public String updateInfo(Map<String, String> info) throws Exception{
-        String msg = "저장되었습니다.";
+    public String saveApprovalComment(Map<String, String> info){
+//        log.info("================================================ : " + info );
+//        BoardVo boardVo = new BoardVo();
+//        String userId = UserUtil.getUserId();
+//        String boardUserId = info.get("boardUserId");
+//        String draftId = info.get("draftId");
+//        int cnt = draftMapper.getDraftBoardCnt(boardUserId, draftId);
+//
+//        //의견
+//        boardVo.setBoardUserId(info.get("boardUserId"));
+//        boardVo.setBoardTxt(info.get("boardTxt"));
+//        boardVo.setUserId(userId);
+//        if( cnt == 0 ){
+//            boardVo.setDraftBoardId(CommonUtil.createUUId());
+//            if ( draftMapper.insertBoardInfo(boardVo) <=0 ){
+//                throw new BusinessException(ErrorCode.FAIL_CREATED);
+//            }
+//        }else{
+//            if ( draftMapper.updateBoardInfo(boardVo) <=0 ){
+//                throw new BusinessException(ErrorCode.FAIL_CREATED);
+//            }
+//        }
+//
+//        //결재일자 업데이트
+//        if ( draftMapper.updateApproval() <=0 ){
+//            throw new BusinessException(ErrorCode.FAIL_CREATED);
+//        }
 
-        try{
-            BoardVo boardVo = new BoardVo();
 
-            if ( info.get("boardId") == null ) {
-                boardVo.setBoardId(CommonUtil.createUUId());
-                draftMapper.saveBoardId(boardVo.getBoardId(), info.get("draftId"));
-            }else{
-                boardVo.setBoardId(info.get("boardId"));
-            }
-            boardVo.setBoardTxt(info.get("boardTxt"));
-            boardVo.setBoardUserId(info.get("userId"));
-            boardVo.setUserId(info.get("userId"));
-
-            String approvalId = info.get("approvalId");
-
-            if ( info.get("appDate") != null ) {
-                //결재자 정보 업데이트
-                if (!draftMapper.updateApproval(info.get("field") , info.get("appDate"), approvalId) ){
-                    throw new Exception("결재자 정보 업데이트중 오류가 발생했습니다.");
-                }else {
-                    draftMapper.updateStatType(info.get("draftId"), info.get("statusType"));
-                }
-            }
-
-            //게시판 업데이트
-            if ( !draftMapper.saveBoardInfo(boardVo)){
-                throw new Exception("게시판 정보 업데이트중 오류가 발생했습니다.");
-            }
-        }catch(Exception e){
-            throw new RuntimeException("저장에 실패했습니다.", e);
-        }
-
-        return msg;
+        return "저장되었습니다.";
     }
+
 }
 
 

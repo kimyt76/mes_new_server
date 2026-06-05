@@ -2,8 +2,10 @@ package com.jct.mes_new.biz.order.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.service.DraftService;
-import com.jct.mes_new.biz.order.vo.ApprovalVo;
+import com.jct.mes_new.biz.order.vo.DraftApprovalVo;
+import com.jct.mes_new.biz.order.vo.DraftRequestVo;
 import com.jct.mes_new.biz.order.vo.DraftVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
@@ -14,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,62 +35,27 @@ public class DraftController {
     }
 
     @GetMapping("/getDraftInfo/{id}")
-    public Map<String, Object> getDraftInfo(@PathVariable("id") String draftId) {
+    public DraftRequestVo getDraftInfo(@PathVariable("id") Long draftId) {
         return draftService.getDraftInfo(draftId);
     }
 
-//    @PostMapping("/saveDraftInfo")
-//    public ResponseEntity<?> saveDraftInfo(@RequestPart("draftInfo") String draftInfoStr,
-//                                           @RequestPart("approval") String approvalStr,
-//                                           @RequestPart(value = "attachFile" , required = false) List<MultipartFile> attachFileList
-//                                            ) throws Exception {
-//        //BoardVo boardVo = mapper.readValue(boardStr, BoardVo.class);
-//        try {
-//            ObjectMapper mapper = new ObjectMapper();
-//            DraftVo draftVo = mapper.readValue(draftInfoStr, DraftVo.class);
-//            ApprovalVo approvalVo = mapper.readValue(approvalStr, ApprovalVo.class);
-//
-//            if (attachFileList == null) {
-//                attachFileList = new ArrayList<>();
-//            }
-//
-//            String result = draftService.saveDraftInfo(draftVo, approvalVo, attachFileList);
-//            return ResponseEntity.ok(result);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity
-//                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-//        }
-//    }
-
     @PostMapping(value = "/saveDraftInfo", consumes = "multipart/form-data")
-    public ResponseEntity<ApiResponse<Map<String, String>>> saveDraftInfo(
-                                                            @RequestPart("draftInfo") DraftVo draftVo,
-                                                            @RequestPart("approval") ApprovalVo approvalVo,
-                                                            @RequestPart(value = "attachFile", required = false) List<MultipartFile> attachFileList
-                                                            ) throws JsonProcessingException {
-            ObjectMapper mapper = new ObjectMapper();
-            List<MultipartFile> safeFiles = (attachFileList == null) ? Collections.emptyList() : attachFileList;
-            String result = draftService.saveDraftInfo(draftVo, approvalVo, safeFiles);
+    public ResponseEntity<ApiResponse<?>> saveDraftInfo(
+                                                        @RequestPart("draftRequest") DraftRequestVo draftRequest,
+                                                        @RequestPart(value = "newFiles", required = false)
+                                                        List<MultipartFile> newFiles
+                                                ) {
+        draftRequest.setNewFiles(newFiles);
 
-            return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
+        Long draftId = draftService.saveDraftInfo(draftRequest);
+
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"),draftId));
     }
 
-    @GetMapping("/getSeq")
-    public int getSeq() {
-        return draftService.getSeq();
-    }
-
-    @GetMapping("/getApprovalInfo")
-    public ApprovalVo getApprovalInfo(){
-        String type = "order";
-        return draftService.getApprovalInfo(type);
-    }
-
-    @PostMapping("/updateInfo")
-    public ResponseEntity<?> updateInfo(@RequestBody Map<String, String> info) throws Exception{
+    @PostMapping("/saveApprovalComment")
+    public ResponseEntity<?> saveApprovalComment(@RequestBody Map<String, String> info){
         try {
-            String result = draftService.updateInfo(info);
+            String result = draftService.saveApprovalComment(info);
 
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
@@ -98,5 +64,8 @@ public class DraftController {
                     .body(e.getMessage());  // 사용자에게 오류 메시지 반환
         }
     }
+
+
+
 
 }

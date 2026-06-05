@@ -1,40 +1,36 @@
 package com.jct.mes_new.biz.order.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class DraftVo {
 
 
-    private String draftId;
+    private Long draftId;
     private String draftDateSeq;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String draftDate;
-    private String draftStatus;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate draftDate;
     private int seq;
-    private String draftUserId;
-    private String draftUserName;
-
     private String draftDept;
+    private String drafter;
     private String clientName;
     private String itemName;
-    private String orderQty;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String dueDate;
-    private String approvalId;
-    private String boardId;
+    private BigDecimal orderQty;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dueDate;
     private String attachFileId;
-    private String orderAttachFileId;
-    private String prodAttachFileId;
-    private String useYn;
-    private String statusType;
+    private String endYn;
 
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String strDate;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String endDate;
+//    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+//    private LocalDate strDate;
+//    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
+//    private LocalDate endDate;
+
     private String userId;
-
 }

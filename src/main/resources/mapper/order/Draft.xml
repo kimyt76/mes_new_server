@@ -3,17 +3,17 @@
 
 <mapper namespace="com.jct.mes_new.biz.order.mapper.DraftMapper">
     <select id="getDraftList">
-        select   a.draft_date+'-'+ convert(nvarchar, seq) as draftDateSeq
+        select   CONVERT(nvarchar(10), a.draft_date, 23)+'-'+RIGHT(CONVERT(nvarchar, a.seq), 3) AS draftDateSeq
                 ,a.item_name
                 ,a.client_name
                 ,a.draft_date
-                ,b.member_nm as draftUserName
-                ,a.status_Type
+                ,b.member_nm as drafter
+                ,a.end_yn
                 ,a.draft_id
                 ,a.seq
         from   tb_draft_mst a
                inner join tb_users b
-               on b.user_id = a.draft_user_id
+               on b.user_id = a.drafter
         where 1=1
         <if test='clientName != "" and clientName != null'>
         AND a.client_name LIKE '%' + #{clientName} + '%'
@@ -21,153 +21,115 @@
         <if test='itemName != "" and itemName != null'>
             AND a.item_name LIKE '%' + #{itemName} + '%'
         </if>
-        <if test='draftUserName != "" and draftUserName != null'>
-            AND b.member_nm LIKE '%' + #{draftUserName} + '%'
+        <if test='drafter != "" and drafter != null'>
+            AND b.member_nm LIKE '%' + #{drafter} + '%'
         </if>
         order by a.draft_date desc, a.seq desc
     </select>
 
     <select id="getDraftInfo">
-        select   a.draft_date+'-'+ convert(nvarchar, seq) as draftDateSeq
+        select   CONVERT(nvarchar(10), a.draft_date, 23)+'-'+RIGHT(CONVERT(nvarchar, a.seq), 3) AS draftDateSeq
                  ,a.seq
                  ,a.item_name
                  ,a.client_name
                  ,a.draft_date
-                 ,dbo.getUserName(a.draft_user_id) as draftUserName
-                 ,a.draft_user_id
+                 ,dbo.getUserName(a.drafter) as draftUserName
+                 ,a.drafter
                  ,a.draft_dept
                  ,a.due_date
                  ,a.order_qty
                  ,a.attach_file_id
-                 ,a.approval_id
-                 ,a.board_id
                  ,a.draft_id
-                 ,a.status_type
+                 ,a.end_yn
         from   tb_draft_mst a
         where  draft_id = #{draftId}
     </select>
 
-    <update id="saveDraftInfo">
-        merge into tb_draft_mst a
-            using (select #{draftId} as draft_id
-                        ,#{draftDate} as draft_date
-                        ,#{seq} as seq
-            ) b
-            on    a.draft_id = b.draft_id
-            and   a.draft_date = b.draft_date
-            and   a.seq = b.seq
-        when matched then
-            update  set  client_Name = #{clientName}
-                        ,item_name = #{itemName}
-                        ,order_qty = #{orderQty}
-                        ,due_date = #{dueDate}
-                        ,attach_file_id = #{attachFileId}
-                        ,upd_Id = #{userId}
-                        ,upd_Dt = getdate()
-        when not matched then
-            insert (  draft_id ,draft_date,seq,draft_Dept, draft_user_id,client_Name,item_name,order_qty,due_date,board_id, approval_id
-                      ,status_Type  ,attach_file_id ,reg_id ,upd_id )
-            values ( #{draftId} ,#{draftDate},#{seq},#{draftDept},#{draftUserId},#{clientName},#{itemName}, #{orderQty}, #{dueDate}, #{boardId} , #{approvalId}
-                    ,#{statusType},#{attachFileId} ,#{userId} ,#{userId} )
-        ;
-    </update>
-
-    <update id="updateStatType">
-        update tb_draft_mst
-        set    status_Type = #{statusType}
+    <select id="getDraftApprovalList">
+        select    draft_approval_id
+                 ,approval_cd
+                 ,approval_user_id
+                 ,dbo.getUserName(approval_user_id) as approval_user_name
+                 ,draft_approval_date
+                 ,board_txt
+                 ,draft_id
+        from   tb_draft_approval
         where  draft_id = #{draftId}
-    </update>
-
-    <select id="getSeq">
-        select case when count(*) = 0 then 1
-                    else max(seq)+1 end seq
-        from   tb_order
-        where  order_date = convert(char(10), getdate(), 23 )
     </select>
 
-    <select id="getApprovalInfo">
-        select    b.approval_id
-                 ,a.business_user_id
-                 ,a.product_user_id
-                 ,a.purchase_user_id
-                 ,a.qc_user_id
-                 ,b.lab_user_id
-                 ,dbo.getUserName(a.business_user_id) as businessUserName
-                 ,dbo.getUserName(a.product_user_id) as productUserName
-                 ,dbo.getUserName(a.purchase_user_id) as purchaseUserName
-                 ,dbo.getUserName(a.qc_user_id) as qcUserName
-                 ,dbo.getUserName(b.lab_user_id) as labUserName
-                 ,b.business_approval_date
-                 ,b.product_approval_date
-                 ,b.purchase_approval_date
-                 ,b.qc_approval_date
-                 ,b.lab_approval_date
-                 ,isnull(b.business_approval_date, 'N') as businessCheckYn
-                 ,isnull(b.product_approval_date, 'N') as productCheckYn
-                 ,isnull(b.purchase_approval_date, 'N') as purchaseCheckYn
-                 ,isnull(b.qc_approval_date, 'N') as qcCheckYn
-                 ,isnull(b.lab_approval_date, 'N') as labCheckYn
-        from   tb_order_approval a
-               left outer join tb_approval b
-               on b.approval_id = #{approvalId}
+    <select id="getDraftAttachFileId">
+        select attach_file_id
+        from   tb_draft_mst
+        where  draft_id = #{draftId}
     </select>
 
-    <insert id="saveApprovalInfo">
-        insert into tb_approval
-        (approval_id, business_user_id, product_user_id, purchase_user_id, qc_user_id, lab_user_id)
-        select #{approvalId}
-             , business_user_id
-             , product_user_id
-             , purchase_user_id
-             , qc_user_id
-             ,#{labUserId}
-        from  tb_order_approval
-        where  use_yn ='Y'
+    <insert id="insertDraftInfo" parameterType="com.jct.mes_new.biz.order.vo.DraftVo" useGeneratedKeys="true" keyProperty="draftId">
+            INSERT INTO tb_draft_mst (
+                      draft_date
+                     ,seq
+                     ,draft_dept
+                     ,drafter
+                     ,client_name
+                     ,item_name
+                     ,order_qty
+                     ,due_date
+                     ,attach_file_id
+                     ,end_yn
+                     ,reg_id
+                     ,upd_id
+            )
+            VALUES (
+                    #{draftDate}
+                   ,#{seq}
+                   ,#{draftDept}
+                   ,#{drafter}
+                   ,#{clientName}
+                   ,#{itemName}
+                   ,#{orderQty}
+                   ,#{dueDate, jdbcType=DATE}
+                   ,#{attachFileId}
+                   ,'N'
+                   ,#{userId}
+                   ,#{userId}
+                   )
+
     </insert>
 
-    <update id="updateApprovalInfo">
-        update tb_approval
-        set    lab_user_id = #{labUserId}
-        where  approval_id = #{approvalId}
+    <update id="updateDraftInfo">
+        UPDATE tb_draft_mst
+        SET    client_name    = #{clientName}
+              ,item_name      = #{itemName}
+              ,order_qty      = #{orderQty}
+              ,due_date       = #{dueDate, jdbcType=DATE}
+              ,upd_id         = #{userId}
+              ,upd_dt         = GETDATE()
+        WHERE draft_id       = #{draftId}
     </update>
 
-    <update id="saveBoardInfo">
-        merge into tb_board a
-            using (select #{boardId} as board_id
-                         ,#{boardUserId} as board_user_id
-            ) b
-            on    a.board_id = b.board_id
-                and   a.board_user_id = b.board_user_id
-            when matched then
-                update
-                    set  board_txt = #{boardTxt}
-                        ,upd_Id = #{userId}
-                        ,upd_Dt = getdate()
-            when not matched then
-                insert (  board_id ,board_user_id, board_txt,reg_id ,upd_id )
-                    values (
-                         #{boardId} ,#{boardUserId},#{boardTxt},#{userId} ,#{userId}
-                        )
-        ;
-    </update>
+    <insert id="insertDraftApprovalInfo">
+        INSERT INTO tb_draft_approval (
+                   draft_id
+                  ,approval_cd
+                  ,approval_user_id
+                  ,draft_approval_date
+                  ,board_txt
+                  ,reg_id
+                  ,upd_id
+        )
+        VALUES (
+                 #{draftId}
+               ,#{approvalCd}
+               ,#{approvalUserId}
+               ,#{draftApprovalDate, jdbcType=DATE}
+               ,#{boardTxt}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
 
-    <select id="getBoardInfo">
-        select board_id
-              ,board_user_id
-              ,board_txt
-        from  tb_board
-        where board_id = #{boardId}
-    </select>
-
-    <update id="updateApproval">
-        update tb_approval
-        set    ${field} = isnull(#{appDate},  convert(nvarchar(10), getdate(), 23))
-        where  approval_id = #{approvalId}
-    </update>
-
-    <update id="saveBoardId">
+    <update id="savedraftBoardId">
         update tb_draft_mst
-        set    board_id = #{boardId}
+        set    draft_board_id = #{draftBoardId}
         where  draft_id = #{draftId}
     </update>
 </mapper>
