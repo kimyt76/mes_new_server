@@ -1,9 +1,13 @@
 package com.jct.mes_new.biz.stock.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.apache.poi.hpsf.Decimal;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Data
 public class StockVo {
@@ -20,11 +24,27 @@ public class StockVo {
     private String lotNo;
     private String etc;
     private String endYn;
+    private String type;
 
     private BigDecimal qty;
     private BigDecimal totQty;
+    private BigDecimal inReQty;
+    private BigDecimal saftQty;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate inDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate stdDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate outDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate strDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
+
+
+    private Map<String, BigDecimal> storageQtyMap = new LinkedHashMap<>();
+
 }

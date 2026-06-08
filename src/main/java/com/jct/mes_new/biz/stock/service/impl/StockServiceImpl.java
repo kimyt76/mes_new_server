@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.stock.service.impl;
 
 import com.jct.mes_new.biz.stock.mapper.StockMapper;
 import com.jct.mes_new.biz.stock.service.StockService;
+import com.jct.mes_new.biz.stock.vo.ItemUseVo;
 import com.jct.mes_new.biz.stock.vo.StockHistResponseVo;
 import com.jct.mes_new.biz.stock.vo.StockVo;
 import com.jct.mes_new.biz.system.mapper.StorageMapper;
@@ -19,6 +20,130 @@ public class StockServiceImpl implements StockService {
 
     private final StockMapper stockMapper;
     private final StorageMapper storageMapper;
+
+
+    public Map<String, Object> getStockItemList(StockVo vo) {
+
+        Map<String, StockVo> pivotMap = new LinkedHashMap<>();
+
+        StorageVo storageVo = new StorageVo();
+        storageVo.setAreaCd(vo.getAreaCd());
+
+        // 창고 목록 조회
+        List<StorageVo> storageList = storageMapper.getStorageList(storageVo);
+
+        // 창고별 재고 수량 조회
+        List<StockVo> stockList;
+
+        if (vo.getType() == null || vo.getType().isEmpty() || "ITEM".equals(vo.getType())) {
+            stockList = stockMapper.getStockItemList(vo);
+        } else {
+            stockList = stockMapper.getStockTestList(vo);
+        }
+
+        // 품목별 / 시험번호별 피벗 데이터 생성
+        for (StockVo row : stockList) {
+            String mapKey = row.getItemCd();
+
+            if ("TEST".equals(vo.getType())) {
+                mapKey = row.getItemCd() + "_" + row.getTestNo();
+            }
+
+            StockVo pivot = pivotMap.computeIfAbsent(mapKey, key -> {
+                StockVo stockVo = new StockVo();
+
+                stockVo.setItemCd(row.getItemCd());
+                stockVo.setItemName(row.getItemName());
+                stockVo.setItemTypeCd(row.getItemTypeCd());
+                stockVo.setTestNo(row.getTestNo());
+
+                stockVo.setInReQty(nvl(row.getInReQty()));
+                stockVo.setSaftQty(nvl(row.getSaftQty()));
+                stockVo.setTotQty(BigDecimal.ZERO);
+                stockVo.setStorageQtyMap(new LinkedHashMap<>());
+
+                return stockVo;
+            });
+
+            BigDecimal qty = nvl(row.getQty());
+
+            pivot.getStorageQtyMap().put(row.getStorageCd(), qty);
+            pivot.setTotQty(nvl(pivot.getTotQty()).add(qty));
+        }
+        // 창고별 세로 합계 계산
+        Map<String, BigDecimal> storageTotalMap = new LinkedHashMap<>();
+
+        for (StorageVo storage : storageList) {
+            storageTotalMap.put(storage.getStorageCd(), BigDecimal.ZERO);
+        }
+
+        for (StockVo stockVo : pivotMap.values()) {
+            for (Map.Entry<String, BigDecimal> entry : stockVo.getStorageQtyMap().entrySet()) {
+                String storageCd = entry.getKey();
+                BigDecimal qty = (BigDecimal) nvl(entry.getValue());
+
+                storageTotalMap.put(
+                        storageCd,
+                        nvl(storageTotalMap.get(storageCd)).add(qty)
+                );
+            }
+        }
+        // 세로 합계가 0이 아닌 창고만 남김
+        List<StorageVo> filteredStorageList = storageList.stream()
+                .filter(storage -> {
+                    BigDecimal total = nvl(storageTotalMap.get(storage.getStorageCd()));
+                    return total.compareTo(BigDecimal.ZERO) != 0;
+                })
+                .toList();
+
+        // 프론트 동적 컬럼 생성
+        List<Map<String, String>> dynamicColumns = new ArrayList<>();
+
+        for (StorageVo storage : filteredStorageList) {
+            Map<String, String> col = new LinkedHashMap<>();
+            col.put("field", storage.getStorageCd());
+            col.put("header", storage.getStorageName());
+            dynamicColumns.add(col);
+        }
+        // 프론트에서 data[col.field]로 바로 접근 가능하도록 rows 펼치기
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        for (StockVo stockVo : pivotMap.values()) {
+            Map<String, Object> rowMap = new LinkedHashMap<>();
+
+            rowMap.put("itemCd", stockVo.getItemCd());
+            rowMap.put("itemName", stockVo.getItemName());
+            rowMap.put("itemTypeCd", stockVo.getItemTypeCd());
+            rowMap.put("testNo", stockVo.getTestNo());
+
+            rowMap.put("inReQty", nvl(stockVo.getInReQty()));
+            rowMap.put("totQty", nvl(stockVo.getTotQty()));
+            rowMap.put("saftQty", nvl(stockVo.getSaftQty()));
+
+            for (StorageVo storage : filteredStorageList) {
+                String storageCd = storage.getStorageCd();
+                BigDecimal qty = (BigDecimal) stockVo.getStorageQtyMap().get(storageCd);
+
+                rowMap.put(storageCd, nvl(qty));
+            }
+
+            rows.add(rowMap);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("dynamicColumns", dynamicColumns);
+        result.put("rows", rows);
+
+        return result;
+    }
+
+    private BigDecimal nvl(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+
+
+
 
     public StockHistResponseVo getStockItemHistList(StockVo vo) {
 
@@ -67,7 +192,6 @@ public class StockServiceImpl implements StockService {
                 storageSumMap.put(normalizedCd, storageSumMap.get(normalizedCd).add(qty));
             }
         }
-
         // 6. 세로 전체 합계가 0이 아닌 창고만 남김
         List<Map<String, Object>> filteredStorageList = storageList.stream()
                 .filter(storage -> {
@@ -76,12 +200,10 @@ public class StockServiceImpl implements StockService {
                     return sum.compareTo(BigDecimal.ZERO) != 0;
                 })
                 .collect(Collectors.toList());
-
         // 7. 남길 창고코드 Set
         Set<String> remainStorageSet = filteredStorageList.stream()
                 .map(s -> normalizeKey(s.get("storageCd")))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-
         // 8. row 가공
         List<Map<String, Object>> filteredStockList = new ArrayList<>();
 
@@ -153,4 +275,10 @@ public class StockServiceImpl implements StockService {
     }
 
 
+    /**
+     * 품목별 사용량
+     */
+    public List<ItemUseVo> getItemUseList(ItemUseVo vo){
+        return stockMapper.getItemUseList(vo);
+    }
 }
