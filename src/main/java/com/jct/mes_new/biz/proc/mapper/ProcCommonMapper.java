@@ -89,4 +89,11 @@ public interface ProcCommonMapper {
      * @return
      */
     List<ProcUseInfoVo> getProdUse(Long workProcId);
+
+    /**
+     * 공정별 자재이동 요청
+     * @param ids
+     * @return
+     */
+    List<ProcItemVo> getProcItemList(@Param("ids") List<Long> ids);
 }

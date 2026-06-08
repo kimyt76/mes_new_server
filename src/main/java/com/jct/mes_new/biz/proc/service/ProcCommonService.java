@@ -27,4 +27,6 @@ public interface ProcCommonService {
     String saveWorkRecordInfo( List<WorkRecordVo> recordList);
 
     WorkRecordVo getWorkRecordInfo(Long workRecordId);
+
+    List<ProcItemVo> getProcItemList(List<Long> ids);
 }

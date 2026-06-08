@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -186,6 +187,19 @@ public class ProcCommonServiceImpl implements ProcCommonService {
 
         return info;
     }
+
+    /**
+     * 공정별 자재이동요청
+     * @param ids
+     * @return
+     */
+    public List<ProcItemVo> getProcItemList(List<Long> ids){
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return procCommonMapper.getProcItemList(ids);
+    }
+
 
     /**
      *  공정별 기록서 다운로드 (코팅, 충전, 포장)

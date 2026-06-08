@@ -285,9 +285,9 @@
 
     <insert id="insertProdUseInfo">
         insert into tb_prod_use
-            (prod_Info_Id, test_no,  item_cd, lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty,  reg_id, upd_id)
+            (prod_Info_Id, test_no,  item_cd, lot_no, req_qty, use_qty, bad_qty, work_Bad_Qty, storage_cd,  reg_id, upd_id)
         values
-            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{userId}, #{userId} )
+            (#{prodInfoId}, #{testNo}, #{itemCd}, #{lotNo}, #{reqQty}, #{useQty}, #{badQty}, #{workBadQty}, #{storageCd}, #{userId}, #{userId} )
     </insert>
 
     <select id="getProdUseList">
@@ -351,6 +351,27 @@
                   inner join tb_item_test_no d
                              on b.test_no = d.test_no
         where   a.work_proc_id = #{workProcId}
+    </select>
+
+    <select id="getProcItemList">
+        select  c.item_cd
+                ,d.item_name
+                ,sum(a.order_qty)  as order_qty
+                , '' as memo
+        from    TB_WORK_ORDER_PROC a
+                inner join tb_bom_mst b
+                on a.item_cd = b.item_cd
+                and  b.default_yn ='Y'
+                inner join tb_bom_recipe c
+                on c.bom_id = b.bom_id
+                inner join tb_item_mst d
+                on d.item_cd = c.item_cd
+                and d.item_type_cd in ('M2', 'M7')
+        where  a.work_proc_id  in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by c.item_cd, d.item_name
 
     </select>
 

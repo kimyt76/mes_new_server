@@ -4,6 +4,7 @@ package com.jct.mes_new.biz.proc.controller;
 import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.work.vo.WorkOrderItemVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,21 +28,40 @@ public class ProcCommonController {
     private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
 
+    /**
+     * 작업자 조회
+     * @param vo
+     * @return
+     */
     @PostMapping("/getWorkerList")
     public List<ProcCommonVo> getWorkerList(@RequestBody ProcCommonVo vo) {
         return  procCommonService.getWorkerList(vo);
     }
 
+    /**
+     * 칭량용기 조회
+     * @return
+     */
     @GetMapping("/getBagWeightList")
     public List<ProcCommonVo> getWorkerList() {
         return  procCommonService.getBagWeightList();
     }
 
+    /**
+     * 실헙장비 조회
+     * @param storageCd
+     * @return
+     */
     @GetMapping("/getEquipmentList/{id}")
     public List<ProcCommonVo> getEquipmentList(@PathVariable("id") String storageCd) {
         return  procCommonService.getEquipmentList(storageCd);
     }
 
+    /**
+     * 곻정 item 상태 업데이트
+     * @param vo
+     * @return
+     */
     @PostMapping("/updateProcStatus")
     public ResponseEntity<ApiResponse<Void>> updateProcStatus(@RequestBody ProcCommonVo vo) {
         String result = procCommonService.updateProcStatus(vo);
@@ -93,6 +113,11 @@ public class ProcCommonController {
                                 .build()
                                 .toString())
                 .body(fileBytes);
+    }
+
+    @PostMapping("/getProcItemList")
+    public List<ProcItemVo> getProcItemList(@RequestBody List<Long> ids) {
+        return procCommonService.getProcItemList(ids);
     }
 
 }
