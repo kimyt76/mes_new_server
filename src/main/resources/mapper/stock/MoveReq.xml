@@ -3,7 +3,7 @@
 
 <mapper namespace="com.jct.mes_new.biz.stock.mapper.MoveReqMapper">
 
-    <select id="getStockItemList">
+    <select id="getMoveReqList">
         SELECT  x.item_cd AS itemCd,
                 x.item_name AS itemName,
                 x.item_type_cd AS itemTypeCd,
@@ -125,7 +125,7 @@
     </select>
 
 
-    <select id="getScaleList">
+    <select id="getMoveReqMst">
         select  dbo.getCommonName('area', a.area_cd) as areaName
                ,b.storage_name
                ,a.scale_nickname as scaleNickname
@@ -247,7 +247,7 @@
         ORDER BY  b.test_no
     </select>
 
-    <select id="getItemUseList">
+    <select id="getMoveItemList">
         with work_main as (
             select a.prod_date
                 , b.make_no
@@ -316,7 +316,52 @@
 
     </select>
 
+    <insert id="insertMoveReqMst" parameterType="com.jct.mes_new.biz.stock.vo.MoveReqVo"  useGeneratedKeys="true" keyProperty="moveReqId">
+        insert into tb_move_req
+            (move_req_date, seq, area_cd, src_storage_cd, tar_storage_cd, manager_id, move_status, etc, reg_id, upd_id)
+        values
+            (#{moveReqDate}, #{seq}, #{areaCd}, #{srcStorageCd}, #{tarStorageCd}, #{managerId}, 'Q', #{etc}, #{userId}, #{userId})
+    </insert>
 
+    <update id="updateMoveReqMst">
+        update tb_move_req
+        set    move_reg_date = #{moveReqDate}
+              ,reg_seq      = #{reqSeq}
+              ,move_status  = #{moveStatus}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  move_req_id  = #{moveReqId}
+    </update>
+
+    <insert id="insertProcItem" parameterType="com.jct.mes_new.biz.stock.vo.MoveReqVo"  useGeneratedKeys="true" keyProperty="moveReqItemId">
+        insert into tb_move_req_item
+            (move_req_id, po_no, item_cd,  etc, qty, reg_id, upd_id)
+        values
+            (#{moveReqId}, #{poNo}, #{itemCd}, #{etc}, #{qty},#{userId}, #{userId})
+    </insert>
+
+    <insert id="insertMoveItem">
+        INSERT INTO tb_move_item
+            ( move_req_id, item_type_cd, item_cd, test_no, qty, etc, reg_id, upd_id)
+        VALUES
+            (#{moveReqId}, #{itemTypeCd}, #{itemCd}, #{testNo}, #{qty}, #{etc}, #{userId}, #{userId} )
+    </insert>
+
+    <update id="updateMoveItem">
+        UPDATE tb_move_item
+        SET item_type_cd = #{itemTypeCd}
+          , item_cd      = #{itemCd}
+          , test_no      = #{testNo}
+          , qty          = #{qty}
+          , etc          = #{etc}
+          , upd_id       = #{userId}
+          , upd_dt       = GETDATE()
+        WHERE move_item_id = #{moveItemId}
+    </update>
+
+    <delete id="deleteMoveReqItemId">
+        delete from tb_move_item where move_item_id = #{moveItemId}
+    </delete>
 
 
 
