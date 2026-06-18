@@ -19,10 +19,10 @@ public class TranVo {
     private LocalDate tranDate;
     private Integer seq;
     private String areaCd;
-    private String fromStorageCd;
-    private String fromStorageName;
-    private String toStorageCd;
-    private String toStorageName;
+    private String tarStorageCd;
+    private String tarStorageName;
+    private String srcStorageCd;
+    private String srcStorageName;
     private String customerCd;
     private String customerName;
     private String managerId;
@@ -34,6 +34,7 @@ public class TranVo {
     private String remark;
     private String tranTypeCd;
     private String tranStatus;
+    private String etc;
 
     private String userId;
 
@@ -48,10 +49,12 @@ public class TranVo {
         private String itemName;
         private BigDecimal totQty;
         private BigDecimal totPrice;
-        private String toStorageName;
+        private String srcStorageName;
         private String orderType;
         private String managerName;
         private String customerName;
+        private String tranTypeCd;
+        private String tranTypeName;
     }
 
 

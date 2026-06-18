@@ -274,7 +274,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         tranInfo.setCustomerCd(purchaseInfo.getCustomerCd());
         tranInfo.setManagerId(purchaseInfo.getManagerId());
         tranInfo.setAreaCd(purchaseInfo.getAreaCd());
-        tranInfo.setToStorageCd(purchaseInfo.getStorageCd());
+        tranInfo.setSrcStorageCd(purchaseInfo.getStorageCd());
         tranInfo.setRemark(purchaseInfo.getRemark());
         tranInfo.setEndYn(purchaseInfo.getEndYn());
         tranInfo.setTranTypeCd("A");

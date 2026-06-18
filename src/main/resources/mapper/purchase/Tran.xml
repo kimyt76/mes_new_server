@@ -9,7 +9,7 @@
                       ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.tran_item_id) - 1 AS VARCHAR) + '건' END AS item_name
                 ,sum(isnull(b.qty, 0)) as totQty
                 ,dbo.getStorageName(a.form_storage_cd) as form_storage_name
-                ,dbo.getStorageName(a.to_storage_cd) as to_storage_name
+                ,dbo.getStorageName(a.src_storage_cd) as to_storage_name
                 ,a.tran_status
                 ,dbo.getUserName(a.manager_id) as manager_name
                 ,a.tran_id
@@ -34,10 +34,10 @@
         select    a.tran_date
                  ,dbo.getCustomerName(a.customer_cd) as customer_name
                  ,a.customer_cd
-                 ,a.from_storage_cd
-                 ,dbo.getStorageName(a.from_storage_cd) as fromStorageName
-                 ,a.to_storage_cd
-                 ,dbo.getStorageName(a.to_storage_cd) as toStorageName
+                 ,a.tar_storage_cd
+                 ,dbo.getStorageName(a.tar_storage_cd) as tarStorageName
+                 ,a.src_storage_cd
+                 ,dbo.getStorageName(a.src_storage_cd) as srcStorageName
                  ,a.remark
                  ,a.manager_id
                  --,a.order_type
@@ -66,11 +66,11 @@
     <!--    재고 마스터 등록 -->
     <insert id="insertTranMst" parameterType="com.jct.mes_new.biz.purchase.vo.TranVo"  useGeneratedKeys="true" keyProperty="tranId">
         INSERT INTO dbo.tb_inv_tran_mst (
-            tran_date, tran_type_cd, area_cd, from_storage_cd, to_storage_cd, customer_cd, manager_id, remark,
+            tran_date, tran_type_cd, area_cd, tar_storage_cd, src_storage_cd, customer_cd, manager_id, remark,
             tran_status, end_yn,  pur_id, reg_id, upd_id, seq
         )
         VALUES (
-            #{tranDate}, #{tranTypeCd}, #{areaCd}, #{fromStorageCd}, #{toStorageCd}, #{customerCd},#{managerId}, #{remark},
+            #{tranDate}, #{tranTypeCd}, #{areaCd}, #{tarStorageCd}, #{srcStorageCd}, #{customerCd},#{managerId}, #{remark},
             #{tranStatus}, #{endYn}, #{purId}, #{userId}, #{userId},
             (
             SELECT ISNULL(MAX(seq), 0) + 1
@@ -125,8 +125,8 @@
         UPDATE dbo.tb_inv_tran_mst
         SET    tran_date        = #{tranDate}
               ,area_cd          = #{areaCd}
-              ,from_storage_cd  = #{fromStorageCd}
-              ,to_storage_cd    = #{toStorageCd}
+              ,tar_storage_cd  = #{tarStorageCd}
+              ,src_storage_cd    = #{srcStorageCd}
               ,customer_cd      = #{customerCd}
               ,manager_id       = #{managerId}
               ,remark           = #{remark}
