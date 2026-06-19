@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.stock.mapper.AdjustMapper">
+    <select id="getAdjustList">
+        select  a.tran_date
+                , a.seq
+                , c.code_nm as tranTypeName
+                , d.storage_name as srcStorageName
+                , min(b.item_name)+ case when count(distinct b.item_cd) > 1 then ' 외 ' + cast(count(distinct b.item_cd) - 1 as varchar(10)) + '건'
+                        else '' end as item_name
+                , sum(b.qty) as qty
+                , u.member_nm as managerName
+                , a.manager_id
+                , a.etc
+                , a.tran_type_cd
+                , a.src_storage_cd
+                , a.tran_id
+        from tb_inv_tran_mst a
+                inner join tb_inv_tran_item b
+                on a.tran_id = b.tran_id
+                inner join tb_common_code c
+                on c.code = a.tran_type_cd
+                and c.com_type_cd = 'TRAN_CD'
+                inner join tb_users u
+                on u.user_id = a.manager_id
+                left outer join tb_storage_mst d
+                on d.storage_cd = a.src_storage_cd
+        where a.tran_date between #{strDate} and #{endDate}
+        <choose>
+            <when test="tranTypeCd != null and tranTypeCd != ''">
+                and a.tran_type_cd = #{tranTypeCd}
+            </when>
+            <otherwise>
+                and a.tran_type_cd in ('P','Q','R','S','T','U','V','W','X')
+            </otherwise>
+        </choose>
+        <if test="srcStorageCd != null and srcStorageCd != ''">
+            and a.src_storage_cd = #{srcStorageCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and b.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and b.item_name like '%' + #{itemName} + '%'
+        </if>
+        group by a.tran_date, a.seq, c.code_nm, d.storage_name, u.member_nm,a.manager_id, a.etc, a.tran_type_cd, a.src_storage_cd, a.tran_id
+        order by a.tran_date desc, a.seq desc
+    </select>
+
+    <select id="getAdjustMst">
+        select    a.tran_date
+                , a.seq
+                , a.tran_type_cd
+                , d.storage_name as srcStorageName
+                , c.member_nm  as managerName
+                , a.manager_id
+                , a.etc
+                , a.src_storage_cd
+                , a.tran_id
+        from    tb_inv_tran_mst a
+                inner join tb_inv_tran_item b
+                on a.tran_id = b.tran_id
+                inner join tb_users c
+                on c.user_id = a.manager_id
+                left outer join tb_storage_mst d
+                on d.storage_cd = a.src_storage_cd
+        where a.tran_id = #{tranId}
+    </select>
+
+    <select id="getAdjustItemList">
+        select    a.item_cd
+                 ,a.item_name
+                 ,a.test_no
+                 ,a.qty
+                 ,a.etc
+                 ,a.item_type_cd
+                 ,a.tran_item_id
+                 ,a.tran_id
+        from tb_inv_tran_item a
+        where a.tran_id = #{tranId}
+    </select>
+
+    <insert id="insertAdjustMst" parameterType="com.jct.mes_new.biz.stock.vo.AdjustVo"  useGeneratedKeys="true" keyProperty="tranId">
+        insert into tb_inv_tran_mst
+        ( tran_date, seq, tran_type_cd, src_storage_cd, manager_id, etc, tran_status, end_yn, reg_id, upd_id)
+        values
+        ( #{tranDate}, #{seq}, #{tranTypeCd}, #{srcStorageCd}, #{managerId}, #{etc}, 'C', 'Y', #{userId}, #{userId} )
+    </insert>
+
+    <insert id="insertAdjustItemList">
+        insert into tb_inv_tran_item
+        ( tran_id, item_type_cd, item_cd, item_name, test_no, qty, lot_no,  reg_id, upd_id)
+        values
+        ( #{tranId}, #{itemTypeCd}, #{itemCd}, #{itemName}, #{testNo}, #{qty}, #{lotNo},  #{userId}, #{userId} )
+    </insert>
+
+    <update id="updateAdjustItemList">
+        update tb_inv_tran_item
+        set    qty = #{qty}
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where  tran_id = #(tranId)
+    </update>
+
+
+
+</mapper>
