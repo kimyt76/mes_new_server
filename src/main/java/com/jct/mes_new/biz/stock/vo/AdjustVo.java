@@ -17,6 +17,7 @@ public class AdjustVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate tranDate;
     private int seq;
+    private String tranDateSeq;
     private String srcStorageCd;
     private String srcStorageName;
     private String tranTypeCd;

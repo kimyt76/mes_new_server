@@ -3,7 +3,8 @@
 
 <mapper namespace="com.jct.mes_new.biz.stock.mapper.AdjustMapper">
     <select id="getAdjustList">
-        select  a.tran_date
+        select    CONCAT(CONVERT(varchar(10), a.tran_date, 23), ' - ', a.seq) AS tranDateSeq
+                , a.tran_date
                 , a.seq
                 , c.code_nm as tranTypeName
                 , d.storage_name as srcStorageName
