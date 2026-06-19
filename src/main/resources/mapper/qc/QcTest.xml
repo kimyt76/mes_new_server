@@ -252,4 +252,55 @@
               ,upd_dt               = getdate()
         where  qc_test_id = #{qcTestId}
     </update>
+
+
+
+
+
+    <select id="getQcTestDetailByTestNo">
+        select    a.test_no
+                 ,a.req_date
+                 ,dbo.getUserName(a.req_tester_id) as req_tester_name
+                 ,a.req_tester_id
+                 ,dbo.getCommonName('item_type_cd', b.item_type_cd) as item_type_name
+                 ,b.item_type_cd
+                 ,b.item_cd
+                 ,C.item_name
+                 ,b.lot_no
+                 ,b.make_no
+                 ,a.req_qty
+                 ,dbo.getStorageName(a.storage_cd) as storage_name
+                 ,a.storage_cd
+                 ,a.tester_id
+                 ,dbo.getUserName(a.tester_id) as tester_name
+                 ,a.order_tester_id
+                 ,dbo.getUserName(a.order_tester_id) as order_tester_name
+                 ,a.confirm_tester_id
+                 ,dbo.getUserName(a.confirm_tester_id) as confirm_tester_name
+                 ,a.sample_tester_id
+                 ,dbo.getUserName(a.sample_tester_id) as sample_tester_name
+                 ,a.test_date
+                 ,a.confirm_date
+                 ,a.sample_qty
+                 ,a.test_qty
+                 ,a.test_state
+                 ,a.pass_state
+                 ,a.qc_test_id
+                 ,a.area_cd
+                 ,isnull((select max(seq)+1 from  tb_qc_test_mst where retest_yn ='Y' and test_no = a.test_no ), 1) as seq
+                 ,a.retest_yn
+                 ,b.create_date
+                 ,b.expiry_date
+                 ,b.customer_cd
+                 ,dbo.getCustomerName(b.customer_cd) as customer_Name
+                 ,a.order_type
+                 ,a.etc
+                 ,a.qc_cd
+        from    tb_qc_test_mst a
+                inner join tb_item_test_no b
+                on a.test_no = b.test_no
+                inner join tb_item_mst c
+                on b.item_cd = c.item_cd
+        where  a.test_no  = #{testNo}
+    </select>
 </mapper>

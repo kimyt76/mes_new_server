@@ -11,6 +11,9 @@ import com.jct.mes_new.biz.qc.mapper.QcTestTypeMapper;
 import com.jct.mes_new.biz.qc.service.QcTestService;
 import com.jct.mes_new.biz.qc.constant.PrintDocumentType;
 import com.jct.mes_new.biz.qc.vo.*;
+import com.jct.mes_new.biz.stock.mapper.AdjustMapper;
+import com.jct.mes_new.biz.stock.vo.AdjustItemVo;
+import com.jct.mes_new.biz.stock.vo.AdjustVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
@@ -41,7 +44,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -55,6 +60,7 @@ public class QcTestServiceImpl implements QcTestService {
     private final ItemTestMapper itemTestMapper;
     private final ItemMapper itemMapper;
     private final CommonMapper commonMapper;
+    private final AdjustMapper adjustMapper;
 
     /** 검사 지시 및 성적서 **/
     private final int REPO_MAX_ROW = 15;    // 승인칸 있을 시, 최대 ROW수
@@ -141,6 +147,37 @@ public class QcTestServiceImpl implements QcTestService {
         if ( qcTestMapper.updateQcTestAllInfo(qcTestMst) <=  0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
+
+        if (qcTestMst.getTestQty().compareTo(BigDecimal.ZERO) > 0) {
+            //자재 조정 자동 등록
+            QcTestVo qcTestVo = qcTestMapper.getQcTestDetailByTestNo(qcTestMst.getTestNo());
+            //마스터
+            AdjustVo adjustVo = new AdjustVo();
+            adjustVo.setTranDate(LocalDate.now());
+            adjustVo.setSeq( commonMapper.getNextSeq("tb_inv_tran_mst", "tran_date", adjustVo.getTranDate().toString() ) );
+            adjustVo.setManagerId(userId);
+            adjustVo.setTranTypeCd("T");
+            adjustVo.setUserId(userId);
+            adjustVo.setSrcStorageCd(qcTestVo.getStorageCd());
+
+            if (adjustMapper.insertAdjustMst(adjustVo) <= 0){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+            //조정 품목
+            AdjustItemVo adjustItemVo = new AdjustItemVo();
+            adjustItemVo.setTranId(adjustVo.getTranId());
+            adjustItemVo.setItemTypeCd(qcTestVo.getItemTypeCd());
+            adjustItemVo.setItemCd(qcTestVo.getItemCd());
+            adjustItemVo.setItemName(qcTestVo.getItemName());
+            adjustItemVo.setTestNo(qcTestVo.getTestNo());
+            adjustItemVo.setQty(qcTestMst.getTestQty());
+            adjustItemVo.setUserId(userId);
+
+            if ( adjustMapper.insertAdjustItemList(adjustItemVo) <= 0){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }
+
         //삭제
         List<Long> getDeleteIds = vo.getDeleteIds();
         if (getDeleteIds != null && !getDeleteIds.isEmpty()) {

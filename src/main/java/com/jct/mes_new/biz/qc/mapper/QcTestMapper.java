@@ -57,4 +57,6 @@ public interface QcTestMapper {
     int insertRetestInfo(QcTestVo vo);
 
     int updateQcTestAllInfo(QcTestVo qcTesteMst);
+
+    QcTestVo getQcTestDetailByTestNo(String testNo);
 }
