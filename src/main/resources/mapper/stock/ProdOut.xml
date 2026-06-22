@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.stock.mapper.ProdOutMapper">
+    <select id="getProdOutList">
+        select CONCAT(CONVERT(varchar(10), a.tran_date, 23), ' - ', a.seq) AS tranDateSeq
+                ,b.storage_name
+                ,c.client_name
+                , min(a.item_name)+ case when count(distinct a.item_cd) > 1 then ' 외 ' + cast(count(distinct a.item_cd) - 1 as varchar(10)) + '건'
+                else '' end as item_name
+                , sum(a.qty) as qty
+                ,d.member_nm
+                ,a.tran_id
+        from   vw_inv_stock_tran a
+                left outer join tb_storage_mst b
+                on b.storage_cd = a.storage_cd
+                left outer join tb_client_mst c
+                on c.client_id = a.customer_cd
+                left outer join tb_users d
+                on d.user_id = a.manager_id
+        where  a.tran_date between #{strDate} and #{endDate}
+        and    a.tran_type_cd ='F'
+        <if test="areaCd != null and areaCd != ''">
+            and a.area_cd = #{areaCd}
+        </if>
+        <if test="srcStorageCd != null and srcStorageCd != ''">
+            and a.storage_cd = #{srcStorageCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and b.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and b.item_name like '%' + #{itemName} + '%'
+        </if>
+        group by  a.tran_date, a.seq , b.storage_name,c.client_name , a.item_name, a.item_cd,d.member_nm, a.tran_id
+        order by a.tran_date desc, a.seq desc
+    </select>
+
+    <select id="getProdOutMst">
+        select    a.tran_date
+                , a.seq
+                , a.tran_type_cd
+                , d.client_name
+                , c.member_nm  as managerName
+                , a.manager_id
+                , a.etc
+                , a.src_storage_cd
+                , a.customer_cd
+                , a.tran_id
+                , a.area_cd
+                , dbo.getCommonName('area', a.area_cd) as areaName
+        from    tb_inv_tran_mst a
+                inner join tb_inv_tran_item b
+                on a.tran_id = b.tran_id
+                inner join tb_users c
+                on c.user_id = a.manager_id
+                left outer join tb_client_mst d
+                on d.client_id = a.customer_cd
+        where a.tran_id = #{tranId}
+    </select>
+
+    <select id="getProdOutItemList">
+        select    a.item_cd
+                 ,a.item_name
+                 ,a.test_no
+                 ,a.qty
+                 ,a.etc
+                 ,a.item_type_cd
+                 ,a.tran_item_id
+                 ,a.tran_id
+                 ,a.po_no
+        from tb_inv_tran_item a
+        where a.tran_id = #{tranId}
+    </select>
+
+    <insert id="insertProdOutMst" parameterType="com.jct.mes_new.biz.stock.vo.ProdOutVo"  useGeneratedKeys="true" keyProperty="tranId">
+        insert into tb_inv_tran_mst
+        ( tran_date, seq, tran_type_cd, area_cd, src_storage_cd, customer_cd, manager_id, etc, tran_status, end_yn, reg_id, upd_id)
+        values
+        ( #{tranDate}, #{seq}, #{tranTypeCd}, #{areaCd}, #{srcStorageCd}, #{clientId}, #{managerId}, #{etc}, 'C', 'Y', #{userId}, #{userId} )
+    </insert>
+
+    <insert id="insertProdOutItemList">
+        insert into tb_inv_tran_item
+        ( tran_id, item_type_cd, item_cd, item_name, test_no, qty, lot_no, reg_id, upd_id)
+        values
+        ( #{tranId}, #{itemTypeCd}, #{itemCd}, #{itemName}, #{testNo}, #{qty}, #{lotNo}, #{userId}, #{userId} )
+    </insert>
+
+    <update id="updateProdOutItemList">
+        update tb_inv_tran_item
+        set    qty = #{qty}
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where  tran_id = #(tranId)
+    </update>
+
+
+
+</mapper>
