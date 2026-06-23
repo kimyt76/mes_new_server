@@ -215,13 +215,64 @@
 
 
     <select id="getPurchaseDetailList">
-
-
-
-
-
-
-
+        select    CONCAT(CONVERT(varchar(10), a.pur_date, 23), ' - ', a.seq) AS purDateSeq
+                 ,a.pur_date
+                 ,e.customer_name
+                 ,b.item_cd
+                 ,b.item_name
+                 ,b.test_no
+                 ,d.spec
+                 ,b.qty
+                 ,d.in_price
+                 ,b.supply_price
+                 ,b.vat_price
+                 ,b.supply_price + b.vat_price as totPrice
+                 ,f.code_nm as testStateName
+                 ,g.code_nm as passStateName
+                 ,h.code_nm as areaName
+                 ,c.test_state
+                 ,c.pass_state
+                 ,a.area_cd
+                 ,a.pur_id
+                 ,b.pur_item_id
+        from   tb_pur_mst a
+               inner join tb_pur_item b
+                on a.pur_id = b.pur_id
+               inner join tb_item_test_no c
+                on b.test_no = c.test_no
+               inner join tb_item_mst d
+                on d.item_cd = b.item_cd
+               left outer join tb_customer e
+                on e.customer_cd = a.customer_cd
+               left outer join tb_common_code f
+                on f.code = c.test_state
+                and  f.com_type_cd = 'test_state'
+               left outer join tb_common_code g
+                on g.code = c.pass_state
+                and  g.com_type_cd = 'pass_state'
+               left outer join tb_common_code h
+                on h.code = a.area_cd
+                and  h.com_type_cd = 'area'
+        where  a.pur_date between  #{strDate} and  #{endDate}
+        <if test="areaCd != null and areaCd != ''">
+            AND a.area_cd = #{areaCd}
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            and b.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND b.item_cd LIKE '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and b.item_name like '%' + #{itemName} + '%'
+        </if>
+        <if test="customerName != null and customerName != ''">
+            and e.customer_name like '%' + #{customerName} + '%'
+        </if>
+        <if test="testState != null and testState != ''">
+            and c.test_state = #{testState}
+        </if>
+        order by a.pur_date desc, a.seq desc
     </select>
 
 
