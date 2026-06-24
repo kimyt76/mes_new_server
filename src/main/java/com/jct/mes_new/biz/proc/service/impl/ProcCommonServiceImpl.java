@@ -39,6 +39,15 @@ public class ProcCommonServiceImpl implements ProcCommonService {
     private final WorkOrderMapper workOrderMapper;
 
 
+    /**
+     * 공정 메인 리스트 조회 (공통)
+     * @param vo
+     * @return
+     */
+    public List<WorkOrderInfoVo> getProcList(ProcSearchVo vo){
+        return procCommonMapper.getProcList(vo);
+    }
+
     public List<ProcCommonVo> getWorkerList(ProcCommonVo vo){
         return procCommonMapper.getWorkerList(vo.getAreaCd(), vo.getProcCd());
     }

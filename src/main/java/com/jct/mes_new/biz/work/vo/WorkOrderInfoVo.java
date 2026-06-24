@@ -12,10 +12,15 @@ public class WorkOrderInfoVo {
     private Long workBatchId;
     private Long workProcId;
 
+    private Long inTranId;
+    private Long outTranId;
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate workOrderDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate procOrderDate;
     private Integer seq;
     private String workOrderDateSeq;
     private String areaCd;
@@ -30,6 +35,7 @@ public class WorkOrderInfoVo {
     private String lotNo;
     private String lotNo2;
     private String batchStatus;
+    private String batchStatusName;
 
     private String procCd;
     private String itemCd;
@@ -52,6 +58,7 @@ public class WorkOrderInfoVo {
     private String etc;
     private String tranYn;
     private String endYn;
+    private String moveStatus;
 
     private String userId;
 

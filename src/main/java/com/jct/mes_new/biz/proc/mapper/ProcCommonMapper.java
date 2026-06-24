@@ -10,6 +10,15 @@ import java.util.List;
 
 @Mapper
 public interface ProcCommonMapper {
+
+    /**
+     * 공정 메인 리스트 조회 (공통)
+     * @param vo
+     * @return
+     */
+    List<WorkOrderInfoVo> getProcList(ProcSearchVo vo);
+
+
     List<ProcCommonVo> getWorkerList(@Param("areaCd") String areaCd, @Param("procCd") String procCd );
 
     List<ProcCommonVo> getEquipmentList(String storageCd);
@@ -96,4 +105,6 @@ public interface ProcCommonMapper {
      * @return
      */
     List<ProcItemVo> getProcItemList(@Param("ids") List<Long> ids);
+
+
 }

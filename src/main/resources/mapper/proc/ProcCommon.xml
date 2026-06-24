@@ -2,6 +2,68 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCommonMapper">
+<!--    각 공정별 리스트 공통 -->
+    <select id="getProcList">
+        select   CONCAT(CONVERT(varchar(10),c.work_order_date,23),' - ',c.seq)  AS workOrderDateSeq
+                ,dbo.getCommonName('area', c.area_cd) as areaName
+                ,b.po_no
+                ,a.proc_order_date
+                ,b.make_No
+                ,b.lot_no
+                ,a.item_cd
+                ,d.item_name
+                ,a.order_qty
+                ,dbo.getCommonName('BATCH_STATUS', b.batch_status) as batchStatusName
+                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatusName
+                ,t.client_name
+                ,c.area_cd
+                ,a.proc_cd
+                ,a.proc_status
+                ,b.batch_status
+                ,c.work_order_id
+                ,b.work_batch_id
+                ,a.work_proc_id
+                ,ISNULL(NULLIF(f.code_nm, ''), '미요청')  as move_status
+        from   TB_WORK_ORDER_PROC a
+                inner join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+                inner join TB_WORK_ORDER_MST c
+                on b.work_order_id = c.work_order_id
+                inner join tb_item_mst d
+                on d.item_cd = a.item_cd
+                inner join tb_client_mst t
+                on t.client_id =c.client_id
+                left outer join tb_move_stock_proc_map e
+                on e.work_proc_id = a.work_proc_id
+                left outer join tb_common_code f
+                on f.code = e.move_status
+                and  f.com_type_cd = 'MOVE_STATUS'
+        where  a.proc_cd = #{procCd}
+        <if test="strDate != null and strDate != ''">
+            AND a.proc_order_date between #{strDate} and #{endDate}
+        </if>
+        <if test="areaCd != null and areaCd != ''">
+            AND c.area_cd = #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  d.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="procStatus != null and procStatus != ''">
+            and  a.proc_status = #{procStatus}
+        </if>
+        <if test="clientName != null and clientName != ''">
+            and  t.client_name LIKE '%' + #{clientName} + '%'
+        </if>
+        <if test="makeNo != null and makeNo != ''">
+            and  b.make_no LIKE '%' + #{makeNo} + '%'
+        </if>
+        ORDER BY c.work_order_date DESC, c.seq DESC
+    </select>
+
+
     <select id="getWorkerList">
         select worker_name
               ,etc
@@ -358,6 +420,7 @@
                 ,d.item_name
                 ,sum(a.order_qty)  as order_qty
                 , '' as memo
+
         from    TB_WORK_ORDER_PROC a
                 inner join tb_bom_mst b
                 on a.item_cd = b.item_cd

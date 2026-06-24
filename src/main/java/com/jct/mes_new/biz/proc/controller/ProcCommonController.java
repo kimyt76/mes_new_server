@@ -4,6 +4,7 @@ package com.jct.mes_new.biz.proc.controller;
 import com.jct.mes_new.biz.common.vo.SearchCommonVo;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderItemVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
@@ -27,6 +28,13 @@ public class ProcCommonController {
 
     private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
+
+
+    @PostMapping("/getProcList")
+    public List<WorkOrderInfoVo> getProcList(@RequestBody ProcSearchVo vo) {
+        log.info("=====================vo============== : " + vo);
+        return  procCommonService.getProcList(vo);
+    }
 
     /**
      * 작업자 조회
