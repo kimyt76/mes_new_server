@@ -42,10 +42,6 @@ public class ProcChargeServiceImpl implements ProcChargeService {
     private final TranMapper tranMapper;
 
 
-    public List<ProcChargeVo> getChargeList(ProcChargeVo vo){
-        return procChargeMapper.getChargeList(vo);
-    }
-
 
     /**
      * 충전작업 시작
@@ -135,7 +131,7 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         invMst.setTranDate(LocalDate.now());
         invMst.setTranTypeCd("B");
         invMst.setAreaCd(workOrder.getAreaCd());
-        invMst.setFromStorageCd("");
+        invMst.setTarStorageCd(workOrder.getStorageCd());
         String storageCd = "";
         if ( "A001".equals(workOrder.getAreaCd())){
             storageCd = "WS005";
@@ -144,7 +140,7 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         }else{
             storageCd = "WS005";
         }
-        invMst.setToStorageCd(storageCd);
+        invMst.setSrcStorageCd(storageCd);
         invMst.setManagerId(userId);
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
@@ -191,8 +187,8 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         invMst2.setTranDate(LocalDate.now());
         invMst2.setTranTypeCd("E");
         invMst2.setAreaCd(workOrder.getAreaCd());
-        invMst2.setFromStorageCd(workOrder.getStorageCd());
-        invMst2.setToStorageCd(storageCd);
+        invMst2.setTarStorageCd(workOrder.getStorageCd());
+        invMst2.setSrcStorageCd(storageCd);
         invMst2.setEndYn("Y");
         invMst2.setTranStatus("C");
         invMst2.setPoNo(workOrder.getPoNo());

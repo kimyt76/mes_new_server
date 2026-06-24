@@ -26,17 +26,11 @@ public class ProcChargeController {
     private final ProcChargeService procChargeService;
     private final MessageUtil messageUtil;
 
-    @PostMapping("/getChargeList")
-    public List<ProcChargeVo> getChargeList (@RequestBody ProcChargeVo vo) {
-        return  procChargeService.getChargeList(vo);
-    }
-
     @PostMapping("/startProcCharge")
     public ResponseEntity<ApiResponse<Void>>  startProcCharge(@RequestBody ProcChargeVo vo){
         String result = procChargeService.startProcCharge(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
     }
-
 
     @PostMapping("/completeCharge")
     public ResponseEntity<ApiResponse<Void>>  completeCharge(@RequestBody ProcChargeVo vo){

@@ -7,7 +7,6 @@ import com.jct.mes_new.biz.proc.vo.WeighInvInfo;
 import java.util.List;
 
 public interface ProcWeighService {
-    List<ProcWeighVo> getWeighList(ProcWeighVo vo);
 
     WeighInfoVo getWeighInfo(ProcWeighVo vo);
 

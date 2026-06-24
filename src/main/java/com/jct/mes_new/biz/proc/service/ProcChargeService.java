@@ -7,7 +7,6 @@ import com.jct.mes_new.biz.proc.vo.ProcCoatingVo;
 import java.util.List;
 
 public interface ProcChargeService {
-    List<ProcChargeVo> getChargeList(ProcChargeVo vo);
 
     String startProcCharge(ProcChargeVo vo);
 

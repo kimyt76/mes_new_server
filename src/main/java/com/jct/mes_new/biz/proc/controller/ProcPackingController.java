@@ -27,10 +27,6 @@ public class ProcPackingController {
     private final MessageUtil messageUtil;
 
 
-    @PostMapping("/getPackingList")
-    public List<ProcChargeVo> getPackingList (@RequestBody ProcPackingVo vo) {
-        return  procPackingService.getPackingList(vo);
-    }
 
     @PostMapping("/startProcPacking")
     public ResponseEntity<ApiResponse<Void>> startProcPacking(@RequestBody ProcPackingVo vo){

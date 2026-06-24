@@ -9,7 +9,6 @@ import java.util.List;
 
 @Mapper
 public interface ProcWeighMapper {
-    List<ProcWeighVo> getWeighList(ProcWeighVo vo);
 
     int checkWeighCnt(Long workProcId);
 

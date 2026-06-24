@@ -11,8 +11,6 @@ import java.util.List;
 @Mapper
 public interface ProcMakeMapper {
 
-    List<ProcMakeVo> getMatList(ProcMakeVo vo);
-
     ProcMakeVo getMakeHeadInfo(Long workBatchId );
 
     List<ProcWeighBomVo> getRealBomMakeList(@Param("workProcId") Long workProcId, @Param("itemCd") String itemCd);

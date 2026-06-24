@@ -6,7 +6,6 @@ import com.jct.mes_new.biz.proc.vo.ProcPackingVo;
 import java.util.List;
 
 public interface ProcPackingService {
-    List<ProcChargeVo> getPackingList(ProcPackingVo vo);
 
     String startProcPacking(ProcPackingVo vo);
 

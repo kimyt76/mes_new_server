@@ -30,14 +30,6 @@ public class ProcWeighServiceImpl implements ProcWeighService {
     private final ProcCommonMapper procCommonMapper;
     private final TranMapper tranMapper;
 
-    /**
-     * 칭량조회
-     * @param vo
-     * @return
-     */
-    public List<ProcWeighVo> getWeighList(ProcWeighVo vo){
-        return procWeighMapper.getWeighList(vo);
-    }
 
     public ProcWeighVo getWeighHeadInfo(Long workProcId){
         return procWeighMapper.getWeighHeadInfo(workProcId);
@@ -204,23 +196,24 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         //재고 마스터
         ProcWeighVo mst = this.getWeighHeadInfo(vo.getWorkProcId());
         TranVo invMst = new TranVo();
-        String fromStorage = "";
-        if ( "A001".equals(mst.getAreaCd()) ){
-            fromStorage = "WS103";
-        }else if ( "A002".equals(mst.getAreaCd()) ){
-            fromStorage = "WA102";
+
+        String storageCd = "";
+        if ( "A001".equals(mst.getAreaCd())){
+            storageCd = "WS005";
+        }else if ( "A002".equals(mst.getAreaCd())){
+            storageCd = "WA005";
         }else{
-            fromStorage = "WS103";
+            storageCd = "WS005";
         }
 
         invMst.setTranDate(LocalDate.now());
         invMst.setTranTypeCd("E");
         invMst.setAreaCd(mst.getAreaCd());
-        invMst.setFromStorageCd(mst.getStorageCd());
-        invMst.setToStorageCd(fromStorage);
+        invMst.setSrcStorageCd(mst.getStorageCd() );
+        invMst.setTarStorageCd(storageCd);
         invMst.setManagerId(mst.getManagerId());
         invMst.setEndYn("Y");
-        invMst.setTranStatus("C");
+        invMst.setTranStatus("E");
         invMst.setPoNo(mst.getPoNo());
         invMst.setUserId(userId);
 
@@ -249,7 +242,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
             }
         }
 
-        vo.setTranId(invMst.getTranId() );
+        vo.setOutTranId(invMst.getTranId() );
         vo.setUserId(userId);
         //작업지시 업데이트 (공정)
         if( procWeighMapper.updateWeighProcComplete(vo) <= 0 ){

@@ -11,8 +11,6 @@ import java.util.List;
 public interface ProcChargeMapper {
 
 
-    List<ProcChargeVo> getChargeList(ProcChargeVo vo);
-
     int startProcCharge(ProcChargeVo vo);
 
     ProcCoatingVo getChargeHeadInfo(Long workProcId);

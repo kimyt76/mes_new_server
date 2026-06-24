@@ -54,10 +54,6 @@ public class ProcMakeServiceImpl implements ProcMakeService {
     private final TranMapper tranMapper;
     private final ProcWeighMapper procWeighMapper;
 
-    public List<ProcMakeVo> getMatList(ProcMakeVo vo){
-        return procMakeMapper.getMatList(vo);
-    }
-
     /**
      * 제조 상세 조회
      * @param vo
@@ -226,20 +222,20 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         //재고 마스터
         ProcMakeVo mst = procMakeMapper.getMakeHeadInfo(vo.getWorkBatchId());
         TranVo invMst = new TranVo();
-        String fromStorage = "";
+        String toStorage = "";
         if ( "A001".equals(mst.getAreaCd()) ){
-            fromStorage = "WS005";
+            toStorage = "WS005";
         }else if ( "A002".equals(mst.getAreaCd()) ){
-            fromStorage = "WA005";
+            toStorage = "WA005";
         }else{
-            fromStorage = "WS005";
+            toStorage = "WS005";
         }
 
         invMst.setTranDate(LocalDate.now());
         invMst.setTranTypeCd("B");
         invMst.setAreaCd(mst.getAreaCd());
-        invMst.setFromStorageCd(mst.getStorageCd());
-        invMst.setToStorageCd(fromStorage);
+        invMst.setSrcStorageCd(toStorage);
+        invMst.setTarStorageCd(mst.getStorageCd());
         invMst.setManagerId(mst.getManagerId());
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
@@ -273,7 +269,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
-        vo.setTranId(invMst.getTranId() );
+        vo.setInTranId(invMst.getTranId() );
         vo.setUserId(userId);
         //작업지시 업데이트 (공정)
         if( procMakeMapper.updateMakeProcComplete(vo) <= 0 ){

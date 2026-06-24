@@ -7,7 +7,6 @@ import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import java.util.List;
 
 public interface ProcMakeService {
-    List<ProcMakeVo> getMatList(ProcMakeVo vo);
 
     MakeInfoVo getMakeInfo(ProcMakeVo vo);
 

@@ -9,7 +9,6 @@ import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import java.util.List;
 
 public interface ProcCoatingService {
-    List<ProcCoatingVo> getCoatingList(ProcCoatingVo vo);
 
     String startProcCoating(ProcCoatingVo vo);
 

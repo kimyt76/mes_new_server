@@ -28,10 +28,6 @@ public class ProcCoatingController {
     private final ProcCoatingService procCoatingService;
     private final MessageUtil messageUtil;
 
-    @PostMapping("/getCoatingList")
-    public List<ProcCoatingVo> getCoatingList (@RequestBody ProcCoatingVo vo) {
-        return  procCoatingService.getCoatingList(vo);
-    }
 
     @PostMapping("/startProcCoating")
     public ResponseEntity<ApiResponse<Void>>  startProcCoating(@RequestBody ProcCoatingVo vo){

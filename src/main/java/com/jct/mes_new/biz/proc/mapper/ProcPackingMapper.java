@@ -11,8 +11,6 @@ import java.util.List;
 public interface ProcPackingMapper {
 
 
-    List<ProcChargeVo> getPackingList(ProcPackingVo vo);
-
     int startProcPacking(ProcPackingVo vo);
 
     ProcCoatingVo getPackingHeadInfo(Long workProcId);

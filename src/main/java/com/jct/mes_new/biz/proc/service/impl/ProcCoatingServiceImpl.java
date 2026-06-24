@@ -47,9 +47,6 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
     private final ProcCommonMapper procCommonMapper;
     private final TranMapper tranMapper;
 
-    public List<ProcCoatingVo> getCoatingList(ProcCoatingVo vo){
-        return procCoatingMapper.getCoatingList(vo);
-    }
 
     @Transactional(rollbackFor = BusinessException.class)
     public String startProcCoating(ProcCoatingVo vo) {
@@ -126,7 +123,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         invMst.setTranDate(LocalDate.now());
         invMst.setTranTypeCd("B");
         invMst.setAreaCd(workOrder.getAreaCd());
-        invMst.setFromStorageCd("");
+        invMst.setTarStorageCd(workOrder.getStorageCd());
         String storageCd = "";
         if ( "A001".equals(workOrder.getAreaCd())){
             storageCd = "WS005";
@@ -135,7 +132,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         }else{
             storageCd = "WS005";
         }
-        invMst.setToStorageCd(storageCd);
+        invMst.setSrcStorageCd(storageCd);
         invMst.setManagerId(userId);
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
@@ -183,8 +180,8 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         invMst2.setTranDate(LocalDate.now());
         invMst2.setTranTypeCd("E");
         invMst2.setAreaCd(workOrder.getAreaCd());
-        invMst2.setFromStorageCd(workOrder.getStorageCd());
-        invMst2.setToStorageCd(storageCd);
+        invMst2.setSrcStorageCd(workOrder.getStorageCd());
+        invMst2.setTarStorageCd(storageCd);
         invMst2.setEndYn("Y");
         invMst2.setTranStatus("C");
         invMst2.setPoNo(workOrder.getPoNo());

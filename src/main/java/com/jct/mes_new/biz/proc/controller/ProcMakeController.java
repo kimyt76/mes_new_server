@@ -26,11 +26,6 @@ public class ProcMakeController {
     private final ProcMakeService procMakeService;
     private final MessageUtil messageUtil;
 
-    @PostMapping("/getMatList")
-    public List<ProcMakeVo> getMatList(@RequestBody ProcMakeVo vo) {
-        return procMakeService.getMatList(vo);
-    }
-
     @PostMapping("/getMakeInfo")
     public MakeInfoVo getMakeInfo(@RequestBody ProcMakeVo vo) {
         return procMakeService.getMakeInfo(vo);

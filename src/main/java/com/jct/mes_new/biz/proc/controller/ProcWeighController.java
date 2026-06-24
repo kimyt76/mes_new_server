@@ -33,11 +33,6 @@ public class ProcWeighController {
     private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
 
-    @PostMapping("/getWeighList")
-    public List<ProcWeighVo> getWeighList(@RequestBody ProcWeighVo vo) {
-        return procWeighService.getWeighList(vo);
-    }
-
     @PostMapping("/getWeighInfo")
     public WeighInfoVo getWeighInfo(@RequestBody ProcWeighVo vo){
         return procWeighService.getWeighInfo(vo);

@@ -41,5 +41,6 @@ public class ProcPackingVo {
     private String workStartTime;
     private String workEndTime;
     private String managerId;
+    private String moveStatus;
     private String userId;
 }
