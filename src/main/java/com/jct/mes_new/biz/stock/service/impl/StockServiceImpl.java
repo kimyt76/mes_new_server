@@ -2,10 +2,7 @@ package com.jct.mes_new.biz.stock.service.impl;
 
 import com.jct.mes_new.biz.stock.mapper.StockMapper;
 import com.jct.mes_new.biz.stock.service.StockService;
-import com.jct.mes_new.biz.stock.vo.ItemUseVo;
-import com.jct.mes_new.biz.stock.vo.StockHistResponseVo;
-import com.jct.mes_new.biz.stock.vo.StockVo;
-import com.jct.mes_new.biz.stock.vo.UseByVo;
+import com.jct.mes_new.biz.stock.vo.*;
 import com.jct.mes_new.biz.system.mapper.StorageMapper;
 import com.jct.mes_new.biz.system.vo.StorageVo;
 import lombok.RequiredArgsConstructor;
@@ -384,4 +381,15 @@ public class StockServiceImpl implements StockService {
     public List<ItemUseVo> getItemUseList(ItemUseVo vo){
         return stockMapper.getItemUseList(vo);
     }
+
+    /**
+     * 원재료, 부자재 수불부
+     * @param vo
+     * @return
+     */
+    public List<TranLedgerVo> getTranLedger(TranLedgerVo vo){return stockMapper.getTranLedger(vo);}
+
+
+
+
 }

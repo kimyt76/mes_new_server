@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.stock.mapper;
 
 import com.jct.mes_new.biz.stock.vo.ItemUseVo;
 import com.jct.mes_new.biz.stock.vo.StockVo;
+import com.jct.mes_new.biz.stock.vo.TranLedgerVo;
 import com.jct.mes_new.biz.stock.vo.UseByVo;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -37,11 +38,19 @@ public interface StockMapper {
     List<ItemUseVo> getItemUseList(ItemUseVo vo);
 
     /**
+     * 사용기한 (원재료)
+     * @param vo
+     * @return
+     */
+    List<UseByVo> getUseByM1List(UseByVo vo);
+
+    /**
      * 사용기한 (부재료)
      * @param vo
      * @return
      */
     List<UseByVo> getUseByM2List(UseByVo vo);
 
-    List<UseByVo> getUseByM1List(UseByVo vo);
+
+    List<TranLedgerVo> getTranLedger(TranLedgerVo vo);
 }

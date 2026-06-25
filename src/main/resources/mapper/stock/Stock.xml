@@ -293,7 +293,71 @@
         group by a.item_cd, b.item_name, a.expiry_date, a.test_no, c.customer_name, a.create_date
     </select>
 
-
+    <select id="getTranLedger">
+        WITH qty AS (
+            SELECT  b.item_cd,
+                    SUM(CASE WHEN a.tran_type_cd = 'A' THEN b.qty ELSE 0 END) AS a_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'E' THEN b.qty ELSE 0 END) AS e_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'P' THEN b.qty ELSE 0 END) AS p_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'R' THEN b.qty ELSE 0 END) AS r_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'T' THEN b.qty ELSE 0 END) AS t_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'Q' THEN b.qty ELSE 0 END) AS q_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'S' THEN b.qty ELSE 0 END) AS s_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'V' THEN b.qty ELSE 0 END) AS v_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'W' THEN b.qty ELSE 0 END) AS w_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'X' THEN b.qty ELSE 0 END) AS x_qty,
+                    SUM(CASE WHEN a.tran_type_cd = 'U' THEN b.qty ELSE 0 END) AS u_qty
+            FROM    tb_inv_tran_mst a
+                    INNER JOIN tb_inv_tran_item b
+                    ON a.tran_id = b.tran_id
+            WHERE   b.item_type_cd = #{itemTypeCd}
+            AND     a.tran_date BETWEEN #{strDate} AND #{endDate}
+            <if test="itemCd != null and itemCd != ''">
+                AND b.item_cd LIKE '%' + #{itemCd} + '%'
+            </if>
+            GROUP BY b.item_cd
+        )
+        SELECT  a.item_cd,
+                ISNULL(c.code_nm, '') AS order_type,
+                a.item_name,
+                b.code_nm AS item_type_name,
+                d.customer_name,
+                ISNULL(a.in_price, 0) AS in_price,
+                ISNULL(q.a_qty, 0) AS as_qty,
+                ISNULL(q.e_qty, 0) AS es_qty,
+                ISNULL(q.p_qty, 0) AS ps_qty,
+                ISNULL(q.r_qty, 0) AS rs_qty,
+                ISNULL(q.t_qty, 0) AS ts_qty,
+                ISNULL(q.q_qty, 0) AS qs_qty,
+                ISNULL(q.s_qty, 0) AS ss_qty,
+                ISNULL(q.v_qty, 0) AS vs_qty,
+                ISNULL(q.w_qty, 0) AS ws_qty,
+                ISNULL(q.x_qty, 0) AS xs_qty,
+                ISNULL(q.u_qty, 0) AS us_qty,
+                ISNULL(q.a_qty, 0)*ISNULL(a.in_price, 0) as asAmt,
+                ISNULL(q.e_qty, 0)*ISNULL(a.in_price, 0) as esAmt
+        FROM    tb_item_mst a
+                INNER JOIN tb_common_code b
+                ON b.com_type_cd = 'item_type_cd'
+                AND b.code = a.item_type_cd
+                LEFT JOIN tb_common_code c
+                ON c.com_type_cd = 'ITEM_GRP1'
+                AND c.code = a.item_grp1
+                LEFT JOIN tb_customer d
+                ON d.customer_cd = a.customer_cd
+                LEFT JOIN qty q
+                ON q.item_cd = a.item_cd
+        WHERE a.item_type_cd = #{itemTypeCd}
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd LIKE '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND a.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="itemGrp1 != null and itemGrp1 != ''">
+            AND c.code LIKE '%' + #{itemGrp1} + '%'
+        </if>
+    </select>
 
 
 </mapper>

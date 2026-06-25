@@ -2,10 +2,7 @@ package com.jct.mes_new.biz.stock.controller;
 
 
 import com.jct.mes_new.biz.stock.service.StockService;
-import com.jct.mes_new.biz.stock.vo.ItemUseVo;
-import com.jct.mes_new.biz.stock.vo.StockHistResponseVo;
-import com.jct.mes_new.biz.stock.vo.StockVo;
-import com.jct.mes_new.biz.stock.vo.UseByVo;
+import com.jct.mes_new.biz.stock.vo.*;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +53,6 @@ public class StockController {
         return stockService.getItemUseList(vo);
     }
 
-
     /**
      * 사용기한 (원재료)
      * @param vo
@@ -74,5 +70,15 @@ public class StockController {
     @PostMapping("/getUseByM2List")
     public List<UseByVo> getUseByM2List(@RequestBody UseByVo vo) {
         return stockService.getUseByM2List(vo);
+    }
+
+    /**
+     * 원재료, 부자재 수불부 조회
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getTranLedger")
+    public List<TranLedgerVo> getTranLedger(@RequestBody TranLedgerVo vo) {
+        return stockService.getTranLedger(vo);
     }
 }
