@@ -5,6 +5,7 @@ import com.jct.mes_new.biz.stock.service.StockService;
 import com.jct.mes_new.biz.stock.vo.ItemUseVo;
 import com.jct.mes_new.biz.stock.vo.StockHistResponseVo;
 import com.jct.mes_new.biz.stock.vo.StockVo;
+import com.jct.mes_new.biz.stock.vo.UseByVo;
 import com.jct.mes_new.biz.system.mapper.StorageMapper;
 import com.jct.mes_new.biz.system.vo.StorageVo;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,109 @@ public class StockServiceImpl implements StockService {
 
     private final StockMapper stockMapper;
     private final StorageMapper storageMapper;
+
+    public List<UseByVo> getUseByM2List(UseByVo vo) { return stockMapper.getUseByM2List(vo); }
+
+    public Map<String, Object> getUseByM1List(UseByVo vo){
+        StorageVo storageVo = new StorageVo();
+        storageVo.setAreaCd(vo.getAreaCd());
+        // 창고 목록
+        List<StorageVo> storageList = storageMapper.getStorageList(storageVo);
+        // 사용기한 조회
+        List<UseByVo> useByList = stockMapper.getUseByM1List(vo);
+        Map<String, UseByVo> pivotMap = new LinkedHashMap<>();
+        // 피벗 생성
+        for (UseByVo row : useByList) {
+            String mapKey = row.getItemCd()+ "_"+ row.getTestNo();
+            UseByVo pivot = pivotMap.computeIfAbsent(mapKey, key -> {
+
+                UseByVo newVo = new UseByVo();
+
+                newVo.setItemCd(row.getItemCd());
+                newVo.setItemName(row.getItemName());
+                newVo.setTestNo(row.getTestNo());
+                newVo.setExpiryDate(row.getExpiryDate());
+                newVo.setRemainingDay(row.getRemainingDay());
+                newVo.setTotQty(BigDecimal.ZERO);
+                newVo.setStorageQtyMap(new LinkedHashMap<>());
+
+                return newVo;
+            });
+
+            BigDecimal qty = nvl(row.getQty());
+            pivot.getStorageQtyMap().put(row.getStorageCd(),qty);
+            pivot.setTotQty(nvl(pivot.getTotQty()).add(qty));
+        }
+        // 창고별 세로 합계
+        Map<String, BigDecimal> storageTotalMap = new LinkedHashMap<>();
+
+        for (StorageVo storage : storageList) {
+            storageTotalMap.put(storage.getStorageCd(),BigDecimal.ZERO);
+        }
+        for (UseByVo useByVo : pivotMap.values()) {
+            for (Map.Entry<String, BigDecimal> entry :
+                    useByVo.getStorageQtyMap().entrySet()) {
+                String storageCd = entry.getKey();
+                BigDecimal qty = nvl(entry.getValue());
+                storageTotalMap.put(storageCd,nvl(storageTotalMap.get(storageCd)).add(qty));
+            }
+        }
+        // 합계 0인 창고 제거
+        List<StorageVo> filteredStorageList =
+                storageList.stream()
+                        .filter(storage -> {
+                            BigDecimal total =
+                                    nvl(storageTotalMap.get(storage.getStorageCd()));
+
+                            return total.compareTo(BigDecimal.ZERO) != 0;
+                        })
+                        .toList();
+        // 동적 컬럼
+        List<Map<String, String>> dynamicColumns = new ArrayList<>();
+
+        for (StorageVo storage : filteredStorageList) {
+            Map<String, String> column = new LinkedHashMap<>();
+
+            column.put("field", storage.getStorageCd());
+            column.put("header", storage.getStorageName());
+
+            dynamicColumns.add(column);
+        }
+
+        // 데이터 생성
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        for (UseByVo useByVo : pivotMap.values()) {
+            // 총수량 0 제외
+            if (nvl(useByVo.getTotQty())
+                    .compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
+
+            Map<String, Object> row = new LinkedHashMap<>();
+
+            row.put("itemCd", useByVo.getItemCd());
+            row.put("itemName", useByVo.getItemName());
+            row.put("testNo", useByVo.getTestNo());
+            row.put("expiryDate", useByVo.getExpiryDate());
+            row.put("remainingDay", useByVo.getRemainingDay());
+
+            row.put("totQty", nvl(useByVo.getTotQty()));
+
+            for (StorageVo storage : filteredStorageList) {
+                String storageCd = storage.getStorageCd();
+                row.put(storageCd, nvl(useByVo.getStorageQtyMap().get(storageCd)));
+            }
+            rows.add(row);
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        result.put("dynamicColumns", dynamicColumns);
+        result.put("rows", rows);
+
+        return result;
+
+    }
 
 
     public Map<String, Object> getStockItemList(StockVo vo) {
@@ -140,7 +244,6 @@ public class StockServiceImpl implements StockService {
     private BigDecimal nvl(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
     }
-
 
 
 

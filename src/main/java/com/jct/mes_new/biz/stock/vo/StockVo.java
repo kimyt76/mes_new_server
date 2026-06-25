@@ -27,6 +27,7 @@ public class StockVo {
     private String type;
 
     private BigDecimal qty;
+    private BigDecimal stockQty;
     private BigDecimal totQty;
     private BigDecimal inReQty;
     private BigDecimal saftQty;
@@ -43,6 +44,8 @@ public class StockVo {
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate tranDate;
 
 
     private Map<String, BigDecimal> storageQtyMap = new LinkedHashMap<>();

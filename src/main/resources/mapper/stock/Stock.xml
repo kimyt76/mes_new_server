@@ -4,124 +4,25 @@
 <mapper namespace="com.jct.mes_new.biz.stock.mapper.StockMapper">
 
     <select id="getStockItemList">
-        SELECT  x.item_cd AS itemCd,
-                x.item_name AS itemName,
-                x.item_type_cd AS itemTypeCd,
-                x.storage_cd AS storageCd,
-                SUM(isnull(x.qty, 0)) AS qty
-        FROM (
-                <!-- 입고 -->
-                SELECT  b.item_cd,
-                        b.item_name,
-                        b.item_type_cd,
-                        a.src_storage_cd AS storage_cd,
-                        b.qty
-                FROM    tb_inv_tran_mst a
-                        INNER JOIN tb_inv_tran_item b
-                        ON a.tran_id = b.tran_id
-                        AND b.in_yn = 'Y'
-                        INNER JOIN tb_item_test_no c
-                        ON c.test_no = b.test_no
-                        AND c.end_yn = 'N'
-                WHERE a.tran_type_cd IN ('A','B','C','I','J')
-                AND a.tran_status = 'C'
-                AND a.src_storage_cd IS NOT NULL
-                <if test="areaCd != null and areaCd != ''">
-                    AND a.area_cd = #{areaCd}
-                </if>
-                <if test="strDate != null">
-                    AND a.tran_date <![CDATA[>=]]> #{strDate}
-                </if>
-                <if test="endDate != null">
-                    AND a.tran_date <![CDATA[<=]]> #{endDate}
-                </if>
-                <if test="itemCd != null and itemCd != ''">
-                    AND b.item_cd LIKE '%' + #{itemCd} + '%'
-                </if>
-                <if test="itemName != null and itemName != ''">
-                    AND b.item_name LIKE '%' + #{itemName} + '%'
-                </if>
-                <if test="itemTypeCd != null and itemTypeCd != ''">
-                    AND b.item_type_cd = #{itemTypeCd}
-                </if>
-                UNION ALL
-                <!-- 출고 -->
-                SELECT  b.item_cd,
-                        b.item_name,
-                        b.item_type_cd,
-                        CASE WHEN a.tran_type_cd IN ('I','J') THEN a.tar_storage_cd ELSE a.src_storage_cd END AS storage_cd,
-                        b.qty * -1 AS qty
-                FROM tb_inv_tran_mst a
-                        INNER JOIN tb_inv_tran_item b
-                        ON a.tran_id = b.tran_id
-                        AND b.in_yn = 'Y'
-                        INNER JOIN tb_item_test_no c
-                        ON c.test_no = b.test_no
-                        AND c.end_yn = 'N'
-                WHERE a.tran_type_cd IN ('D','E','F','L','Q','T','I','J')
-                AND a.tran_status = 'C'
-                AND (
-                    (a.tran_type_cd IN ('I','J') AND a.tar_storage_cd IS NOT NULL)
-                    OR
-                    (a.tran_type_cd NOT IN ('I','J') AND a.src_storage_cd IS NOT NULL)
-                )
-                <if test="areaCd != null and areaCd != ''">
-                    AND a.area_cd = #{areaCd}
-                </if>
-                <if test="strDate != null">
-                    AND a.tran_date <![CDATA[>=]]> #{strDate}
-                </if>
-                <if test="endDate != null">
-                    AND a.tran_date <![CDATA[<=]]> #{endDate}
-                </if>
-                <if test="itemCd != null and itemCd != ''">
-                    AND b.item_cd LIKE '%' + #{itemCd} + '%'
-                </if>
-                <if test="itemName != null and itemName != ''">
-                    AND b.item_name LIKE '%' + #{itemName} + '%'
-                </if>
-                <if test="itemTypeCd != null and itemTypeCd != ''">
-                    AND b.item_type_cd = #{itemTypeCd}
-                </if>
-                UNION ALL
-                <!-- 조정 -->
-                SELECT  b.item_cd,
-                        b.item_name,
-                        b.item_type_cd,
-                        a.src_storage_cd AS storage_cd,
-                        b.qty
-                FROM tb_inv_tran_mst a
-                    INNER JOIN tb_inv_tran_item b
-                    ON a.tran_id = b.tran_id
-                    AND b.in_yn = 'Y'
-                    INNER JOIN tb_item_test_no c
-                    ON c.test_no = b.test_no
-                    AND c.end_yn = 'N'
-                WHERE a.tran_type_cd IN ('P','R','S','U','V','W','X')
-                AND a.tran_status = 'C'
-                AND a.src_storage_cd IS NOT NULL
-                <if test="areaCd != null and areaCd != ''">
-                    AND a.area_cd = #{areaCd}
-                </if>
-                <if test="strDate != null">
-                    AND a.tran_date <![CDATA[>=]]> #{strDate}
-                </if>
-                <if test="endDate != null">
-                    AND a.tran_date <![CDATA[<=]]> #{endDate}
-                </if>
-                <if test="itemCd != null and itemCd != ''">
-                    AND b.item_cd LIKE '%' + #{itemCd} + '%'
-                </if>
-                <if test="itemName != null and itemName != ''">
-                    AND b.item_name LIKE '%' + #{itemName} + '%'
-                </if>
-                <if test="itemTypeCd != null and itemTypeCd != ''">
-                    AND b.item_type_cd = #{itemTypeCd}
-                </if>
-        ) x
-        GROUP BY x.item_cd, x.item_name, x.item_type_cd, x.storage_cd
-        HAVING SUM(x.qty) != 0
-        ORDER BY x.item_cd,x.storage_cd
+        SELECT  a.item_cd AS itemCd,
+                a.item_name AS itemName,
+                a.item_type_cd AS itemTypeCd,
+                a.storage_cd AS storageCd,
+                SUM(isnull(a.qty, 0)) AS qty
+        FROM    vw_inv_stock_tran a
+        where   a.tran_date <![CDATA[<=]]> #{stdDate}
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd LIKE '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND a.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+            AND a.item_type_cd = #{itemTypeCd}
+        </if>
+        GROUP BY a.item_cd, a.item_name, a.item_type_cd, a.storage_cd
+        HAVING SUM(a.qty) != 0
+        ORDER BY a.item_cd, a.storage_cd
     </select>
 
 
@@ -173,7 +74,7 @@
             SELECT  i.item_cd
                     ,i.test_no
                     ,m.tran_date
-                    ,CASE WHEN m.tran_type_cd IN ('I','J') THEN m.tar_storage_cd ELSE m.src_storage_cd END AS storage_cd
+                    ,CASE WHEN m.tran_type_cd IN ('I','J','L') THEN m.tar_storage_cd ELSE m.src_storage_cd END AS storage_cd
                     ,i.qty * -1 AS qty
             FROM    tb_inv_tran_item i
                     JOIN tb_inv_tran_mst m
@@ -181,7 +82,7 @@
             WHERE i.item_cd = #{itemCd}
             AND m.tran_status = 'C'
             AND m.tar_storage_cd IS NOT NULL
-            AND m.tran_type_cd IN ('D','E','F','L','Q','T','I', 'J')
+            AND m.tran_type_cd IN ('D','E','F','G','L','Q','T','I', 'J')
         UNION ALL
         /* 조정 */
             SELECT  i.item_cd
@@ -313,9 +214,84 @@
             on f.item_cd = d.item_cd
             and f.work_proc_id = a.work_proc_id
         order by a.prod_date desc, a.item_cd, a.make_no desc, d.item_cd
-
     </select>
 
+    <select id="getUseByM1List">
+        select   a.item_cd
+                ,b.item_name
+                ,a.expiry_date
+                ,a.test_no
+                ,DATEDIFF(DAY, #{stdDate}, a.expiry_date) AS remain_day
+                ,c.storage_cd
+                ,c.qty
+        from   tb_item_test_no a
+                inner join tb_item_mst b
+                on b.item_cd = a.item_cd
+                inner join vw_inv_stock_tran c
+                on c.test_no = a.test_no
+        where  a.item_type_cd = 'M1'
+        and    a.expiry_date between #{strDate} and #{endDate}
+        <if test="areaCd != null and areaCd != ''">
+        and    a.area_cd = #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+        AND a.item_cd LIKE '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+        AND b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+    </select>
+
+    <select id="getUseByM2List">
+        select    a.item_cd
+                 ,b.item_name
+                 ,a.expiry_date
+                 ,a.test_no
+                 ,DATEDIFF(DAY, #{stdDate}, a.expiry_date) AS remaining_day
+                 ,c.customer_name
+                 ,a.create_date
+                 ,avg(b.in_price) as in_price
+                 ,isnull(sum(d.qty), 0) as qty
+                 ,isnull(sum(d.qty* b.in_price ), 0) as totPrice
+        from   tb_item_test_no a
+               inner join tb_item_mst b
+                on b.item_cd = a.item_cd
+               left outer join tb_customer c
+                on c.customer_cd = a.customer_cd
+               left outer join vw_inv_stock_tran d
+                on d.test_no = a.test_no
+        where  a.item_type_cd IN ( 'M2', 'M7')
+        <choose>
+            <when test="period == 2">
+                AND a.expiry_date <![CDATA[ < ]]> DATEADD(MONTH, 3, #{stdDate})
+            </when>
+            <when test="period == 3">
+                AND a.expiry_date <![CDATA[ >= ]]> DATEADD(MONTH, 3, #{stdDate})
+                AND a.expiry_date <![CDATA[ < ]]> DATEADD(MONTH, 6, #{stdDate})
+            </when>
+            <when test="period == 4">
+                AND a.expiry_date <![CDATA[ >= ]]> DATEADD(MONTH, 6, #{stdDate})
+                AND a.expiry_date <![CDATA[ < ]]> DATEADD(MONTH, 12, #{stdDate})
+            </when>
+            <when test="period == 5">
+                AND a.expiry_date <![CDATA[ >= ]]> DATEADD(MONTH, 12, #{stdDate})
+                AND a.expiry_date <![CDATA[ < ]]> DATEADD(MONTH, 24, #{stdDate})
+            </when>
+            <when test="period == 6">
+                AND a.expiry_date <![CDATA[ >= ]]> DATEADD(MONTH, 24, #{stdDate})
+            </when>
+        </choose>
+        <if test="areaCd != null and areaCd != ''">
+            AND a.area_cd LIKE '%' + #{areaCd} + '%'
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd LIKE '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        group by a.item_cd, b.item_name, a.expiry_date, a.test_no, c.customer_name, a.create_date
+    </select>
 
 
 
