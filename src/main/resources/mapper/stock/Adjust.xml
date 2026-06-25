@@ -101,7 +101,7 @@
         set    qty = #{qty}
               ,upd_id = #{userId}
               ,upd_dt = getdate()
-        where  tran_id = #(tranId)
+        where  tran_id = #{tranId}
     </update>
 
 
