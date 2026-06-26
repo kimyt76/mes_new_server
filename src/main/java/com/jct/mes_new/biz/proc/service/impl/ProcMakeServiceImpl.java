@@ -61,11 +61,10 @@ public class ProcMakeServiceImpl implements ProcMakeService {
      */
     public MakeInfoVo getMakeInfo(ProcMakeVo vo){
         MakeInfoVo info = new MakeInfoVo();
-        MakeEtcVo makeEtcVo = new MakeEtcVo();
         String procCd = "PRC001";
-        //제조량은 칭량정보를 가져오기 때문에   workProcId를 칭량으로 가져와야함
-        Long workProcId = procCommonMapper.getWorkProcId(vo.getWorkBatchId(), procCd);
-        info.setProcMake(procMakeMapper.getMakeHeadInfo(vo.getWorkBatchId()));
+        //제조량은 칭량정보를 가져오기 때문에 칭량의 workProcId를 칭량으로 가져와야함
+        Long workProcId = procMakeMapper.getWorkProcId(vo.getWorkBatchId(), procCd);
+        info.setWorkOrderInfo(workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId()));
         //제조량은 칭량정보를 가져오기 때문에 workProcId를 칭량으로 가져와야함
         info.setMakeBomList(procMakeMapper.getRealBomMakeList(workProcId, vo.getItemCd()));
         //bom  정보
@@ -122,7 +121,11 @@ public class ProcMakeServiceImpl implements ProcMakeService {
                     return sb.toString().trim();
                 })
                 .collect(Collectors.joining("\n\n"));
-        makeEtcVo = procMakeMapper.getMakeEtcInfo(vo.getWorkProcId());
+        MakeEtcVo makeEtcVo = procMakeMapper.getMakeEtcInfo(vo.getWorkProcId());
+
+        if (makeEtcVo == null) {
+            makeEtcVo = new MakeEtcVo();
+        }
         makeEtcVo.setMatProc(result);
         makeEtcVo.setManipulate(result2);
         makeEtcVo.setBomVer(bomProcList.get(0).getBomVer());
@@ -163,7 +166,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
-        ProcMakeVo procMakeVo = procMakeMapper.getMakeHeadInfo(vo.getWorkBatchId());
+        WorkOrderInfoVo workOrderInfo = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
 
         LocalDate shelfLife = LocalDate.now().plusDays(365 * 2);
         LocalDate expiryDate = LocalDate.now().plusDays(365 * 2);
@@ -172,14 +175,14 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         ItemTestVo itemTestVo = new ItemTestVo();
         itemTestVo.setTestNo(testNo);
         itemTestVo.setCreateDate(LocalDate.now());
-        itemTestVo.setAreaCd(procMakeVo.getAreaCd());
+        itemTestVo.setAreaCd(workOrderInfo.getAreaCd());
         itemTestVo.setItemTypeCd("M3");
         itemTestVo.setSeq(1);
-        itemTestVo.setItemCd(procMakeVo.getItemCd());
-        itemTestVo.setItemName(procMakeVo.getItemName());
-        itemTestVo.setMakeNo(procMakeVo.getMakeNo());
-        itemTestVo.setLotNo(procMakeVo.getLotNo());
-        itemTestVo.setCustomerCd(procMakeVo.getClientId());
+        itemTestVo.setItemCd(workOrderInfo.getItemCd());
+        itemTestVo.setItemName(workOrderInfo.getItemName());
+        itemTestVo.setMakeNo(workOrderInfo.getMakeNo());
+        itemTestVo.setLotNo(workOrderInfo.getLotNo());
+        itemTestVo.setCustomerCd(workOrderInfo.getClientId());
         itemTestVo.setQty(BigDecimal.ZERO);
         itemTestVo.setExpiryDate(expiryDate);
         itemTestVo.setShelfLife(shelfLife);
@@ -195,8 +198,8 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         qcTestVo.setTestNo(testNo);
         qcTestVo.setReqDate(LocalDate.now());
         qcTestVo.setRetestYn("N");
-        qcTestVo.setAreaCd(procMakeVo.getAreaCd());
-        qcTestVo.setStorageCd(procMakeVo.getStorageCd());
+        qcTestVo.setAreaCd(workOrderInfo.getAreaCd());
+        qcTestVo.setStorageCd(workOrderInfo.getStorageCd());
         qcTestVo.setReqTesterId(userId);
         qcTestVo.setReqQty(BigDecimal.ZERO);
 
@@ -220,7 +223,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         String userId = UserUtil.getUserId();
 
         //재고 마스터
-        ProcMakeVo mst = procMakeMapper.getMakeHeadInfo(vo.getWorkBatchId());
+        WorkOrderInfoVo mst = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
         TranVo invMst = new TranVo();
         String toStorage = "";
         if ( "A001".equals(mst.getAreaCd()) ){
@@ -301,7 +304,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
     @Transactional(rollbackFor = BusinessException.class)
     public String saveMakeInfo(MakeInfoVo vo){
         String userId = UserUtil.getUserId();
-        ProcMakeVo mst = vo.getProcMake();
+        WorkOrderInfoVo mst = vo.getWorkOrderInfo();
         List<ProcWeighBomVo> makeBomList = vo.getMakeBomList();
         MakeEtcVo makeEtcInfo = vo.getMakeEtcInfo();
 
@@ -335,7 +338,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         List<ProcWeighBomVo> weighList = new ArrayList<>();
 
         if (workOrderInfoVo != null) {
-            workProcId = procCommonMapper.getWorkProcId(workOrderInfoVo.getWorkBatchId(),"PRC001");
+            workProcId = procMakeMapper.getWorkProcId(workOrderInfoVo.getWorkBatchId(),"PRC001");
         }
 
         if (workProcId != null) {

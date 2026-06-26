@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class WorkOrderInfoVo {
@@ -14,6 +15,7 @@ public class WorkOrderInfoVo {
 
     private Long inTranId;
     private Long outTranId;
+    private Long weighInvId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate workOrderDate;
@@ -41,9 +43,11 @@ public class WorkOrderInfoVo {
     private String itemCd;
     private String itemName;
     private String testNo;
+    private String testNos;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate prodDate;
+
     private BigDecimal orderQty;
     private BigDecimal useQty;
     private BigDecimal prodQty;
@@ -59,6 +63,9 @@ public class WorkOrderInfoVo {
     private String tranYn;
     private String endYn;
     private String moveStatus;
+
+    private LocalDateTime workStartTime;
+    private LocalDateTime workEndTime;
 
     private String userId;
 

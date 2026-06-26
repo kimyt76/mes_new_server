@@ -278,13 +278,18 @@
                  ,( select prod_qty from TB_WORK_ORDER_PROC where proc_cd = 'PRC002' and work_batch_id = a.work_batch_id) as make_qty
                  ,a.prod_yield
                  ,c.area_cd
-                 ,a.work_equipment_Cd
+                 ,'['+a.work_equipment_Cd+']' + d.equipment_name as work_equipment_Cd
                  ,(select expiry_date  from tb_item_test_no where test_no = a.test_no) as expiry_date
+                 ,c.po_no
+                 ,a.prod_date
+                 ,a.proc_order_date
         from   TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
                 inner join TB_WORK_ORDER_MST c
                 on c.work_order_id = a.work_order_id
+                left outer join tb_equipment_mst d
+                on d.equipment_cd = a.work_equipment_Cd
         where  a.work_proc_id = #{workProcId}
     </select>
 </mapper>

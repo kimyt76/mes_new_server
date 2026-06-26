@@ -6,46 +6,13 @@
         select count(*) from tb_make_info where weigh_id = #{weighId}
     </select>
 
-    <select id="getMakeHeadInfo">
-        select    b.make_No
-                 ,a.item_cd
-                 ,dbo.getItemName(a.item_cd)  as itemName
-                 ,a.proc_order_date
-                 ,a.order_qty
-                 ,(select storage_name from tb_storage_mst where storage_cd = a.storage_cd) as storage_name
-                 ,'['+a.work_equipment_Cd+']' + c.equipment_name as work_equipment_Cd
-                 ,a.prod_date
-                 ,a.storage_cd
-                 ,a.memo
-                 ,a.etc
-                 ,b.po_no
-                 ,a.end_yn
-                 ,(select CONCAT(CONVERT(varchar(10),work_order_date,23),' - ',seq)
-                   from TB_WORK_ORDER_MST where work_order_id = a.work_order_id ) as workOrderDateSeq
-                 ,a.proc_status
-                 ,b.batch_status
-                 ,a.work_proc_id
-                 ,a.work_batch_id
-                 ,a.work_order_id
-                 ,a.proc_cd
-                 ,(select area_cd from tb_work_order_mst where work_order_id = a.work_order_id) as area_cd
-                 ,b.lot_no
-                 ,b.lot_no2
-                 ,dbo.getClientName( (select client_id
-                                      from TB_WORK_ORDER_MST
-                                      where work_order_id = a.work_order_id))  as client_name
-                 ,(select client_id
-                   from TB_WORK_ORDER_MST
-                   where work_order_id = a.work_order_id)  as client_id
-                 ,a.test_no
-                 ,a.prod_qty
-        from    TB_WORK_ORDER_PROC a
-                inner join TB_WORK_ORDER_BATCH b
-                on b.work_batch_id = a.work_batch_id
-                left outer join tb_equipment_mst c
-                on c.equipment_cd = a.work_equipment_Cd
-        where   a.proc_cd = 'PRC002'
-          and   a.work_batch_id = #{workBatchId}
+    <select id="getWorkProcId">
+        select b.work_proc_id
+        from   TB_WORK_ORDER_BATCH a
+                   inner join TB_WORK_ORDER_PROC b
+                              on b.proc_cd = #{procCd}
+                                  and  b.work_batch_id = a.work_batch_id
+        where  a.work_batch_id = #{workBatchId}
     </select>
 
     <select id="getRealBomMakeList">
@@ -74,7 +41,6 @@
               ,work_equipment_Cd    = #{workEquipmentCd}
               ,prod_date            = convert(date, getdate(), -23)
               ,work_start_time      = getDate()
-              ,etc                  = #{etc}
               ,test_no              = #{testNo}
               ,upd_id               = #{userId}
               ,upd_dt               = getDate()
