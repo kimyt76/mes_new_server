@@ -13,5 +13,4 @@ public interface ProcPackingMapper {
 
     int startProcPacking(ProcPackingVo vo);
 
-    ProcCoatingVo getPackingHeadInfo(Long workProcId);
 }

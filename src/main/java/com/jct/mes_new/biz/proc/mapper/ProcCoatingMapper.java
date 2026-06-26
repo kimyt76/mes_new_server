@@ -10,6 +10,4 @@ import java.util.List;
 public interface ProcCoatingMapper {
 
     int startProcCoating(ProcCoatingVo vo);
-
-    ProcCoatingVo getCoatingHeadInfo(Long workProcId);
 }

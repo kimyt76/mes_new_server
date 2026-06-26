@@ -2,27 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCoatingMapper">
-
-    <select id="getCoatingHeadInfo">
-        select    b.make_No
-                 ,a.item_cd
-                 ,dbo.getItemName(a.item_cd)  as itemName
-                 ,a.proc_order_date
-                 ,a.order_qty
-                 ,(select storage_name from tb_storage_mst where storage_cd = a.storage_cd) as storage_name
-                 ,a.prod_date
-                 ,a.storage_cd
-                 ,a.memo
-                 ,a.etc
-                 ,b.po_no
-                 ,a.end_yn
-        from    TB_WORK_ORDER_PROC a
-                inner join TB_WORK_ORDER_BATCH b
-                on b.work_batch_id = a.work_batch_id
-        where   a.proc_cd = 'PRC003'
-          and   a.work_proc_id = #{workProcId}
-    </select>
-
     <update id="startProcCoating">
         update TB_WORK_ORDER_PROC
         set    proc_status      = #{procStatus}

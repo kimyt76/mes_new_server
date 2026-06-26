@@ -10,8 +10,6 @@ import java.util.List;
 @Mapper
 public interface ProcChargeMapper {
 
-
     int startProcCharge(ProcChargeVo vo);
 
-    ProcCoatingVo getChargeHeadInfo(Long workProcId);
 }

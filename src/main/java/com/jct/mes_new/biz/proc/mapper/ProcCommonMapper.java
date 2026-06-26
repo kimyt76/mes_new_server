@@ -29,8 +29,6 @@ public interface ProcCommonMapper {
 
     List<ProcCommonVo> getBagWeightList();
 
-    Long getWorkProcId(long workBatchId, String procCd);
-
     int updateProcEtc(ProcCommonVo vo);
 
     List<ProcTranVo> getProcTranList(ProcTranVo vo);
