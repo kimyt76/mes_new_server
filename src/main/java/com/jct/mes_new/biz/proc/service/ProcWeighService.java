@@ -12,9 +12,6 @@ public interface ProcWeighService {
 
     Long saveWeighInfo(WeighInfoVo vo);
 
-
-    ProcWeighVo getWeighHeadInfo(Long workProcId);
-
     String saveWeighList(WeighInvInfo vo);
 
     List<ProcWeighVo> getStockTestNoList(ProcWeighVo vo);

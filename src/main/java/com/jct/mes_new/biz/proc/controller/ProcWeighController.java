@@ -4,6 +4,8 @@ package com.jct.mes_new.biz.proc.controller;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.service.ProcWeighService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.util.BarcodeUtil;
@@ -32,7 +34,13 @@ public class ProcWeighController {
     private final ProcWeighService procWeighService;
     private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
+    private final WorkOrderMapper workOrderMapper;
 
+    /**
+     * 칭량공정 리스트 조회
+     * @param vo
+     * @return
+     */
     @PostMapping("/getWeighInfo")
     public WeighInfoVo getWeighInfo(@RequestBody ProcWeighVo vo){
         return procWeighService.getWeighInfo(vo);
@@ -58,6 +66,11 @@ public class ProcWeighController {
         return procWeighService.getStockTestNoList(vo);
     }
 
+    /**
+     * 칭량 저장
+     * @param vo
+     * @return
+     */
     @PostMapping("/saveWeighInfo")
     public ResponseEntity<ApiResponse<Map<String, Object>>> saveWeighInfo(@RequestBody WeighInfoVo vo){
         Long workProcId = procWeighService.saveWeighInfo(vo);
@@ -65,6 +78,12 @@ public class ProcWeighController {
         result.put("workProcId", workProcId);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
+
+    /**
+     * 칭량 작업 완료
+     * @param vo
+     * @return
+     */
     @PostMapping("/completeWeight")
     public ResponseEntity<ApiResponse<Map<String, Object>>> completeWeight(@RequestBody ProcWeighVo vo){
         Long workProcId = procWeighService.completeWeight(vo);
@@ -73,6 +92,11 @@ public class ProcWeighController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
 
+    /**
+     * 칭량 리스트 저장
+     * @param vo
+     * @return
+     */
     @PostMapping("/saveWeighList")
     public ResponseEntity<ApiResponse<Map<String, Object>>> saveWeighList(@RequestBody WeighInvInfo vo){
         Map<String, Object> result =  new HashMap<>();
@@ -80,6 +104,12 @@ public class ProcWeighController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
 
+    /**
+     * QR코드 프린트
+     * @param labelItems
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/printWeighLabel")
     public ResponseEntity<Resource> printWeighLabel(@RequestBody ProcWeighBomVo[] labelItems) throws Exception {
         List<WeighLabelPrint> labelPrintList = new ArrayList<>();
@@ -88,7 +118,7 @@ public class ProcWeighController {
         DecimalFormat df2 = new DecimalFormat("#,##0.00000");
         String unit = " kg";
 
-        ProcWeighVo workOrderItem = procWeighService.getWeighHeadInfo(labelItems[0].getWorkProcId());
+        WorkOrderInfoVo workOrderItem = workOrderMapper.getWorkOrderProcInfo(labelItems[0].getProcCd(),  labelItems[0].getWorkProcId());
         String prodItemCd = workOrderItem.getItemCd();
         String prodItemName = workOrderItem.getItemName();
         String prodQty = df.format(workOrderItem.getOrderQty()) + unit;

@@ -9,6 +9,8 @@ import com.jct.mes_new.biz.purchase.mapper.TranMapper;
 import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
 import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
+import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
@@ -29,11 +31,8 @@ public class ProcWeighServiceImpl implements ProcWeighService {
     private final ProcWeighMapper procWeighMapper;
     private final ProcCommonMapper procCommonMapper;
     private final TranMapper tranMapper;
+    private final WorkOrderMapper workOrderMapper;
 
-
-    public ProcWeighVo getWeighHeadInfo(Long workProcId){
-        return procWeighMapper.getWeighHeadInfo(workProcId);
-    }
     /**
      * 칭량 상세 조회
      * @param vo
@@ -42,7 +41,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
     public WeighInfoVo getWeighInfo(ProcWeighVo vo){
         WeighInfoVo info = new WeighInfoVo();
 
-        info.setProcWeigh(this.getWeighHeadInfo(vo.getWorkProcId()));
+        info.setWorkOrderInfo(workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId()));
         List<ProcWeighBomVo> recipeList = null;
 
         if (procWeighMapper.checkWeighCnt(vo.getWorkProcId()) > 0 ){
@@ -156,7 +155,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
      */
     @Transactional(rollbackFor = BusinessException.class)
     public Long saveWeighInfo(WeighInfoVo vo) {
-        ProcWeighVo mst = vo.getProcWeigh();
+        WorkOrderInfoVo mst = vo.getWorkOrderInfo();
         List<ProcWeighBomVo> recipeList = vo.getWeightBomList();
         String userId = UserUtil.getUserId();
 
@@ -194,7 +193,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         String userId = UserUtil.getUserId();
 
         //재고 마스터
-        ProcWeighVo mst = this.getWeighHeadInfo(vo.getWorkProcId());
+        WorkOrderInfoVo mst = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
         TranVo invMst = new TranVo();
 
         String storageCd = "";

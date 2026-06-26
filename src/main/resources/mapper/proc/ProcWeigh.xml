@@ -6,34 +6,6 @@
         select count(*) from tb_weigh_info where work_proc_id = #{workProcId}
     </select>
 
-    <select id="getWeighHeadInfo">
-        select    b.make_No
-                 ,a.item_cd
-                 ,dbo.getItemName(a.item_cd)  as itemName
-                 ,a.proc_order_date
-                 ,a.order_qty
-                 ,(select storage_name from tb_storage_mst where storage_cd = a.storage_cd) as storage_name
-                 ,a.prod_date
-                 ,a.storage_cd
-                 ,a.memo
-                 ,a.etc
-                 ,b.po_no
-                 ,a.end_yn
-                 ,(select CONCAT(CONVERT(varchar(10),work_order_date,23),' - ',seq)
-                   from TB_WORK_ORDER_MST where work_order_id = a.work_order_id ) as workOrderDateSeq
-                 ,a.proc_status
-                 ,b.batch_status
-                 ,a.work_proc_id
-                 ,a.work_batch_id
-                 ,a.proc_cd
-                 ,(select area_cd from tb_work_order_mst where work_order_id = a.work_order_id) as area_cd
-        from    TB_WORK_ORDER_PROC a
-                inner join TB_WORK_ORDER_BATCH b
-                on b.work_batch_id = a.work_batch_id
-        where   a.proc_cd = 'PRC001'
-          and   a.work_proc_id = #{workProcId}
-    </select>
-
     <select id="getBomWeighList">
         select    c.item_cd
                  ,d.item_name
