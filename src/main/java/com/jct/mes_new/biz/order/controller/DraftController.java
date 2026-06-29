@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,16 +54,9 @@ public class DraftController {
     }
 
     @PostMapping("/saveApprovalComment")
-    public ResponseEntity<?> saveApprovalComment(@RequestBody Map<String, String> info){
-        try {
-            String result = draftService.saveApprovalComment(info);
-
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+    public ResponseEntity<?> saveApprovalComment(@RequestBody DraftApprovalVo info){
+        String result = draftService.saveApprovalComment(info);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
 
 

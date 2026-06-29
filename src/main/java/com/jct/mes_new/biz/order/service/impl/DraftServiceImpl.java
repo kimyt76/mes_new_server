@@ -126,34 +126,15 @@ public class DraftServiceImpl implements DraftService {
      * @throws Exception
     */
     @Transactional(rollbackFor = Exception.class)
-    public String saveApprovalComment(Map<String, String> info){
-//        log.info("================================================ : " + info );
-//        BoardVo boardVo = new BoardVo();
-//        String userId = UserUtil.getUserId();
-//        String boardUserId = info.get("boardUserId");
-//        String draftId = info.get("draftId");
-//        int cnt = draftMapper.getDraftBoardCnt(boardUserId, draftId);
-//
-//        //의견
-//        boardVo.setBoardUserId(info.get("boardUserId"));
-//        boardVo.setBoardTxt(info.get("boardTxt"));
-//        boardVo.setUserId(userId);
-//        if( cnt == 0 ){
-//            boardVo.setDraftBoardId(CommonUtil.createUUId());
-//            if ( draftMapper.insertBoardInfo(boardVo) <=0 ){
-//                throw new BusinessException(ErrorCode.FAIL_CREATED);
-//            }
-//        }else{
-//            if ( draftMapper.updateBoardInfo(boardVo) <=0 ){
-//                throw new BusinessException(ErrorCode.FAIL_CREATED);
-//            }
-//        }
-//
-//        //결재일자 업데이트
-//        if ( draftMapper.updateApproval() <=0 ){
-//            throw new BusinessException(ErrorCode.FAIL_CREATED);
-//        }
+    public String saveApprovalComment(DraftApprovalVo info){
+        String userId = UserUtil.getUserId();
 
+        info.setUserId(userId);
+
+        //결재일자 업데이트
+        if ( draftMapper.updateDraftApproval(info) <=0 ){
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
 
         return "저장되었습니다.";
     }

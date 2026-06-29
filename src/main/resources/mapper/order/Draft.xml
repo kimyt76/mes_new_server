@@ -127,9 +127,13 @@
                )
     </insert>
 
-    <update id="savedraftBoardId">
-        update tb_draft_mst
-        set    draft_board_id = #{draftBoardId}
-        where  draft_id = #{draftId}
+    <update id="updateDraftApproval">
+        update tb_draft_approval
+        set    board_txt            = #{boardTxt}
+              ,draft_approval_date  = #{draftApprovalDate}
+              ,upd_id               = #{userId}
+              ,upd_dt               = GETDATE()
+        where  draft_id             = #{draftId}
+          and  approval_cd          = #{approvalCd}
     </update>
 </mapper>

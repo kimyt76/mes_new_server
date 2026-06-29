@@ -38,5 +38,5 @@ public interface DraftMapper {
     int updateDraftInfo(DraftVo mst);
 
 
-
+    int updateDraftApproval(DraftApprovalVo info);
 }

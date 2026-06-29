@@ -15,7 +15,7 @@ public interface DraftService {
 
     DraftRequestVo getDraftInfo(Long draftId);
 
-    String saveApprovalComment(Map<String, String> info);
+    String saveApprovalComment(DraftApprovalVo info);
 
     Long saveDraftInfo(DraftRequestVo draftRequest);
 }
