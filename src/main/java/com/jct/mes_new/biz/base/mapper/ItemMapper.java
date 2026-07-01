@@ -14,7 +14,12 @@ public interface ItemMapper {
 
     public List<ItemVo> getProdMList(@Param("lcode") String id);
 
-    int saveItemInfo(ItemVo itemVo);
+    /**
+     * 품목코드저장 (신규)
+     * @param itemVo
+     * @return
+     */
+    int insertItemMst(ItemVo itemVo);
 
     int updateItemInfo(ItemVo itemVo);
 
@@ -28,7 +33,7 @@ public interface ItemMapper {
 
     int saveItemDetailInfo(ItemVo itemVo);
 
-    void insertItemDetial(String itemCd, String userId);
+    int insertItemDetial(String itemCd, String userId);
 
     void insertPriceHistory(String itemCd, String priceType, BigDecimal price, String userId);
 

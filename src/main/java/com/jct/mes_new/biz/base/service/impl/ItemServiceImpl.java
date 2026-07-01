@@ -4,11 +4,13 @@ import com.jct.mes_new.biz.base.mapper.ItemMapper;
 import com.jct.mes_new.biz.base.service.ItemService;
 import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.base.vo.PriceHistoryVo;
+import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,60 +29,73 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemVo> getProdLList(){
         return itemMapper.getProdLList();
     }
-
     public List<ItemVo> getProdMList(String id){
         return itemMapper.getProdMList(id);
     }
-
     public List<ItemVo> getItemList(ItemVo itemVo){
         return itemMapper.getItemList(itemVo);
     }
 
-    public String saveItemInfo(ItemVo itemVo) {
-        String gb = itemVo.getGb();
-        String baseItemCd = itemVo.getItemCd(); // 기준 제품코드
-        String itemTeypCd = itemVo.getItemTypeCd(); // 기준 제품코드
+    /**
+     * 품목코드 신규 생성
+     * @param vo
+     * @return
+     */
+    @Transactional(rollbackFor = BusinessException.class)
+    public String saveItemInfo(ItemVo vo) {
+        //신규는 제품과 원재료 밖에 없음
+        String gb = vo.getGb();
+        String baseItemCd = vo.getItemCd(); // 기준 제품코드
+        String baseName = vo.getItemName(); // 기준 제품코드
+        String itemTypeCd = vo.getItemTypeCd(); // 기준 제품코드
+        String userId = UserUtil.getUserId();
 
-        List<Map<String, String>> itemInfos = makeItemCds(gb, baseItemCd, itemTeypCd);
+        vo.setUserId(userId);
+log.info("======================vo.getGb()========================================= : " + vo.getGb());
+        if ( "A".equals(vo.getGb())  ) {
+            List<Map<String, String>> itemInfos = makeItemCds(gb, baseItemCd, itemTypeCd);
 
-        //Map 리스트에서 itemCd만 뽑아 List<String>으로 만들기
-        List<String> itemCdList = itemInfos.stream()
-                .map(m -> m.get("itemCd"))
-                .filter(Objects::nonNull)
-                .toList();
-
-        //다건 중복 체크: 한번에 조회
-        List<String> existing = itemMapper.getItemCdCheckList(itemCdList);
-
-        if (existing != null && !existing.isEmpty()) {
-            // existing이 바로 중복된 코드 목록
-            // 예외 던지거나 메시지 처리
-            throw new BusinessException("이미 존재하는 코드가 있습니다");
-        }
-
-        try{
             for (Map<String, String > itemInfo : itemInfos) {
-                itemVo.setItemCd(itemInfo.get("itemCd"));
-                itemVo.setItemTypeCd(itemInfo.get("itemTypeCd"));
-                itemMapper.saveItemInfo(itemVo);
-                itemMapper.insertItemDetial(itemVo.getItemCd(), itemVo.getUserId());
+                vo.setItemCd(itemInfo.get("itemCd"));
+                log.info("======================vo.getGb()========================================= : " + vo.getItemCd());
+                String itemCdCheck =  this.getItemCdCheck(itemInfo.get("itemCd"));
+
+                if ("Y".equals(itemCdCheck)) {
+                    throw new BusinessException("중복된 품목코드가 있습니다." + itemInfo.get("itemCd"));
+                }
+
+                vo.setItemTypeCd(itemInfo.get("itemTypeCd"));
+                String itemName = itemInfo.get("itemTypeName")+baseName;
+                vo.setItemName(itemName);
+
+                insertItem(vo, userId);
             }
-        } catch (Exception e) {
-            log.error("saveItemInfo error. baseItemCd={}, gb={}", baseItemCd, gb, e);
-            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }else {
+            if ("O".equals(vo.getGb()) && "M4".equals(itemTypeCd)) {
+                vo.setItemName("[제품] " + vo.getItemName());
+            }
+
+            insertItem(vo, userId);
         }
         return "저장되었습니다.";
     }
 
-    private List<Map<String, String>> makeItemCds(String gb, String baseItemCd, String itemTeypCd) {
+    private void insertItem(ItemVo vo, String userId) {
+        if (itemMapper.insertItemMst(vo) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
+        if (itemMapper.insertItemDetial(vo.getItemCd(), userId) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        }
+    }
+
+    private List<Map<String, String>> makeItemCds(String gb, String baseItemCd, String itemTypeCd) {
         if ("O".equals(gb)) {
             return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"));
         }
-
         if ("U".equals(gb) ) {
-            return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", itemTeypCd, "itemTypeName","[제품]"));
+            return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", itemTypeCd, "itemTypeName","[제품]"));
         }
-
         if ("A".equals(gb)) {
             return List.of(
                     Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"),
@@ -93,13 +108,12 @@ public class ItemServiceImpl implements ItemService {
         return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"));
     }
 
+
+    @Transactional(rollbackFor = BusinessException.class)
     public String saveItemAddInfo(ItemVo itemVo) {
-        try{
-            itemMapper.saveItemInfo(itemVo);
-            itemMapper.insertItemDetial(itemVo.getItemCd(), itemVo.getUserId());
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.FAIL_CREATED);
-        }
+        String userId = UserUtil.getUserId();
+        this.insertItem(itemVo, userId );
+
         return "저장되었습니다.";
     }
 
@@ -143,6 +157,7 @@ public class ItemServiceImpl implements ItemService {
         return msg;
     }
 
+    @Transactional(rollbackFor = BusinessException.class)
     public void updatePriceInfoMap(Map<String, Object> paramMap){
         String itemCd = (String) paramMap.get("itemCd");
         String type = (String) paramMap.get("type");
@@ -155,12 +170,10 @@ public class ItemServiceImpl implements ItemService {
         BigDecimal outPrice = paramMap.get("outPrice") != null
                 ? new BigDecimal(paramMap.get("outPrice").toString())
                 : null;
-
         // 입고 단가 변경
         if ((type.equals("I") || type.equals("A")) && inPrice != null ) {
             itemMapper.insertPriceHistory(itemCd, "I", inPrice, userId);
         }
-
         // 출고 단가 변경
         if ((type.equals("O") || type.equals("A")) && outPrice != null ) {
             BigDecimal oldOutPrice;

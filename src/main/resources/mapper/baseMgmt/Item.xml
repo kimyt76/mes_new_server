@@ -88,7 +88,7 @@
         and   LCode = #{lcode}
     </select>
 
-    <insert id="saveItemInfo">
+    <insert id="insertItemMst">
         insert into tb_item_mst
         (   item_cd
             ,item_name
@@ -367,7 +367,7 @@
     </update>
 
 
-    <select id="getItemAllInfo">
+    <select id="getItemCdCheckList">
 
     </select>
 </mapper>

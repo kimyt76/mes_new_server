@@ -40,6 +40,11 @@ public class ItemController {
         return itemService.getItemList(itemVo);
     }
 
+    /**
+     * 풒목 저장 (신규)
+     * @param itemVo
+     * @return
+     */
     @PostMapping("/saveItemInfo")
     public ResponseEntity<ApiResponse<Void>> saveItemInfo(@RequestBody ItemVo itemVo){
         String result = itemService.saveItemInfo(itemVo);
