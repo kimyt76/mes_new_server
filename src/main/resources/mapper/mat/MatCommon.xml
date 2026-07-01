@@ -23,110 +23,59 @@
         WHERE  a.default_yn = 'Y'
     </select>
 
-
     <select id="getItemStockList">
-                with tmp_bom_recipe as (
-                    select   item_cd
-                            ,sum(reqQty) as qty
-                    from  (
-                        <foreach collection="list" index="index" item="item" separator="union all">
-                            select  item_cd
-                            <if test="itemTypeCd == 'M1'">
-                                    ,sum(real_content) * #{item.qty} /100 as reqQty
-                            </if>
-                            <if test="itemTypeCd == 'M2'">
-                                     ,sum(qty) * #{item.qty} /100 as reqQty
-                            </if>
-
-                            from  tb_bom_recipe
-                            where  bom_id = #{item.bomId}
-                            and    item_cd not in ('JRW00215', 'JRMSC00011')
-                            GROUP BY item_cd
-                        </foreach>
-                        ) a
-                        group by a.item_cd
-                )
-
-                select   a.item_cd as itemCd
-                        ,dbo.getCommonName('item_type_cd', a.item_type_cd ) as itemTypeName
-                        ,a.item_name as itemName
-                        ,a.spec
-                        ,a.unit
-                        ,0 as realStockQty
-
-                        ,(  select isnull(sum(qty), 0) as qty
-        <if test="itemTypeCd == 'M1'">
-                            from   tb_purm_order_mst x
-        </if>
-        <if test="itemTypeCd == 'M2'">
-                            from   tb_purp_order_item x
-        </if>
-                            where  x.item_cd = a.item_cd
-                            and    x.end_yn ='N'
-                        )  as reserveStockQty
-                        ,b.qty
-                        ,0-qty as  differenceQty
-                        ,dbo.getCustomerName(a.customer_cd) as customerName
-                        ,isnull((select code_nm from tb_common_code where com_type_cd = 'ITEM_GRP1' and code = a.item_grp1), '') as  orderType
-                        ,a.in_price as inPrice
-                        ,a.customer_cd as customerCd
-                        ,a.item_type_cd
-                from    tb_item_mst a
-                        inner join  tmp_bom_recipe b
-                        on a.item_cd = b.item_cd
-                <if test="itemTypeCd == 'M1'">
-                where    a.item_type_cd = 'M1'
-                </if>
-                <if test="itemTypeCd == 'M2'">
-                 where   a.item_type_cd in ('M2', 'M7')
-                </if>
-                order by dbo.getCustomerName(a.customer_cd) desc
-<!--        with tmp_bom_recipe (-->
-<!--            select   item_cd-->
-<!--                    ,sum(reqQty) as qty-->
-<!--            from  (-->
-<!--                <foreach collection="list" index="index" item="item" separator="union all">-->
-<!--                    select  item_cd-->
-<!--                            ,sum(real_content) * #{qty} /100 as reqQty-->
-<!--                    from  tb_bom_recipe-->
-<!--                    where  bom_id = #{bomId}-->
-<!--                    and    item_cd not in ('JRW00215', 'JRMSC00011')-->
-<!--                </foreach>-->
-<!--        ) a-->
-<!--        group by a.item_cd-->
-<!--        )-->
-
-<!--        select  a.item_cd-->
-<!--                ,dbo.getCommonName('item_type_cd', a.item_type_cd ) as itemTypeCd-->
-<!--                ,a.item_name-->
-<!--                ,a.spec-->
-<!--                ,(-->
-<!--                 select item_cd-->
-<!--                        ,sum(qty) stockQty-->
-<!--                  from   tb_pur_item-->
-<!--                  where  item_cd = a.item_cd-->
-<!--            <if test="itemTypeCd == 'M1'">-->
-<!--                  and    item_type_cd = 'M1'-->
-<!--            </if>-->
-<!--            <if test="itemTypeCd == 'M2'">-->
-<!--                  and    item_type_cd in ('M2', 'M7')-->
-<!--            </if>-->
-<!--                  and    end_yn ='N'-->
-<!--                  group by item_cd-->
-<!--                ) as realStockQty-->
-<!--                ,b.qty-->
-<!--                ,dbo.getCustomerName(a.customer_cd) as customerName-->
-<!--                ,isnull((select code_nm from tb_common_code where com_type_cd = 'ITEM_GRP1' and code = a.item_grp1), '') as  in_out-->
-<!--                ,a.in_price-->
-<!--        from    tb_item_mst a-->
-<!--                inner join  tmp_bom_recipe b-->
-<!--                on a.item_cd = b.item_cd-->
-<!--        <if test="itemTypeCd == 'M1'">-->
-<!--        where    a.item_type_cd = 'M1'-->
-<!--        </if>-->
-<!--        <if test="itemTypeCd == 'M2'">-->
-<!--         where   a.item_type_cd in ('M2', 'M7')-->
-<!--        </if>-->
+        with tmp_bom_recipe as (
+            select  x.item_cd,
+                    sum(x.reqQty) as reqQty
+            from (
+            <foreach collection="list" item="item" separator="union all">
+                select  b.item_cd,
+                        case when c.item_type_cd = 'M1' then sum(b.real_content) * #{item.qty} / 100
+                            else sum(b.qty) * #{item.qty} / 100 end as reqQty
+                from    tb_bom_mst a
+                        join tb_bom_recipe b
+                        on a.bom_id = b.bom_id
+                        join tb_item_mst c
+                        on c.item_cd = b.item_cd
+                        where a.default_yn = 'Y'
+                and a.bom_id = #{item.bomId}
+                and b.item_cd not in ('JRW00215', 'JRMSC00011')
+                group by b.item_cd, c.item_type_cd
+            </foreach>
+            ) x
+            group by x.item_cd
+        )
+        select   a.item_cd as itemCd
+                ,b.item_name as itemName
+                ,b.spec
+                ,isnull(c.realStockQty, 0) as realStockQty
+                ,a.reqQty
+                ,isnull(d.reserveStockQty, 0) as reserveStockQty
+                ,isnull(c.realStockQty, 0) - a.reqQty as differenceQty
+                ,e.customer_name as customerName
+                ,isnull(dbo.getCommonName('ITEM_GRP1', b.item_grp1 ), '')  as orderType
+                ,b.customer_cd as customerCd
+        from   tmp_bom_recipe a
+                inner join tb_item_mst b
+                on a.item_cd = b.item_cd
+                left join (
+                    select  item_cd
+                            ,sum(qty) as realStockQty
+                    from   vw_inv_stock_tran c
+                    group  by item_cd
+                ) c
+                on c.item_cd = a.item_cd
+                left join (
+                    select  item_cd
+                            ,sum(qty) as reserveStockQty
+                    from    tb_pur_order_item
+                    where   in_yn ='N'
+                    group  by item_cd
+                )  d
+                on d.item_cd = a.item_cd
+                left join tb_customer e
+                on e.customer_cd = b.customer_cd
+            order by e.customer_name desc
     </select>
 
 </mapper>
