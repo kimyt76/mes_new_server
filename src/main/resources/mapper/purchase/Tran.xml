@@ -3,31 +3,51 @@
 
 <mapper namespace="com.jct.mes_new.biz.purchase.mapper.TranMapper">
     <select id="getTranList">
-        select   CONCAT(CONVERT(varchar(10),a.tran_date,23),' - ',a.seq) AS purDateSeq
-                ,dbo.getCustomerName(a.customer_cd) as customer_name
-                ,CASE WHEN COUNT(b.tran_item_id) = 1 THEN MIN(b.item_name)
-                      ELSE MIN(b.item_name) + ' 외 ' + CAST(COUNT(b.tran_item_id) - 1 AS VARCHAR) + '건' END AS item_name
-                ,sum(isnull(b.qty, 0)) as totQty
-                ,dbo.getStorageName(a.form_storage_cd) as form_storage_name
-                ,dbo.getStorageName(a.src_storage_cd) as to_storage_name
-                ,a.tran_status
-                ,dbo.getUserName(a.manager_id) as manager_name
-                ,a.tran_id
-        from   tb_inv_tran_mst a
-                inner join tb_inv_tran_item b
-                on a.pur_id = b.pur_id
-        where   a.tran_date between #{strDate} and #{endDate}
+        SELECT  CONCAT(CONVERT(varchar(10), a.tran_date, 23), ' - ', a.seq) AS tranDateSeq
+                ,s.storage_name AS srcStorageName
+                ,s1.storage_name AS tarStorageName
+                ,CASE WHEN COUNT(b.tran_item_id) = 1 THEN MIN(c.item_name)
+                      ELSE MIN(c.item_name) + ' 외 ' + CAST(COUNT(b.tran_item_id) - 1 AS VARCHAR) + '건' END AS itemName
+                ,a.tran_id AS tranId
+                ,SUM(ISNULL(b.qty, 0)) AS qty
+                ,d.member_nm AS managerName
+                ,a.etc
+                ,e.customer_name AS customerName
+                ,a.customer_cd AS customerCd
+        FROM    tb_inv_tran_mst a
+                INNER JOIN tb_inv_tran_item b
+                ON b.tran_id = a.tran_id
+                INNER JOIN tb_item_mst c
+                ON c.item_cd = b.item_cd
+                INNER JOIN tb_users d
+                ON d.user_id = a.manager_id
+                LEFT OUTER JOIN tb_storage_mst s
+                ON s.storage_cd = a.src_storage_cd
+                LEFT OUTER JOIN tb_storage_mst s1
+                ON s1.storage_cd = a.tar_storage_cd
+                LEFT OUTER JOIN tb_customer e
+                ON e.customer_cd = a.customer_cd
+        WHERE   a.tran_date BETWEEN #{strDate} AND #{endDate}
+        <if test="tranTypeCd != null and tranTypeCd != ''">
+            AND a.tran_type_cd = #{tranTypeCd}
+        </if>
+        <if test="srcStorageCd != null and srcStorageCd != ''">
+            AND a.src_storage_cd = #{srcStorageCd}
+        </if>
+        <if test="tarStorageCd != null and tarStorageCd != ''">
+            AND a.tar_storage_cd = #{tarStorageCd}
+        </if>
         <if test="itemCd != null and itemCd != ''">
-          and    b.item_cd = #{itemCd}
+            AND b.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-          and    b.item_name like '%' + #{itemName} + '%'
+            AND c.item_name LIKE '%' + #{itemName} + '%'
         </if>
         <if test="customerName != null and customerName != ''">
-            and  dbo.getCustomerName(a.customer_cd) like '%' + #{customerName} + '%'
+            AND e.customer_name LIKE '%' + #{customerName} + '%'
         </if>
-        group by  a.tran_id, a.tran_date, a.form_storage_cd, a.form_storage_cd, a.tran_status, a.customer_cd , a.manager_id
-        order by a.pur_date desc, a.seq desc
+        GROUP BY a.tran_date, a.seq, s.storage_name, s1.storage_name, a.tran_id, d.member_nm, a.etc, e.customer_name, a.customer_cd
+        ORDER BY a.tran_date DESC, a.seq DESC
     </select>
 
     <select id="getTranMst">

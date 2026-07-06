@@ -29,4 +29,6 @@ public interface TranMapper {
     TranVo getTranMst(Long tranId);
     /* 원장 목록 조회*/
     List<TranItemVo> getTranItemList(Long tranId);
+
+    List<TranVo> getTranList(TranVo vo);
 }

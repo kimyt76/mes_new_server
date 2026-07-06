@@ -18,6 +18,7 @@ public class TranVo {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate tranDate;
     private Integer seq;
+    private String tranDateSeq;
     private String areaCd;
     private String tarStorageCd;
     private String tarStorageName;
@@ -35,6 +36,11 @@ public class TranVo {
     private String tranTypeCd;
     private String tranStatus;
     private String etc;
+
+    private BigDecimal qty;
+
+    private String itemCd;
+    private String itemName;
 
     private String userId;
 

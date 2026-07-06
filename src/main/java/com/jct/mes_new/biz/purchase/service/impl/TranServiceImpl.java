@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Service
 public class TranServiceImpl implements TranService {
 
-    private final TranMapper invTranMapper;
+    private final TranMapper tranMapper;
 
     /* 원장 신규 저장 */
     @Transactional
@@ -32,7 +32,7 @@ public class TranServiceImpl implements TranService {
         mst.setUserId(userId);
 
         //mst  저장
-        Long cnt = invTranMapper.insertTranMst(mst);
+        Long cnt = tranMapper.insertTranMst(mst);
         if ( cnt <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
@@ -46,7 +46,7 @@ public class TranServiceImpl implements TranService {
                 item.setTranId(mst.getTranId());
                 item.setUserId(userId);
 
-                int insertCnt = invTranMapper.insertTranItem(item);
+                int insertCnt = tranMapper.insertTranItem(item);
 
                 if (insertCnt <= 0) {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
@@ -70,13 +70,13 @@ public class TranServiceImpl implements TranService {
         Long tranId = mst.getTranId();
         mst.setUserId(userId);
 
-        if ( invTranMapper.updateTranMst(mst) <= 0 ){
+        if ( tranMapper.updateTranMst(mst) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
         // 2. 삭제 처리
         List<Long> deletedItemIds = vo.getDeleteTranItems();
         if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
-            invTranMapper.deleteItemList(tranId,deletedItemIds);
+            tranMapper.deleteItemList(tranId,deletedItemIds);
         }
         //3. 발주 품목 처리
         List<TranItemVo> itemList = vo.getTranItemList();
@@ -87,13 +87,13 @@ public class TranServiceImpl implements TranService {
                 item.setUserId(userId);
                 if (item.getTranItemId() == null) {
                     // 신규 등록
-                    int insertCnt = invTranMapper.insertTranItem(item);
+                    int insertCnt = tranMapper.insertTranItem(item);
                     if (insertCnt <= 0) {
                         throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
                 } else {
                     // 기존 수정
-                    int updateCnt = invTranMapper.updateTranItem(item);
+                    int updateCnt = tranMapper.updateTranItem(item);
                     if (updateCnt <= 0) {
                         throw new BusinessException(ErrorCode.FAIL_UPDATED);
                     }
@@ -108,19 +108,70 @@ public class TranServiceImpl implements TranService {
      * @param purId
      */
     public void deleteTranInfo(Long purId) {
-        Long tranId = invTranMapper.getTranId(purId);
+        Long tranId = tranMapper.getTranId(purId);
 
-        invTranMapper.deleteTranItem(tranId);
-        invTranMapper.deleteTranMst(tranId);
+        tranMapper.deleteTranItem(tranId);
+        tranMapper.deleteTranMst(tranId);
     }
 
     public TranRequestVo getTranInfo(Long tranId){
         TranRequestVo vo = new TranRequestVo();
 
-        vo.setTranInfo(invTranMapper.getTranMst(tranId));
-        vo.setTranItemList(invTranMapper.getTranItemList(tranId));
+        vo.setTranInfo(tranMapper.getTranMst(tranId));
+        vo.setTranItemList(tranMapper.getTranItemList(tranId));
 
         return vo;
+    }
+
+
+
+    /** *********************************자재불출*******************************************************************/
+    public List<TranVo> getItemOutList(TranVo vo){
+        return tranMapper.getTranList(vo);
+    }
+
+    public TranRequestVo getItemOutInfo(Long tranId){
+        TranRequestVo vo = new TranRequestVo();
+
+        vo.setTranInfo(tranMapper.getTranMst(tranId));
+        vo.setTranItemList(tranMapper.getTranItemList(tranId));
+
+        return vo;
+    }
+
+    @Transactional(rollbackFor = BusinessException.class)
+    public String saveItemOutInfo(TranRequestVo vo){
+        String userId = UserUtil.getUserId();
+        TranVo mst = vo.getTranInfo();
+        List<TranItemVo> itemList = vo.getTranItemList();
+
+        if (mst.getTranId() == null) {
+            mst.setTranTypeCd("L");
+            mst.setTranStatus("C");
+            mst.setEndYn("Y");
+            mst.setUserId(userId);
+            if ( tranMapper.insertTranMst(mst) <= 0 ) {
+                throw new BusinessException(ErrorCode.CREATED);
+            }
+
+            for(TranItemVo tranItemVo : itemList){
+                tranItemVo.setTranId(mst.getTranId());
+                tranItemVo.setUserId(userId);
+
+                if(tranMapper.insertTranItem(tranItemVo) <= 0){
+                    throw new BusinessException(ErrorCode.CREATED);
+                }
+            }
+        }else{
+            for(TranItemVo tranItemVo : itemList){
+                tranItemVo.setUserId(userId);
+
+                if(tranMapper.updateTranItem(tranItemVo) <= 0){
+                    throw new BusinessException(ErrorCode.UPDATED);
+                }
+            }
+        }
+        return "저장되었습니다.";
     }
 
 }
