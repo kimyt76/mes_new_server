@@ -11,7 +11,7 @@ public class WorkerVo {
     private String workerName;
     private String areaCd;
     private String areaName;
-    private String processCd;
+    private String procCd;
     private String processName;
     private String useYn;
     private String etc;

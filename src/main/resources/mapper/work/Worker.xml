@@ -4,9 +4,9 @@
 <mapper namespace="com.jct.mes_new.biz.work.mapper.WorkerMapper">
     <select id="getWorkerAllList">
         select dbo.getCommonName('area', a.area_cd) as areaName
-              ,dbo.getCommonName('process_cd', a.process_cd) as processName
+              ,dbo.getCommonName('proc_cd', a.proc_cd) as processName
               ,a.worker_name
-              ,a.process_cd
+              ,a.proc_cd
               ,a.area_cd
               ,a.etc
               ,a.worker_id
@@ -16,8 +16,8 @@
         <if test="areaCd != null and areaCd != ''">
           and    a.area_cd = #{areaCd}
         </if>
-        <if test="processCd != null and processCd != ''">
-          and    a.process_cd = #{processCd}
+        <if test="procCd != null and procCd != ''">
+          and    a.proc_cd = #{procCd}
         </if>
         <if test="useYn != null and useYn != ''">
           and    a.use_yn = #{useYn}
@@ -30,9 +30,9 @@
 
     <select id="getWorkerList">
         select dbo.getCommonName('area', a.area_cd) as areaName
-                ,dbo.getCommonName('process_cd', a.process_cd) as procName
+                ,dbo.getCommonName('proc_cd', a.proc_cd) as procName
                 ,a.worker_name
-                ,a.process_cd
+                ,a.proc_cd
                 ,a.area_cd
                 ,a.etc
                 ,a.worker_id
@@ -43,7 +43,7 @@
 
     <select id="getWorkerInfo">
         select   a.worker_name
-                ,a.process_cd
+                ,a.proc_cd
                 ,a.area_cd
                 ,a.etc
                 ,a.worker_id
@@ -61,14 +61,14 @@
                 UPDATE SET
                     T.worker_name = #{workerName},
                     T.area_cd     = #{areaCd},
-                    T.process_cd  = #{processCd},
+                    T.proc_cd  = #{procCd},
                     T.etc         = #{etc},
                     T.use_yn      = #{useYn},
                     T.upd_id      = #{userId},
                     T.upd_dt      = GETDATE()
             WHEN NOT MATCHED BY TARGET THEN
-            INSERT (worker_name,area_cd,process_cd,etc, reg_id,upd_id)
-            VALUES (#{workerName},#{areaCd},#{processCd},#{etc},#{userId},#{userId})
+            INSERT (worker_name,area_cd,proc_cd,etc, reg_id,upd_id)
+            VALUES (#{workerName},#{areaCd},#{procCd},#{etc},#{userId},#{userId})
         ;
     </update>
 
