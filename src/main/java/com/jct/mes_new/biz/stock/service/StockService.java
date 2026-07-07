@@ -19,4 +19,6 @@ public interface StockService {
     Map<String, Object> getUseByM1List(UseByVo vo);
 
     List<TranLedgerVo> getTranLedger(TranLedgerVo vo);
+
+    List<TestNoProdVo> getTestUseList(TestNoProdVo vo);
 }

@@ -390,6 +390,12 @@ public class StockServiceImpl implements StockService {
     public List<TranLedgerVo> getTranLedger(TranLedgerVo vo){return stockMapper.getTranLedger(vo);}
 
 
+    /**
+     * 시험번호별 사용현황
+     * @param vo
+     * @return
+     */
+    public List<TestNoProdVo> getTestUseList(TestNoProdVo vo){return stockMapper.getTestUseList(vo);}
 
 
 }

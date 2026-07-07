@@ -1,9 +1,6 @@
 package com.jct.mes_new.biz.stock.mapper;
 
-import com.jct.mes_new.biz.stock.vo.ItemUseVo;
-import com.jct.mes_new.biz.stock.vo.StockVo;
-import com.jct.mes_new.biz.stock.vo.TranLedgerVo;
-import com.jct.mes_new.biz.stock.vo.UseByVo;
+import com.jct.mes_new.biz.stock.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -53,4 +50,6 @@ public interface StockMapper {
 
 
     List<TranLedgerVo> getTranLedger(TranLedgerVo vo);
+
+    List<TestNoProdVo> getTestUseList(TestNoProdVo vo);
 }

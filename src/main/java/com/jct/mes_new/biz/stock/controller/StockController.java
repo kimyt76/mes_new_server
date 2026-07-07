@@ -81,4 +81,16 @@ public class StockController {
     public List<TranLedgerVo> getTranLedger(@RequestBody TranLedgerVo vo) {
         return stockService.getTranLedger(vo);
     }
+
+
+    /**
+     * 시험번호별 사용현황
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getTestUseList")
+    public List<TestNoProdVo> getTestUseList(@RequestBody TestNoProdVo vo) {
+        return stockService.getTestUseList(vo);
+    }
+
 }

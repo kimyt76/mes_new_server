@@ -317,6 +317,22 @@
             </if>
             GROUP BY b.item_cd
         )
+        , tmp_start_stock as (
+            select  a.item_cd
+                    ,sum(a.qty) as qty
+            from   vw_inv_stock_tran a
+            where  a.item_type_cd = #{itemTypeCd}
+            and    a.tran_date <![CDATA[ <= ]]> #{strDate}
+            group by a.item_cd
+        )
+        , tmp_final_stock as (
+            select  a.item_cd
+                    ,sum(a.qty) as qty
+            from   vw_inv_stock_tran a
+            where  a.item_type_cd = #{itemTypeCd}
+        and    a.tran_date <![CDATA[ <= ]]> #{endDate}
+            group by a.item_cd
+        )
         SELECT  a.item_cd,
                 ISNULL(c.code_nm, '') AS order_type,
                 a.item_name,
@@ -335,7 +351,11 @@
                 ISNULL(q.x_qty, 0) AS xs_qty,
                 ISNULL(q.u_qty, 0) AS us_qty,
                 ISNULL(q.a_qty, 0)*ISNULL(a.in_price, 0) as asAmt,
-                ISNULL(q.e_qty, 0)*ISNULL(a.in_price, 0) as esAmt
+                ISNULL(q.e_qty, 0)*ISNULL(a.in_price, 0) as esAmt,
+                ISNULL(q.s_qty, 0) as basicQty,
+                ISNULL(s.qty, 0)*ISNULL(a.in_price, 0) as basicAmt,
+                ISNULL(f.qty, 0) as finalQty,
+                ISNULL(f.qty, 0)*ISNULL(a.in_price, 0) as finalAmt
         FROM    tb_item_mst a
                 INNER JOIN tb_common_code b
                 ON b.com_type_cd = 'item_type_cd'
@@ -347,6 +367,11 @@
                 ON d.customer_cd = a.customer_cd
                 LEFT JOIN qty q
                 ON q.item_cd = a.item_cd
+                LEFT JOIN tmp_start_stock s
+                ON s.item_cd = a.item_cd
+                LEFT JOIN tmp_final_stock f
+                ON f.item_cd = a.item_cd
+
         WHERE a.item_type_cd = #{itemTypeCd}
         <if test="itemCd != null and itemCd != ''">
             AND a.item_cd LIKE '%' + #{itemCd} + '%'
@@ -359,5 +384,48 @@
         </if>
     </select>
 
+    <select id="getTestUseList">
+        SELECT   a.work_order_id
+                ,d.test_no
+                ,e.item_cd AS itemCdM1
+                ,e.item_name AS itemNameM1
+                ,(
+                    SELECT TOP 1 item_cd
+                    FROM TB_WORK_ORDER_PROC
+                    WHERE proc_cd = 'PRC005'
+                    AND work_order_id = a.work_order_id
+                ) AS itemCdM0
+                ,(
+                    SELECT TOP 1 dbo.getItemName(item_cd)
+                    FROM TB_WORK_ORDER_PROC
+                    WHERE proc_cd = 'PRC005'
+                    AND work_order_id = a.work_order_id
+                ) AS itemNameM0
+                ,a.proc_order_date
+                ,b.lot_no
+                ,d.weigh_qty as qty
+        FROM    TB_WORK_ORDER_PROC a
+                JOIN TB_WORK_ORDER_BATCH b
+                ON b.work_batch_id = a.work_batch_id
+                JOIN tb_weigh_info c
+                ON c.work_proc_id = a.work_proc_id
+                JOIN tb_weigh_inv d
+                ON d.weigh_id = c.weigh_id
+                JOIN tb_item_mst e
+                ON e.item_cd = d.item_cd
+        WHERE   a.proc_cd = 'PRC001'
+        AND     a.proc_status &gt; '00'
+        AND a.proc_order_date BETWEEN #{strDate} AND #{endDate}
+        <if test="testNo != null and testNo != ''">
+            AND d.test_no = #{testNo}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND e.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND e.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        ORDER BY d.test_no, e.item_cd
+    </select>
 
 </mapper>
