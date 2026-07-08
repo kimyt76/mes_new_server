@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Data
@@ -24,7 +25,8 @@ public class BomVo {
     private String caution;
     private String significant;
     private String note;
-    private BigInteger qty;
+    private BigDecimal qty;
+    private BigDecimal recipeQty;
     private String approvalState;
     private String defaultYn;
     private String etc;

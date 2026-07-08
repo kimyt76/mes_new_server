@@ -20,7 +20,8 @@ public class BomRecipeVo {
     private BigDecimal stdContent;
     private BigInteger orderDist;
     private String etc;
-    private BigInteger qty;
+    private BigDecimal qty;
+    private BigDecimal recipeQty;
 
     private String itemName;
     private String bomVer;

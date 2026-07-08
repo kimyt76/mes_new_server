@@ -225,15 +225,19 @@
                 ,a.bomVer
                 ,a.realContent
                 ,a.bomId
+                ,a.qty
+                ,a.recipeQty
         from  (
             select  a.bom_id as bomId
                     ,dbo.getItemName(a.item_cd) as item_name
                     ,a.bom_ver as bomVer
                     ,b.real_content as realContent
                     ,a.item_cd as itemCd
+                    ,a.qty
+                    ,b.qty as recipeQty
             from   tb_bom_mst a
             inner join (
-                select bom_id, item_cd ,real_content from tb_bom_recipe where item_cd = #{itemCd}
+                select bom_id, item_cd ,real_content, qty from tb_bom_recipe where item_cd = #{itemCd}
             ) b
             on b.bom_id = a.bom_id
             where  a.default_yn ='Y'
