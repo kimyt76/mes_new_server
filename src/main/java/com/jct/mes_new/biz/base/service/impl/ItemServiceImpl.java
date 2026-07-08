@@ -103,7 +103,7 @@ public class ItemServiceImpl implements ItemService {
                     Map.of("itemCd", baseItemCd + "AP", "itemTypeCd", "M6", "itemTypeName","[포장품] ")
             );
         }
-        return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"));
+        return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품] "));
     }
 
 
