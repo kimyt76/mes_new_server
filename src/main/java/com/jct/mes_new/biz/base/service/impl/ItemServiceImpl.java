@@ -51,13 +51,11 @@ public class ItemServiceImpl implements ItemService {
         String userId = UserUtil.getUserId();
 
         vo.setUserId(userId);
-log.info("======================vo.getGb()========================================= : " + vo.getGb());
         if ( "A".equals(vo.getGb())  ) {
             List<Map<String, String>> itemInfos = makeItemCds(gb, baseItemCd, itemTypeCd);
 
             for (Map<String, String > itemInfo : itemInfos) {
                 vo.setItemCd(itemInfo.get("itemCd"));
-                log.info("======================vo.getGb()========================================= : " + vo.getItemCd());
                 String itemCdCheck =  this.getItemCdCheck(itemInfo.get("itemCd"));
 
                 if ("Y".equals(itemCdCheck)) {
@@ -91,18 +89,18 @@ log.info("======================vo.getGb()======================================
 
     private List<Map<String, String>> makeItemCds(String gb, String baseItemCd, String itemTypeCd) {
         if ("O".equals(gb)) {
-            return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"));
+            return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품] "));
         }
         if ("U".equals(gb) ) {
-            return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", itemTypeCd, "itemTypeName","[제품]"));
+            return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", itemTypeCd, "itemTypeName","[제품] "));
         }
         if ("A".equals(gb)) {
             return List.of(
-                    Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"),
-                    Map.of("itemCd", baseItemCd + "1I", "itemTypeCd", "M3", "itemTypeName","[반제품]"),
-                    Map.of("itemCd", baseItemCd + "AF", "itemTypeCd", "M0", "itemTypeName","[완제품]"),
-                    Map.of("itemCd", baseItemCd + "B", "itemTypeCd", "M5", "itemTypeName","[벌크제품]"),
-                    Map.of("itemCd", baseItemCd + "AP", "itemTypeCd", "M6", "itemTypeName","[포장품]")
+                    Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품] "),
+                    Map.of("itemCd", baseItemCd + "1I", "itemTypeCd", "M3", "itemTypeName","[반제품] "),
+                    Map.of("itemCd", baseItemCd + "AF", "itemTypeCd", "M0", "itemTypeName","[완제품] "),
+                    Map.of("itemCd", baseItemCd + "B", "itemTypeCd", "M5", "itemTypeName","[벌크제품] "),
+                    Map.of("itemCd", baseItemCd + "AP", "itemTypeCd", "M6", "itemTypeName","[포장품] ")
             );
         }
         return List.of(Map.of("itemCd", baseItemCd, "itemTypeCd", "M4", "itemTypeName","[제품]"));
