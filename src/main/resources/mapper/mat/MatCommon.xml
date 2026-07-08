@@ -24,9 +24,9 @@
     </select>
 
     <select id="getItemStockList">
-        with tmp_bom_recipe as (
-            select  x.item_cd,
-                    sum(x.reqQty) as reqQty
+        with bom_qty as (
+            select  x.item_cd
+                   ,sum(x.reqQty) as reqQty
             from (
             <foreach collection="list" item="item" separator="union all">
                 select  b.item_cd,
@@ -37,7 +37,8 @@
                         on a.bom_id = b.bom_id
                         join tb_item_mst c
                         on c.item_cd = b.item_cd
-                        where a.default_yn = 'Y'
+                        and  c.item_type_cd in ('M1', 'M2', 'M7')
+                where a.default_yn = 'Y'
                 and a.bom_id = #{item.bomId}
                 and b.item_cd not in ('JRW00215', 'JRMSC00011')
                 group by b.item_cd, c.item_type_cd
@@ -45,36 +46,40 @@
             ) x
             group by x.item_cd
         )
-        select   a.item_cd as itemCd
+        select  b.item_cd as itemCd
+                ,c.code_nm as itemTypeName
                 ,b.item_name as itemName
                 ,b.spec
-                ,isnull(c.realStockQty, 0) as realStockQty
-                ,a.reqQty
-                ,isnull(d.reserveStockQty, 0) as reserveStockQty
-                ,isnull(c.realStockQty, 0) - a.reqQty as differenceQty
+                ,isnull(f.qty, 0 ) as realStockQty
+                ,isnull(a.reqQty, 0) reqQty
+                ,isnull(f.qty, 0 )-isnull(a.reqQty, 0) as differenceQty
+                ,isnull( g.reserveStockQty, 0 ) as reserveStockQty
                 ,e.customer_name as customerName
-                ,isnull(dbo.getCommonName('ITEM_GRP1', b.item_grp1 ), '')  as orderType
-                ,b.customer_cd as customerCd
-        from   tmp_bom_recipe a
+                ,d.code_nm as orderType
+                ,isnull(b.in_price, 0) as inPrice
+        from    bom_qty a
                 inner join tb_item_mst b
-                on a.item_cd = b.item_cd
+                on b.item_cd = a.item_cd
+                inner join tb_common_code c
+                on c.code = b.item_type_cd
+                and c.com_type_cd = 'item_Type_cd'
+                left join tb_common_code d
+                on d.code = b.item_grp1
+                and d.com_type_cd = 'ITEM_GRP1'
+                left join tb_customer e
+                on e.customer_cd = b.customer_cd
                 left join (
-                    select  item_cd
-                            ,sum(qty) as realStockQty
-                    from   vw_inv_stock_tran c
-                    group  by item_cd
-                ) c
-                on c.item_cd = a.item_cd
+                    select item_cd, sum(qty) as qty from vw_inv_stock_tran group by item_cd
+                ) f
+                on f.item_cd = a.item_cd
                 left join (
                     select  item_cd
                             ,sum(qty) as reserveStockQty
                     from    tb_pur_order_item
                     where   in_yn ='N'
                     group  by item_cd
-                )  d
-                on d.item_cd = a.item_cd
-                left join tb_customer e
-                on e.customer_cd = b.customer_cd
+                )  g
+                on g.item_cd = a.item_cd
             order by e.customer_name desc
     </select>
 
