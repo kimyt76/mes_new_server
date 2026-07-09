@@ -28,5 +28,4 @@ public class MatPlanVo {
     public String endYn;
     public String useYn;
     public String userId;
-
 }

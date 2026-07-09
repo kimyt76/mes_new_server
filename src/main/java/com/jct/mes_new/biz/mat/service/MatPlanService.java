@@ -12,4 +12,8 @@ public interface MatPlanService {
     void saveMatPlanList(List<MatPlanVo> voList);
 
     List<MatPlanVo> getBomStockList(MatPlanVo vo);
+
+    void updateMatInYn(MatPlanVo vo);
+
+    void updateEndYn(MatPlanVo vo);
 }

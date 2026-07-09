@@ -33,7 +33,6 @@ public class MatPlanController {
         return matPlanService.getMatPlanDetailList(matPlanId);
     }
 
-
     @PostMapping("/saveMatPlanList")
     public ResponseEntity<ApiResponse<Map<String, String>>> saveMatPlanList(@RequestBody List<MatPlanVo> voList) {
         matPlanService.saveMatPlanList(voList);
@@ -43,6 +42,17 @@ public class MatPlanController {
     @PostMapping("/getBomStockList")
     public List<MatPlanVo> getBomStockList(@RequestBody MatPlanVo vo) {
         return matPlanService.getBomStockList(vo);
+    }
+
+    @PostMapping("/updateMatInYn")
+    public ResponseEntity<ApiResponse<Map<String, String>>> updateMatInYn(@RequestBody MatPlanVo vo) {
+        matPlanService.updateMatInYn(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
+    }
+    @PostMapping("/updateEndYn")
+    public ResponseEntity<ApiResponse<Map<String, String>>> updateEndYn(@RequestBody MatPlanVo vo) {
+        matPlanService.updateEndYn(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), null));
     }
 
 }

@@ -16,4 +16,7 @@ public interface MatPlanMapper {
     List<MatPlanVo> getMatPlanDetailList(@Param("matPlanId") String matPlanId);
 
     List<MatPlanVo> getBomStockList(MatPlanVo vo);
+
+    int updateMatInYn(MatPlanVo vo);
+    int updateEndYn(MatPlanVo vo);
 }

@@ -49,4 +49,22 @@ public class MatPlanServiceImpl implements MatPlanService {
         return matPlanMapper.getBomStockList(vo);
     }
 
+    public void updateMatInYn(MatPlanVo vo){
+        String userId = UserUtil.getUserId();
+        vo.setUserId(userId);
+
+        if ( matPlanMapper.updateMatInYn(vo) <=0  ) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+    }
+
+    public void updateEndYn(MatPlanVo vo){
+        String userId = UserUtil.getUserId();
+        vo.setUserId(userId);
+
+        if ( matPlanMapper.updateEndYn(vo) <=0  ) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+    }
+
 }
