@@ -221,7 +221,7 @@
                 ,b.item_name
                 ,a.expiry_date
                 ,a.test_no
-                ,DATEDIFF(DAY, #{stdDate}, a.expiry_date) AS remain_day
+                ,DATEDIFF(DAY, #{stdDate}, a.expiry_date) AS remaining_day
                 ,c.storage_cd
                 ,c.qty
         from   tb_item_test_no a
