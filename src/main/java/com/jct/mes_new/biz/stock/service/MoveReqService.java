@@ -17,4 +17,6 @@ public interface MoveReqService {
     List<StockVo> getMoveReqStockList(StockVo vo);
 
     String saveMoveItem(MoveStockRequestVo vo);
+
+    String saveMoveReqComplete(MoveStockVo vo);
 }

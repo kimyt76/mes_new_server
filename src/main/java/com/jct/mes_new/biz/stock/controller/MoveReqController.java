@@ -77,6 +77,16 @@ public class MoveReqController {
     }
 
 
+    /**
+     * 자재이동 요청
+     * @param vo
+     * @return
+     */
+    @PostMapping("/saveMoveReqComplete")
+    public ResponseEntity<ApiResponse<?>> saveMoveReqComplete (@RequestBody MoveStockVo vo) {
+        String result = moveReqService.saveMoveReqComplete(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
 
 
 

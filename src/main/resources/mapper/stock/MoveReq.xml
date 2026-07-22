@@ -4,52 +4,34 @@
 <mapper namespace="com.jct.mes_new.biz.stock.mapper.MoveReqMapper">
     <select id="getNextRegSeq">
         select CASE WHEN COUNT(*) = 0 THEN 1 ELSE MAX(reg_seq)+1 END AS reg_seq
-        from   tb_move_req
+        from   tb_move_stock_mst
         where  move_reg_date = #{moveRegDate}
     </select>
 
     <select id="getMoveReqList">
-        WITH item_summary AS (
-            SELECT b.move_stock_id
-                    , MIN(b.item_cd) AS rep_item_cd
-                    , SUM(b.qty) AS qty
-                    , COUNT(DISTINCT b.item_cd) AS item_cnt
-            FROM tb_move_item b
-            where  b.type_cd ='Q'
-            GROUP BY b.move_stock_id
-        ),
-        rep_item AS (
-            SELECT  s.move_stock_id
-                    , c.item_name AS rep_item_name
-                    , s.qty
-                    , s.item_cnt
-            FROM item_summary s
-            INNER JOIN tb_item_mst c
-            ON s.rep_item_cd = c.item_cd
-        )
-        SELECT  CONCAT(CONVERT(varchar(10), a.move_req_date, 23), ' - ', a.seq) AS moveReqDateSeq
-                , c.storage_name as src_storage_name
-                , d.storage_name as tar_storage_name
-                , b.member_nm as manager_name
-                , dbo.getCommonName('MOVE_STATUS', a.move_status) as move_status_name
-                , a.src_storage_cd
-                , a.tar_storage_cd
-                , CASE WHEN r.item_cnt > 1 THEN CONCAT(r.rep_item_name, ' 외 ', r.item_cnt - 1, '건') ELSE r.rep_item_name END AS item_name
+        select   CONCAT(CONVERT(varchar(10), a.move_stock_date, 23), ' - ', a.seq) AS moveStockDateSeq
+                ,d.storage_name as src_storage_name
+                ,e.storage_name as tar_storage_name
+                ,CASE  WHEN COUNT(DISTINCT b.item_cd) = 1 THEN MIN(c.item_name)
+                       ELSE CONCAT(MIN(c.item_name), ' 외 ', COUNT(DISTINCT b.item_cd) - 1, '건') END AS item_name
+                ,sum(b.qty) as qty
                 , a.memo
-                , r.qty
-                , a.manager_id
-                , a.move_status
-                , a.move_stock_id
-        FROM tb_move_stock_mst a
-            INNER JOIN rep_item r
-            ON a.move_stock_id = r.move_stock_id
-            inner join tb_users b
-            on a.manager_id = b.user_id
-            inner join tb_storage_mst c
-            on a.src_storage_cd = c.storage_cd
-            inner join tb_storage_mst d
-            on a.tar_storage_cd = d.storage_cd
-        WHERE a.move_req_date BETWEEN #{strDate} AND #{endDate}
+                ,f.member_nm as manager_name
+                ,a.move_status
+                ,a.move_stock_id
+        from  tb_move_stock_mst a
+                left join tb_move_req_item b
+                on a.move_stock_id = b.move_stock_id
+                left join tb_item_mst c
+                on c.item_cd = b.item_cd
+                inner join tb_storage_mst d
+                on d.storage_cd = a.src_storage_cd
+                inner join tb_storage_mst e
+                on e.storage_cd = a.tar_storage_cd
+                inner join tb_users f
+                on f.user_id = a.manager_id
+        WHERE a.move_stock_date BETWEEN #{strDate} AND #{endDate}
+            and a.type_cd ='Q'
         <if test="areaCd != null and areaCd != ''">
             AND a.area_cd = #{areaCd}
         </if>
@@ -63,25 +45,17 @@
             AND a.tar_storage_cd = #{tarStorageCd}
         </if>
         <if test="itemCd != null and itemCd != ''">
-        AND EXISTS (SELECT 1
-                    FROM tb_move_req_item b
-                    WHERE b.move_stock_id = a.move_stock_id
-                    AND b.item_cd LIKE '%' + #{itemCd} + '%'
-                    )
+            AND c.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-         AND EXISTS (SELECT 1
-                    FROM tb_move_req_item b
-                        INNER JOIN tb_item_mst c ON b.item_cd = c.item_cd
-                    WHERE b.move_stock_id = a.move_stock_id
-                    AND c.item_name LIKE '%' + #{itemName} + '%'
-                    )
+            AND c.item_name LIKE '%' + #{itemName} + '%'
         </if>
-        ORDER BY a.move_req_date DESC, a.seq DESC
+        GROUP BY a.move_stock_date, a.seq, d.storage_name, e.storage_name, f.member_nm ,a.move_status,a.move_stock_id, a.memo
+        ORDER BY a.move_stock_date desc, a.seq desc
     </select>
 
     <select id="getMoveReqMst">
-        SELECT    a.move_req_date
+        SELECT    a.move_stock_date
                  ,a.seq
                  ,a.move_reg_date
                  ,a.reg_seq
@@ -97,6 +71,7 @@
                  ,a.confirmer_id
                  ,c.member_nm     AS confirmer_name
                  ,a.move_status
+                 ,a.confirm_status
                  ,a.etc
                  ,a.memo
                  ,a.move_stock_id
@@ -116,56 +91,22 @@
     </select>
 
     <select id="getMoveReqStockList" >
-        SELECT  x.item_cd
-             ,x.test_no
-             ,(
-            SELECT MIN(m2.tran_date)
-            FROM tb_inv_tran_item i2
-                     JOIN tb_inv_tran_mst m2
-                          ON i2.tran_id = m2.tran_id
-            WHERE i2.item_cd = x.item_cd
-              AND i2.test_no = x.test_no
-              AND m2.area_cd = #{areaCd}
-              AND m2.tran_status = 'C'
-              AND m2.tran_type_cd = 'A'
-        ) AS tran_date
-             ,x.storage_cd
-             ,SUM(x.qty) AS qty
-        FROM (
-                 /* src 창고 기준 */
-                 SELECT  i.item_cd
-                      ,i.test_no
-                      ,m.src_storage_cd AS storage_cd
-                      ,CASE  WHEN m.tran_type_cd IN ('I','J','L','D','E','F','G','Q','T') THEN i.qty * -1
-                             WHEN m.tran_type_cd IN ('A','B','C','P','R','S','U','V','W','X') THEN i.qty  ELSE 0 END AS qty
-                 FROM tb_inv_tran_item i
-                          JOIN tb_inv_tran_mst m
-                               ON i.tran_id = m.tran_id
-                 WHERE i.item_cd = #{itemCd}
-                   AND m.area_cd = #{areaCd}
-                   AND m.tran_status = 'C'
-                   AND m.src_storage_cd IS NOT NULL
-                 UNION ALL
-                 /* tar 창고 기준: 이동 입고 */
-                 SELECT  i.item_cd
-                      ,i.test_no
-                      ,m.tar_storage_cd AS storage_cd
-                      ,i.qty AS qty
-                 FROM tb_inv_tran_item i
-                          JOIN tb_inv_tran_mst m
-                               ON i.tran_id = m.tran_id
-                 WHERE i.item_cd = #{itemCd}
-                   AND m.area_cd = #{areaCd}
-                   AND m.tran_status = 'C'
-                   AND m.tar_storage_cd IS NOT NULL
-                   AND m.tran_type_cd IN ('I','J','L')
-             ) x
-        WHERE x.storage_cd = #{storageCd}
-        GROUP BY x.item_cd, x.test_no, x.storage_cd
-        <![CDATA[
-        HAVING SUM(x.qty) <> 0
-        ]]>
-        ORDER BY tran_date, x.item_cd,x.test_no;
+        select  a.test_no
+               ,(select tran_date
+                 from  tb_inv_tran_mst x
+                 where x.tran_id in (  select tran_id
+                                       from tb_inv_tran_item b
+                                       where b.item_cd = a.item_cd
+                                       and   b.test_no = a.test_no
+                                    )
+                 and   x.tran_type_cd ='A') as tran_date
+                ,sum(a.qty) as qty
+        from   vw_inv_stock_tran a
+        where  1=1
+          and    a.area_cd = #{areaCd}
+          and    a.item_cd = #{itemCd}
+          and    a.storage_cd = #{storageCd}
+        group by a.test_no, a.item_cd
     </select>
 
     <select id="getMoveReqProcList">
@@ -189,9 +130,9 @@
                 ,a.test_no
                 ,a.qty
                 ,a.lot_no
-                ,a.move_item_id
+                ,a.move_stock_item_id
                 ,a.move_stock_id
-        FROM    tb_move_item a
+        FROM    tb_move_stock_item a
                 inner join tb_item_mst b
                 on b.item_cd = a.item_cd
         WHERE   a.move_stock_id = #{moveStockId}
@@ -200,19 +141,20 @@
 
     <insert id="insertMoveReqMst" parameterType="com.jct.mes_new.biz.stock.vo.MoveStockVo"  useGeneratedKeys="true" keyProperty="moveStockId">
         insert into tb_move_stock_mst
-            (move_req_date, seq, type_cd, area_cd, src_storage_cd, tar_storage_cd, manager_id, move_status, memo, reg_id, upd_id)
+            (move_stock_date, seq, type_cd, area_cd, src_storage_cd, tar_storage_cd, manager_id, move_status, confirm_status, memo, reg_id, upd_id)
         values
-            (#{moveReqDate}, #{seq},#{typeCd}, #{areaCd}, #{srcStorageCd}, #{tarStorageCd}, #{managerId}, 'Q', #{memo}, #{userId}, #{userId})
+            (#{moveStockDate}, #{seq}, #{typeCd}, dbo.getStorageByAreaCd(#{srcStorageCd}), #{srcStorageCd}, #{tarStorageCd}, #{managerId}, 'Q', 'N', #{memo}, #{userId}, #{userId})
     </insert>
 
     <update id="updateMoveReqMst">
         update tb_move_stock_mst
-        set    move_reg_date    = #{moveReqDate}
+        set    move_reg_date    = #{moveRegDate}
               ,reg_seq          = #{regSeq}
               ,move_manager_id  = #{moveManagerId}
               ,confirmer_id     = #{confirmerId}
               ,etc              = #{etc}
               ,move_status      = #{moveStatus}
+              ,confirm_status   = #{confirmStatus}
               ,upd_id           = #{userId}
               ,upd_dt           = getdate()
         where  move_stock_id    = #{moveStockId}
@@ -226,14 +168,14 @@
     </insert>
 
     <insert id="insertMoveItem">
-        INSERT INTO tb_move_item
+        INSERT INTO tb_move_stock_item
             ( move_stock_id, item_type_cd, item_cd, test_no, qty, lot_no, reg_id, upd_id)
         VALUES
             (#{moveStockId}, #{itemTypeCd}, #{itemCd}, #{testNo}, #{qty}, #{lotNo}, #{userId}, #{userId} )
     </insert>
 
     <update id="updateMoveItem">
-        UPDATE tb_move_item
+        UPDATE tb_move_stock_item
         SET item_type_cd = #{itemTypeCd}
           , item_cd      = #{itemCd}
           , test_no      = #{testNo}
@@ -241,14 +183,19 @@
           , lot_no       = #{lotNo}
           , upd_id       = #{userId}
           , upd_dt       = GETDATE()
-        WHERE move_item_id = #{moveItemId}
-        and
+        WHERE move_stock_item_id = #{moveStockItemId}
     </update>
 
     <delete id="deleteMoveReqItemId">
-        delete from tb_move_item where move_item_id = #{moveItemId}
+        delete from tb_move_stock_item where move_stock_item_id = #{moveStockItemId}
     </delete>
 
+    <insert id="insertMoveStockProcMap">
+        INSERT INTO tb_move_stock_proc_map
+        ( move_stock_id, work_proc_id, move_status, reg_id, reg_dt)
+        VALUES
+        ( #{moveStockId}, #{workProcId}, #{moveStatus},#{userId}, GETDATE())
+    </insert>
 
 
 </mapper>

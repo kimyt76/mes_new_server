@@ -55,11 +55,26 @@ public class MoveReqServiceImpl implements MoveReqService {
         if ( moveReqMapper.insertMoveReqMst(mst) <=0 ) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
+
+        List<Long> workProcIds = mst.getWorkProcIds();
+        if (workProcIds != null && !workProcIds.isEmpty()) {
+            for (Long workProcId : workProcIds) {
+                MoveStockProcMapVo mapVo = new MoveStockProcMapVo();
+                mapVo.setMoveStockId(mst.getMoveStockId());
+                mapVo.setWorkProcId(workProcId);
+                mapVo.setMoveStatus("Q");
+                mapVo.setUserId(userId);
+
+                if ( moveReqMapper.insertMoveStockProcMap(mapVo) <= 0) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }
+        }
         //공정 요청 건prodItemList
         List<ProcItemVo> procItemList = vo.getProcItemList();
 
         for( ProcItemVo procItemVo : procItemList ) {
-            procItemVo.setMoveReqId(mst.getMoveStockId());
+            procItemVo.setMoveStockId(mst.getMoveStockId());
             procItemVo.setUserId(userId);
 
             if ( moveReqMapper.insertProcItem(procItemVo) <=0 ) {
@@ -114,55 +129,22 @@ public class MoveReqServiceImpl implements MoveReqService {
 
     /**
      * 자재이동요청 승인
-     * @param moveReqId
+     * @param vo
      * @return
      */
     @Transactional(rollbackFor = BusinessException.class)
-    public String saveConfirmMoveReq(Long moveReqId){
+    public String saveMoveReqComplete(MoveStockVo vo){
         String userId = UserUtil.getUserId();
-
-        MoveStockVo mst = moveReqMapper.getMoveReqMst(moveReqId);
-        List<MoveItemVo> moveItemList = moveReqMapper.getMoveItemList(moveReqId);
-
-        mst.setUserId(userId);
+        vo.setUserId(userId);
         //승인완료
-        if ( moveReqMapper.updateMoveReqMst(mst) <=0 ) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-
-        //재고 등록
-        TranVo tranVo = new TranVo();
-        tranVo.setTranDate(mst.getMoveRegDate());
-        tranVo.setSeq(mst.getRegSeq());
-        tranVo.setAreaCd(mst.getAreaCd());
-        tranVo.setTranTypeCd("J");
-        tranVo.setSrcStorageCd(mst.getSrcStorageCd());
-        tranVo.setTarStorageCd(mst.getTarStorageCd());
-        tranVo.setManagerId(mst.getMoveManagerId());
-        tranVo.setEndYn("Y");
-        tranVo.setUserId(userId);
-
-        if( tranMapper.insertTranMst(tranVo) <=0 ) {
+        if ( moveReqMapper.updateMoveReqMst(vo) <=0 ) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
-        }
-
-        for (MoveItemVo moveItemVo : moveItemList) {
-            TranItemVo tranItemVo = new TranItemVo();
-
-            tranItemVo.setTranId(tranVo.getTranId());
-            tranItemVo.setItemTypeCd(moveItemVo.getItemTypeCd());
-            tranItemVo.setItemCd(moveItemVo.getItemCd());
-            tranItemVo.setItemName(moveItemVo.getItemName());
-            tranItemVo.setTestNo(moveItemVo.getTestNo());
-            tranItemVo.setQty(moveItemVo.getQty());
-            tranItemVo.setInYn("Y");
-            tranItemVo.setUserId(userId);
-            if( tranMapper.insertTranItem(tranItemVo) <=0 ) {
-                throw new BusinessException(ErrorCode.FAIL_CREATED);
-            }
         }
 
         return "승인되었습니다";
     }
+
+
+
 
 }
