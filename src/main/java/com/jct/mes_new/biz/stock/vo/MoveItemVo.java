@@ -22,6 +22,7 @@ public class MoveItemVo {
     private String lotNo;
     private String poNo;
     private String makeNo;
+    private String etc;
 
     private String userId;
 }
