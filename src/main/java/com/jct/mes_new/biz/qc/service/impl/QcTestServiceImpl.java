@@ -144,11 +144,14 @@ public class QcTestServiceImpl implements QcTestService {
         QcTestVo qcTestMst = vo.getQcTestInfo();
         qcTestMst.setUserId(userId);
 
+        String tranYn = qcTestMapper.getTranYn(qcTestMst.getQcTestId());
+        log.info("tranYn===============================================:{}",tranYn);
+
         if ( qcTestMapper.updateQcTestAllInfo(qcTestMst) <=  0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
-        if (qcTestMst.getTestQty().compareTo(BigDecimal.ZERO) > 0) {
+        if ("N".equals(tranYn) && qcTestMst.getTestQty().compareTo(BigDecimal.ZERO) > 0) {
             //자재 조정 자동 등록
             QcTestVo qcTestVo = qcTestMapper.getQcTestDetailByTestNo(qcTestMst.getTestNo());
             //마스터

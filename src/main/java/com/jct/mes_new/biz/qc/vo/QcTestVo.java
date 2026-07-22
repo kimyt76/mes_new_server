@@ -60,6 +60,7 @@ public class QcTestVo {
     private String customerName;
 
     private String menuType;
+    private String tranYn;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate createDate;
 

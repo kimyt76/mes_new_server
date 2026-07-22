@@ -25,6 +25,7 @@
                 ,a.confirm_date
                 ,case when a.retest_yn = 'Y' then '재검사' else '입고검사' end retest_yn
                 ,a.qc_test_id
+                ,isnull(a.tran_yn, 'N') as tran_yn
         from    tb_qc_test_mst a
                 inner join tb_item_test_no b
                 on a.test_no = b.test_no
@@ -105,6 +106,7 @@
                  ,a.order_type
                  ,a.etc
                  ,a.qc_cd
+                 ,isnull(a.tran_yn, 'N') as tran_yn
         from    tb_qc_test_mst a
                 inner join tb_item_test_no b
                 on a.test_no = b.test_no
@@ -140,6 +142,7 @@
         , req_qty
         , TEST_STATE
         , PASS_STATE
+        , tran_yn
         , REG_ID
         ,  UPD_ID  )
         VALUES
@@ -154,6 +157,7 @@
             ,#{item.reqQty}
             , 'REQ'
             , 'REQ'
+            , 'N'
             ,#{userId}
             ,#{userId}
             )
@@ -172,6 +176,7 @@
         , req_qty
         , TEST_STATE
         , PASS_STATE
+        , tran_yn
         , REG_ID
         ,  UPD_ID  )
         VALUES
@@ -185,6 +190,7 @@
             ,#{list.reqQty}
             , 'REQ'
             , 'REQ'
+            ,'N'
             ,#{userId}
             ,#{userId}
             )
@@ -232,8 +238,8 @@
     <update id="updateQcTestAllInfo">
         update tb_qc_test_mst
         set    req_qty	 	        = #{reqQty}
-              ,test_qty	 	        = #{testQty}
-              ,sample_qty	 	    = #{sampleQty}
+              ,test_qty = ISNULL(#{testQty, jdbcType=DECIMAL}, 0)
+              ,sample_qty = ISNULL(#{sampleQty, jdbcType=DECIMAL}, 0)
               ,tester_id		 	= #{testerId}
               ,order_tester_id 	    = #{orderTesterId}
               ,confirm_tester_id    = #{confirmTesterId}
@@ -248,14 +254,11 @@
         </if>
               ,test_state	 	    = #{testState}
               ,pass_state	 	    = #{passState}
+              ,tran_yn	 	        = 'Y'
               ,upd_id               = #{userId}
               ,upd_dt               = getdate()
         where  qc_test_id = #{qcTestId}
     </update>
-
-
-
-
 
     <select id="getQcTestDetailByTestNo">
         select    a.test_no
@@ -302,5 +305,11 @@
                 inner join tb_item_mst c
                 on b.item_cd = c.item_cd
         where  a.test_no  = #{testNo}
+    </select>
+
+    <select id="getTranYn">
+        select isnull(tran_yn, 'N') as tranYn
+        from   tb_qc_test_mst
+        where  qc_test_id = #{qcTestId}
     </select>
 </mapper>

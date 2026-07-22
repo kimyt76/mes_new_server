@@ -59,4 +59,6 @@ public interface QcTestMapper {
     int updateQcTestAllInfo(QcTestVo qcTesteMst);
 
     QcTestVo getQcTestDetailByTestNo(String testNo);
+
+    String getTranYn(Long qcTestId);
 }
