@@ -1,10 +1,8 @@
 package com.jct.mes_new.biz.stock.service.impl;
 
 import com.jct.mes_new.biz.proc.vo.ProcItemVo;
-import com.jct.mes_new.biz.purchase.mapper.TranMapper;
-import com.jct.mes_new.biz.purchase.vo.TranItemVo;
-import com.jct.mes_new.biz.purchase.vo.TranVo;
 import com.jct.mes_new.biz.stock.mapper.MoveReqMapper;
+import com.jct.mes_new.biz.stock.mapper.MoveStockMapper;
 import com.jct.mes_new.biz.stock.service.MoveReqService;
 import com.jct.mes_new.biz.stock.vo.*;
 import com.jct.mes_new.config.common.UserUtil;
@@ -15,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -23,8 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MoveReqServiceImpl implements MoveReqService {
 
+    private final MoveStockServiceImpl moveStockService;
     private final MoveReqMapper moveReqMapper;
-    private final TranMapper tranMapper;
+    private final MoveStockMapper moveStockMapper;
 
     public int getNextRegSeq(MoveStockVo vo){
         return moveReqMapper.getNextRegSeq(vo);
@@ -134,14 +132,7 @@ public class MoveReqServiceImpl implements MoveReqService {
      */
     @Transactional(rollbackFor = BusinessException.class)
     public String saveMoveReqComplete(MoveStockVo vo){
-        String userId = UserUtil.getUserId();
-        vo.setUserId(userId);
-        //승인완료
-        if ( moveReqMapper.updateMoveReqMst(vo) <=0 ) {
-            throw new BusinessException(ErrorCode.FAIL_CREATED);
-        }
-
-        return "승인되었습니다";
+        return moveStockService.saveMoveStockConfirm(vo);
     }
 
 
