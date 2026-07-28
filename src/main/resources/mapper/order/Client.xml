@@ -464,13 +464,13 @@
     </insert>
     <update id="updateClientAddress">
         UPDATE tb_client_address
-        SET    client_address_type = #{clientAddressType}
+        SET    address_type = #{addressType}
               ,location     = #{location}
               ,address      = #{address}
               ,order_dist   = #{orderDist}
               ,upd_id       = #{userId}
               ,upd_dt       = GETDATE()
-        WHERE client_address_type = #{clientAddressType}
+        WHERE client_address_id = #{clientAddressId}
           AND client_id = #{clientId}
     </update>
     <delete id="deleteClientAddress">
