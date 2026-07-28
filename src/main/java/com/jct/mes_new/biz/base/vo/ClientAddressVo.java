@@ -4,8 +4,10 @@ import lombok.Data;
 
 @Data
 public class ClientAddressVo {
-    private int addressId;
-    private String clientId;
+    private Long clientAddressId;
+    private Long clientId;
+    private String addressType;
+    private String location;
     private String address;
     private int orderDist;
 

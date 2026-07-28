@@ -2,242 +2,540 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.base.mapper.ClientMapper">
+    <select id="getBusinessNoChecked">
+        select count(*)
+        from   tb_client_mst
+        where  business_No = #{businessNo}
+    </select>
 
     <select id="getClientList">
-        select  ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS rowNum
-                ,a.business_no
-                ,a.client_name
-                ,a.president
-                ,b.member_nm as saleManagerName
-                ,a.payment_condition
-                ,(select min(contract_date)
-                   from  tb_contract_mst x
-                  where x.client_id = a.client_id
-                  ) as firstDelaDate
-                ,case when a.trade_type = 'I' then '내수'
-                        when a.trade_type = 'O' then '해외'
-                        else '' end as tradeType
-                ,a.client_id
-        from   tb_client_mst a
-                left outer join tb_users b
-                on b.user_id = a.sale_manager_id
-        where   1=1
-        <if test='strDate != "" and strDate != null'>
-        and  a.reg_date between #{strDate} and #{endDate}
-        </if>
-        <if test='businessNo != "" and businessNo != null'>
-            AND a.business_no LIKE '%' + #{businessNo} + '%'
-        </if>
-        <if test='clientName != "" and clientName != null'>
-            AND c.client_name LIKE '%' + #{clientName} + '%'
-        </if>
-        <if test='saleManagerName != "" and saleManagerName != null'>
-            AND b.member_nm =  #{saleManagerName}
-        </if>
-        order by a.client_id desc
+        SELECT   a.business_no AS businessNo
+                ,m.business_manager_name AS businessManagerName
+                ,a.client_name AS clientName
+                ,a.president AS president
+                ,(SELECT ad.location FROM tb_client_address ad WHERE ad.client_id = a.client_id AND ad.order_dist = 1 ) AS location
+                ,( SELECT ap.approval_option FROM tb_client_approval ap WHERE ap.client_id = a.client_id AND ap.order_dist = 1) AS approvalOption
+                ,a.client_reg_date AS clientRegDate
+                ,d1.sales_amt AS oneYearAgo
+                ,d2.sales_amt AS twoYearAgo
+                ,d3.sales_amt AS threeYearAgo
+                ,( SELECT min(cm.contract_date) FROM tb_contract_mst cm WHERE cm.client_id = a.client_id ) AS firstDealDate
+                ,( SELECT MAX(cm.contract_date) FROM tb_contract_mst cm WHERE cm.client_id = a.client_id ) AS lastDealDate
+                ,a.client_type AS clientType
+                ,a.client_type_name AS clientTypeName
+                ,a.trade_type AS tradeType
+                ,a.respon_sales_biz AS responSalesBiz
+                ,a.establish_date AS establishDate
+                ,a.business_type AS businessType
+                ,a.business_item AS businessItem
+                ,a.tel_no AS telNo
+                ,a.fax_no AS faxNo
+                ,a.homepage AS homepage
+                ,a.email AS email
+                ,a.group_cd AS groupCd
+                ,a.group_name AS groupName
+                ,a.groups_cd AS groupsCd
+                ,a.groups_name AS groupsName
+                ,a.payment_cd AS paymentCd
+                ,a.payment_name AS paymentName
+                ,isnull(a.manager_rank, a.manager_rank2)  AS managerRank
+                ,a.client_id AS clientId
+            FROM tb_client_mst a
+                LEFT JOIN tb_client_deal d1
+                ON d1.client_id = a.client_id
+                AND d1.year = CONVERT(VARCHAR(4), YEAR(GETDATE()) - 1)
+                LEFT JOIN tb_client_deal d2
+                ON d2.client_id = a.client_id
+                AND d2.year = CONVERT(VARCHAR(4), YEAR(GETDATE()) - 2)
+                LEFT JOIN tb_client_deal d3
+                ON d3.client_id = a.client_id
+                AND d3.year = CONVERT(VARCHAR(4), YEAR(GETDATE()) - 3)
+                LEFT JOIN tb_client_manager m
+                ON m.client_id = a.client_id
+                AND m.order_dist = 1
+         where  1=1
+            <if test="strDate != null and strDate != ''">
+                AND a.client_reg_date BETWEEN #{strDate} AND #{endDate}
+            </if>
+            <if test="managerRank2From != 'ALL' and managerRank2To != 'ALL'">
+                AND a.manager_rank2 BETWEEN #{managerRank2From} AND #{managerRank2To}
+            </if>
+            <if test="clientName != null and clientName != ''">
+                AND a.client_name LIKE CONCAT('%', #{clientName}, '%')
+            </if>
+            <if test="businessNo != null and businessNo != ''">
+                AND a.business_no LIKE CONCAT('%', #{businessNo}, '%')
+            </if>
+            <if test="businessManagerName != null and businessManagerName != ''">
+                AND m.business_manager_name = #{businessManagerName}
+            </if>
+            <if test="clientType != null and clientType != ''">
+                AND a.client_type = #{clientType}
+            </if>
+            <if test="tradeType != null and tradeType != ''">
+                AND a.trade_type = #{tradeType}
+            </if>
+            <if test="useYn != null and useYn != ''">
+                AND a.use_yn = #{useYn}
+            </if>
+        ORDER BY a.client_reg_date desc, a.client_id desc
     </select>
 
     <select id="getClientInfo">
-        select    a.client_id
-                 ,a.business_no
+        select    a.business_no
                  ,a.client_name
+                 ,a.president
+                 ,a.client_reg_date
                  ,a.client_type
                  ,a.client_type_name
                  ,a.trade_type
-                 ,a.reg_date
                  ,a.respon_sales_biz
                  ,a.establish_date
-                 ,a.president
                  ,a.business_type
                  ,a.business_item
                  ,a.tel_no
                  ,a.fax_no
                  ,a.homepage
-                 ,a.address_id
+                 ,a.email
                  ,a.manager_id
-                 ,a.payment_condition
-                 ,dbo.getUserName(a.sale_manager_id) as saleManagerName
-                 ,dbo.getUserName(a.sale_manager_id_b) as saleManagerNameB
                  ,a.group_cd
                  ,a.group_name
                  ,a.groups_cd
                  ,a.groups_name
                  ,a.payment_cd
                  ,a.payment_name
-                 ,a.sale_manager_id
-                 ,a.sale_manager_id_b
-                 ,(select distinct min(contract_date)
-                   from  tb_contract_mst x
-                   where x.client_id = a.client_id
-                ) as firstDelaDate
-        from   tb_client_mst a
+                 ,a.manager_rank
+                 ,a.manager_rank2
+                 ,a.client_id
+                 ,( SELECT min(cm.contract_date) FROM tb_contract_mst cm WHERE cm.client_id = a.client_id ) AS firstDealDate
+        from  tb_client_mst	 a
         where  a.client_id = #{clientId}
     </select>
 
-    <select id="getHistoryList">
-        select a.history_id
-              ,a.client_id
-              ,a.change_date
-              ,a.history_contents
-              ,a.order_dist
-        from   tb_client_history a
-        where  a.client_id = #{client_id}
-    </select>
-    <select id="getAddressList">
-        select a.address_id
-              ,a.address
-              ,a.order_dist
-        from   tb_address_list a
-        where  a.client_id = #{client_id}
-    </select>
-    <select id="getManagerList">
-        select a.client_manager_id
-              ,a.client_id
-              ,a.dept_name
-              ,a.manager_name
-              ,a.tel
-              ,a.direct_tel
-              ,a.email
-              ,a.order_dist
-        from   tb_user_list a
-        where  a.client_id = #{client_id}
-    </select>
-
-    <update id="saveClientInfo">
-        merge into tb_client_mst a
-            using   (select #{clientId} as client_id ) b
-            on      a.client_id = b.client_id
-            when  matched  then
-                update set
-                     business_no		= #{businessNo}
-                    ,client_name		= #{clientName}
-                    ,client_type		= #{clientType}
-                    ,client_type_name	= #{clientTypeName}
-                    ,trade_type     	= #{tradeType}
-                    ,reg_date           = #{regDate}
-                    ,respon_sales_biz	= #{responSalesBiz}
-                    ,establish_date     = #{establishDate}
-                    ,president			= #{president}
-                    ,business_type		= #{businessType}
-                    ,business_item		= #{businessItem}
-                    ,tel_no				= #{telNo}
-                    ,fax_no				= #{faxNo}
-                    ,homepage			= #{homepage}
-                    ,address_id			= #{addressId}
-                    ,manager_id			= #{managerId}
-                    ,payment_condition  = #{paymentCondition}
-                    ,sale_manager_id	= #{saleManagerId}
-                    ,sale_manager_id_b	= #{saleManagerIdB}
-                    ,group_cd			= #{groupCd}
-                    ,group_name			= #{groupName}
-                    ,groups_cd			= #{groupsCd}
-                    ,groups_name		= #{groupsName}
-                    ,payment_cd			= #{paymentCd}
-                    ,payment_name		= #{paymentName}
-                    ,upd_id =#{userId}
-                    ,upd_dt = getdate()
-            when not matched then
-                insert ( client_id
-                        ,business_no
-                        ,client_name
-                        ,client_type
-                        ,client_type_name
-                        ,trade_type
-                        ,reg_date
-                        ,respon_sales_biz
-                        ,establish_date
-                        ,president
-                        ,business_type
-                        ,business_item
-                        ,tel_no
-                        ,fax_no
-                        ,homepage
-                        ,address_id
-                        ,manager_id
-                        ,payment_condition
-                        ,sale_manager_id
-                        ,sale_manager_id_b
-                        ,group_cd
-                        ,group_name
-                        ,groups_cd
-                        ,groups_name
-                        ,payment_cd
-                        ,payment_name
-                        ,reg_id
-                        ,upd_id
-                        )
-                    values (
-                           #{clientId}
-                           ,#{businessNo}
-                           ,#{clientName}
-                           ,#{clientType}
-                           ,#{clientTypeName}
-                           ,#{tradeType}
-                           ,#{regDate}
-                           ,#{responSalesBiz}
-                           ,#{establishDate}
-                           ,#{president}
-                           ,#{businessType}
-                           ,#{businessItem}
-                           ,#{telNo}
-                           ,#{faxNo}
-                           ,#{homepage}
-                           ,#{addressId}
-                           ,#{managerId}
-                           ,#{paymentCondition}
-                           ,#{saleManagerId}
-                           ,#{saleManagerIdB}
-                           ,#{groupCd}
-                           ,#{groupName}
-                           ,#{groupsCd}
-                           ,#{groupsName}
-                           ,#{paymentCd}
-                           ,#{paymentName}
-                           ,#{userId}
-                           ,#{userId}
-                           )
-        ;
+    <insert id="insertClientMst" parameterType="com.jct.mes_new.biz.base.vo.ClientVo" useGeneratedKeys="true" keyProperty="clientId">
+        INSERT INTO tb_client_mst
+        (   business_no
+        ,client_name
+        ,client_type
+        ,client_type_name
+        ,trade_type
+        ,client_reg_date
+        ,respon_sales_biz
+        ,establish_date
+        ,president
+        ,business_type
+        ,business_item
+        ,tel_no
+        ,fax_no
+        ,homepage
+        ,email
+        ,group_cd
+        ,group_name
+        ,groups_cd
+        ,groups_name
+        ,payment_cd
+        ,payment_name
+        ,manager_rank
+        ,manager_rank2
+        ,reg_id
+        ,upd_id
+        )
+        VALUES
+            (    #{businessNo}
+            ,#{clientName}
+            ,#{clientType}
+            ,#{clientTypeName}
+            ,#{tradeType}
+            ,#{clientRegDate, jdbcType=DATE}
+            ,#{responSalesBiz}
+            ,#{establishDate, jdbcType=DATE}
+            ,#{president}
+            ,#{businessType}
+            ,#{businessItem}
+            ,#{telNo}
+            ,#{faxNo}
+            ,#{homepage}
+            ,#{email}
+            ,#{groupCd}
+            ,#{groupName}
+            ,#{groupsCd}
+            ,#{groupsName}
+            ,#{paymentCd}
+            ,#{paymentName}
+            ,#{managerRank}
+            ,#{managerRank2}
+            ,#{userId}
+            ,#{userId}
+            );
+    </insert>
+    <update id="updateClientMst">
+        UPDATE tb_client_mst
+        SET    business_no       = #{businessNo}
+              ,client_name       = #{clientName}
+              ,client_type       = #{clientType}
+              ,client_type_name  = #{clientTypeName}
+              ,trade_type        = #{tradeType}
+              ,respon_sales_biz  = #{responSalesBiz}
+              ,establish_date    = #{establishDate, jdbcType=DATE}
+              ,president         = #{president}
+              ,business_type     = #{businessType}
+              ,business_item     = #{businessItem}
+              ,tel_no            = #{telNo}
+              ,fax_no            = #{faxNo}
+              ,homepage          = #{homepage}
+              ,email             = #{email}
+              ,group_cd          = #{groupCd}
+              ,group_name        = #{groupName}
+              ,groups_cd         = #{groupsCd}
+              ,groups_name       = #{groupsName}
+              ,payment_cd        = #{paymentCd}
+              ,payment_name      = #{paymentName}
+              ,manager_rank      = #{managerRank}
+              ,manager_rank2     = #{managerRank2}
+              ,use_yn            = #{useYn}
+              ,upd_id            = #{userId}
+              ,upd_dt            = GETDATE()
+        WHERE client_id = #{clientId};
     </update>
 
-    <delete id="deleteManagerList">
-        delete from tb_user_list where client_id = #{clientId}
-    </delete>
-    <delete id="deleteAddressList">
-        delete from tb_address_list where client_id = #{clientId}
-    </delete>
-    <delete id="deleteHistoryList">
-        delete from tb_client_history where client_id = #{clientId}
-    </delete>
 
-    <insert id="saveManagerList">
-        insert into tb_user_list
-        ( client_id, dept_name, manager_name, job_position, tel, direct_tel, email, order_dist, reg_id, upd_id  )
-        values
-        <foreach collection="managerList" item="manager" separator=",">
-            ( #{manager.clientId}, #{manager.deptName}, #{manager.managerName}, #{manager.jobPosition} , #{manager.tel}, #{manager.directTel}, #{manager.email}, #{manager.orderDist},  #{manager.userId},#{manager.userId})
-        </foreach>
-    </insert>
-    <insert id="saveAddressList">
-        insert into tb_address_list
-        ( client_id, address, order_dist, reg_id, upd_id  )
-        values
-        <foreach collection="addressList" item="address" separator=",">
-            ( #{address.clientId}, #{address.address}, #{address.orderDist}, #{address.userId}, #{address.userId})
-        </foreach>
-    </insert>
-    <insert id="saveHistoryList">
-        insert into tb_client_history
-        ( client_id, change_date, history_contents, order_dist, reg_id, upd_id  )
-        values
-        <foreach collection="historyList" item="history" separator=",">
-            ( #{history.clientId}, #{history.changeDate}, #{history.historyContents}, #{history.orderDist}, #{history.userId},#{history.userId})
-        </foreach>
-    </insert>
 
-    <select id="getBusinessNoChecked">
-        select count(*)
-        from   tb_client_mst
-        where  business_No = #{businessNo}
+    <select id="getClientApprovalList">
+        SELECT   client_approval_id AS clientApprovalId
+                 ,client_id          AS clientId
+                 ,approval_option    AS approvalOption
+                 ,first_amt          AS firstAmt
+                 ,middle_amt         AS middleAmt
+                 ,last_amt           AS lastAmt
+                 ,credit             AS credit
+                 ,credit_period      AS creditPeriod
+                 ,payment_method     AS paymentMethod
+                 ,reg_id             AS regId
+                 ,reg_dt             AS regDt
+                 ,upd_id             AS updId
+                 ,upd_dt             AS updDt
+        FROM    tb_client_approval
+        WHERE   client_id = #{clientId}
+        ORDER BY ISNULL(order_dist, 999999), client_approval_id
     </select>
+
+    <insert id="insertClientApproval">
+        INSERT INTO tb_client_approval
+        (    client_id
+            ,approval_option
+            ,first_amt
+            ,middle_amt
+            ,last_amt
+            ,credit
+            ,credit_period
+            ,payment_method
+            ,order_dist
+            ,reg_id
+            ,upd_id
+        )
+        VALUES
+            (    #{clientId}
+                ,#{approvalOption}
+                ,#{firstAmt}
+                ,#{middleAmt}
+                ,#{lastAmt}
+                ,#{credit}
+                ,#{creditPeriod}
+                ,#{paymentMethod}
+                ,#{orderDist}
+                ,#{userId}
+                ,#{userId}
+            )
+    </insert>
+    <update id="updateClientApproval">
+        UPDATE tb_client_approval
+        SET    approval_option = #{approvalOption}
+              ,first_amt       = #{firstAmt}
+              ,middle_amt      = #{middleAmt}
+              ,last_amt        = #{lastAmt}
+              ,credit          = #{credit}
+              ,credit_period   = #{creditPeriod}
+              ,payment_method  = #{paymentMethod}
+              ,order_dist      = #{orderDist}
+              ,upd_id          = #{userId}
+              ,upd_dt          = GETDATE()
+        WHERE client_approval_id = #{clientApprovalId}
+        AND   client_id = #{clientId}
+    </update>
+
+    <delete id = "deleteClientApproval">
+        DELETE FROM tb_client_approval
+        WHERE client_approval_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+
+
+    <select id="getClientDealList">
+        SELECT   client_deal_id AS clientDealId
+                 ,client_id      AS clientId
+                 ,year           AS year
+                 ,sales_amt      AS salesAmt
+                 ,deal_amt       AS dealAmt
+                 ,order_qty      AS orderQty
+                 ,manager_name   AS managerName
+                 ,last_deal_date AS lastDealDate
+                 ,order_dist     AS orderDist
+        FROM tb_client_deal
+        WHERE client_id = #{clientId}
+        ORDER BY ISNULL(order_dist, 999999), client_deal_id
+    </select>
+
+    <insert id="insertClientDeal">
+        INSERT INTO tb_client_deal
+        (  client_id
+            ,year
+            ,sales_amt
+            ,deal_amt
+            ,order_qty
+            ,manager_name
+            ,last_deal_date
+            ,order_dist
+            ,reg_id
+            ,upd_id
+        )
+        VALUES
+            (    #{clientId}
+                ,#{year}
+                ,#{salesAmt}
+                ,#{dealAmt}
+                ,#{orderQty}
+                ,#{managerName}
+                ,#{lastDealDate}
+                ,#{orderDist}
+                ,#{userId}
+                ,#{userId}
+            )
+    </insert>
+    <update id="updateClientDeal">
+        UPDATE tb_client_deal
+        SET    year           = #{year}
+              ,sales_amt      = #{salesAmt}
+              ,deal_amt       = #{dealAmt}
+              ,order_qty      = #{orderQty}
+              ,manager_name   = #{managerName}
+              ,last_deal_date = #{lastDealDate}
+              ,order_dist     = #{orderDist}
+              ,upd_id         = #{userId}
+              ,upd_dt         = GETDATE()
+        WHERE client_deal_id = #{clientDealId}
+          AND client_id = #{clientId}
+    </update>
+
+    <delete id="deleteClientDeal">
+        DELETE FROM tb_client_deal
+        WHERE client_deal_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+
+    <select id="getClientManagerList">
+        SELECT    client_manager_id     AS clientManagerId
+                 ,client_id             AS clientId
+                 ,business_manager_name AS businessManagerName
+                 ,reg_date              AS regDate
+                 ,brand_name            AS brandName
+                 ,dept_name             AS deptName
+                 ,manager_name          AS managerName
+                 ,job_positon           AS jobPosition
+                 ,tel                   AS tel
+                 ,direct_tel            AS directTel
+                 ,email                 AS email
+                 ,homepage              AS homepage
+                 ,workplace             AS workplace
+                 ,order_dist            AS orderDist
+        FROM tb_client_manager
+        WHERE client_id = #{clientId}
+        ORDER BY ISNULL(order_dist, 999999), client_manager_id
+    </select>
+
+    <insert id="insertClientManager">
+        INSERT INTO tb_client_manager
+        ( client_id
+        ,business_manager_name
+        ,reg_date
+        ,brand_name
+        ,dept_name
+        ,manager_name
+        ,job_positon
+        ,tel
+        ,direct_tel
+        ,email
+        ,homepage
+        ,workplace
+        ,order_dist
+        ,reg_id
+        ,upd_id
+        )
+        VALUES
+            ( #{clientId}
+            ,#{businessManagerName}
+            ,#{regDate}
+            ,#{brandName}
+            ,#{deptName}
+            ,#{managerName}
+            ,#{jobPosition}
+            ,#{tel}
+            ,#{directTel}
+            ,#{email}
+            ,#{homepage}
+            ,#{workplace}
+            ,#{orderDist}
+            ,#{userId}
+            ,#{userId}
+            )
+    </insert>
+    <update id="updateClientManager">
+        UPDATE tb_client_manager
+        SET    business_manager_name = #{businessManagerName}
+              ,reg_date              = #{regDate}
+              ,brand_name            = #{brandName}
+              ,dept_name             = #{deptName}
+              ,manager_name          = #{managerName}
+              ,job_positon           = #{jobPosition}
+              ,tel                   = #{tel}
+              ,direct_tel            = #{directTel}
+              ,email                 = #{email}
+              ,homepage              = #{homepage}
+              ,workplace             = #{workplace}
+              ,order_dist            = #{orderDist}
+              ,upd_id                = #{userId}
+              ,upd_dt                = GETDATE()
+        WHERE client_manager_id = #{clientManagerId}
+          AND client_id = #{clientId}
+    </update>
+
+    <delete id="deleteClientManager">
+        DELETE FROM tb_client_manager
+        WHERE client_manager_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+
+    <select id="getClientAddressList">
+        SELECT client_address_id   AS clientAddressId
+             ,client_id    AS clientId
+             ,address_type AS addressType
+             ,location     AS location
+             ,address      AS address
+             ,order_dist   AS orderDist
+             ,reg_id       AS regId
+             ,reg_dt       AS regDt
+             ,upd_id       AS updId
+             ,upd_dt       AS updDt
+        FROM tb_client_address
+        WHERE client_id = #{clientId}
+        ORDER BY ISNULL(order_dist, 999999), client_address_id
+    </select>
+
+    <insert id="insertClientAddress">
+        INSERT INTO tb_client_address
+        ( client_id
+        ,address_type
+        ,location
+        ,address
+        ,order_dist
+        ,reg_id
+        ,upd_id
+        )
+        VALUES
+            ( #{clientId}
+            ,#{addressType}
+            ,#{location}
+            ,#{address}
+            ,#{orderDist}
+            ,#{userId}
+            ,#{userId}
+            )
+    </insert>
+    <update id="updateClientAddress">
+        UPDATE tb_client_address
+        SET    client_address_type = #{clientAddressType}
+              ,location     = #{location}
+              ,address      = #{address}
+              ,order_dist   = #{orderDist}
+              ,upd_id       = #{userId}
+              ,upd_dt       = GETDATE()
+        WHERE client_address_type = #{clientAddressType}
+          AND client_id = #{clientId}
+    </update>
+    <delete id="deleteClientAddress">
+        DELETE FROM tb_client_address
+        WHERE address_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="getClientHistoryList">
+        SELECT client_history_id       AS clientHistoryId
+             ,client_id        AS clientId
+             ,manager_name     AS managerName
+             ,change_date      AS changeDate
+             ,history_contents AS historyContents
+             ,order_dist       AS orderDist
+             ,reg_id           AS regId
+             ,reg_dt           AS regDt
+             ,upd_id           AS updId
+             ,upd_dt           AS updDt
+        FROM tb_client_history
+        WHERE client_id = CONVERT(NVARCHAR(19), #{clientId})
+        ORDER BY ISNULL(order_dist, 999999), client_history_id
+    </select>
+    <insert id="insertClientHistory">
+        INSERT INTO tb_client_history
+        (   client_id
+            ,manager_name
+            ,change_date
+            ,history_contents
+            ,order_dist
+            ,reg_id
+            ,upd_id
+        )
+        VALUES
+            (   #{clientId}
+                ,#{managerName}
+                ,#{changeDate}
+                ,#{historyContents}
+                ,#{orderDist}
+                ,#{userId}
+                ,#{userId}
+            )
+    </insert>
+    <update id="updateClientHistory">
+        UPDATE tb_client_history
+        SET manager_name     = #{managerName}
+          ,change_date      = #{changeDate}
+          ,history_contents = #{historyContents}
+          ,order_dist       = #{orderDist}
+          ,upd_id           = #{userId}
+          ,upd_dt           = GETDATE()
+        WHERE client_history_id = #{clientHistoryId}
+          AND client_id = CONVERT(NVARCHAR(19), #{clientId})
+    </update>
+    <delete id="deleteClientHistory">
+        DELETE FROM tb_client_history
+        WHERE client_history_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
 
 </mapper>
