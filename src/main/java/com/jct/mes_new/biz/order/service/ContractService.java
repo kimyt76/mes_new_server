@@ -14,7 +14,8 @@ public interface ContractService {
 
     Map<String, Object> getContractInfo(String contractId);
 
-    String saveContractInfo(ContractVo contractInfo, List<ContractItemVo> itemList, List<MultipartFile> attachFileList) throws Exception;
 
-    String updateContractInfo(ContractSaveRequestVo vo) throws Exception;
+    Long saveContractInfo(ContractSaveRequestVo vo);
+
+    String updateContractInfo(ContractSaveRequestVo vo);
 }

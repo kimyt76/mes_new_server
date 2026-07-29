@@ -10,20 +10,15 @@ import java.util.List;
 public interface ContractMapper {
 
     List<ContractVo> getContractList(ContractVo contractVo);
-
     ContractVo getContractInfo(String contractId);
-
-    List<ContractItemVo> getItemList(String contractId);
+    List<ContractItemVo> getContractItemList(String contractId);
 
     int insertContractInfo(ContractVo contractInfo);
     int insertContractItem(ContractItemVo item);
 
     int updateContractInfo(ContractVo contractInfo);
-
-    void deleteContractItemList(String contractId);
-
-    List<ContractItemVo> getContractItemList(List<String> contractIdList);
+    int updateContractItem(ContractItemVo item);
 
 
-    void updateAttachFileId(String contractId, String attachFileId);
+    void updateAttachFileId(Long contractId, String attachFileId);
 }

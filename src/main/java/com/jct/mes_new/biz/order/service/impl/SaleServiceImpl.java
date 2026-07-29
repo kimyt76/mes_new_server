@@ -75,11 +75,6 @@ public class SaleServiceImpl implements SaleService {
         return msg;
     }
 
-    public List<ContractItemVo> getContractItemList(String ids){
-        List<String> contractIdList = Arrays.asList(ids.split(","));
-        return contractMapper.getContractItemList(contractIdList);
-    }
-
     public List<SaleItemListVo> getSaleItemList(String saleId){
         return saleMapper.getSaleItemList(saleId);
     }

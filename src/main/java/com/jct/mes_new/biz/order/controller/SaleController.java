@@ -31,11 +31,6 @@ public class SaleController {
         return saleService.getSaleInfo(saleId);
     }
 
-    @GetMapping("/getContractItemList/{ids}")
-    public List<ContractItemVo> getContractItemList(@PathVariable("ids") String contractIds) {
-        return saleService.getContractItemList(contractIds);
-    }
-
     @GetMapping("/getSaleItemList/{id}")
     public List<SaleItemListVo> getSaleItemList(@PathVariable("id") String saleId) {
         return saleService.getSaleItemList(saleId);

@@ -15,7 +15,5 @@ public interface SaleService {
 
     String saveSaleInfo(SaleVo saleInfo, List<SaleItemListVo> itemList);
 
-    List<ContractItemVo> getContractItemList(String ids);
-
     List<SaleItemListVo> getSaleItemList(String saleId);
 }

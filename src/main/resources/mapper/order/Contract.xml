@@ -4,94 +4,95 @@
 <mapper namespace="com.jct.mes_new.biz.order.mapper.ContractMapper">
 
     <select id="getContractList">
-        select   b.contract_date +' -'+ CAST(b.seq AS NVARCHAR) AS contractDateSeq
-                ,a.po_no
-                ,a.item_cd
-                ,c.item_name
-                ,b.expected_due_date
-                ,d.client_name
-                ,e.member_nm as managerName
-                ,a.qty
-                ,a.unit_price
-                ,a.supply_price
-                ,a.vat_price
-                ,isnull(a.supply_price, 0)+ isnull(a.vat_price, 0) as totPrice
-                ,dbo.getCommonName('order_type', b.order_type) as orderType
-                ,dbo.getCommonName('status_Type',a.status_type) as statusType
-                ,b.payment_condition
-                ,b.contract_id
-                ,a.contract_item_id
-                ,b.contract_date
-                ,a.qty- (select avg(order_qty) from TB_WORK_ORDER_PROC where po_no = a.po_no) as reQty
-        from    tb_contract_item a
-                inner join tb_contract_mst b
-                on b.contract_id = a.contract_id
-                inner join tb_item_mst c
-                on c.item_cd = a.item_cd
-                inner join tb_client_mst d
-                on d.client_id = b.client_id
-                inner join tb_users e
-                on e.user_id = b.manager_id
-        where  1=1
-        <if test='strDate != "" and strDate != null'>
-          and b.contract_date between #{strDate} and #{endDate}
+        select   b.po_no
+                ,a.client_no
+                ,c.client_name
+                ,e.member_nm as manager_name
+                ,d1.code_nm as prodType
+                ,d.code_nm as orderType
+                ,b.item_cd
+                ,i.item_name
+                ,b.qty
+                ,b.unit_price
+                ,b.supply_price
+                ,b.delivery_req_date
+                ,0 as outQty
+                ,d2.code_nm as statusTypeName
+                ,a.contract_id
+        from   tb_contract_mst a
+                inner join tb_contract_item b
+                on a.contract_id = b.contract_id
+                inner join tb_item_mst i
+                on i.item_cd = b.item_cd
+                left join tb_client_mst c
+                on c.client_id = a.client_id
+                left join tb_common_code d
+                on b.order_type = d.code
+                and  d.com_type_cd = 'order_type'
+                left join tb_common_code d1
+                on i.item_grp2 = d1.code
+                and  d1.com_type_cd = 'ITEM_GRP2'
+                left join tb_common_code d2
+                on b.status_type = d2.code
+                and  d2.com_type_cd = 'status_type'
+                left join tb_users e
+                on e.user_id = a.manager_id
+        where  a.contract_date between #{strDate} and #{endDate}
+        <if test="deliveryReqDate != null and deliveryReqDate != ''">
+            and b.delivery_req_date = #{deliveryReqDate}
         </if>
-        <if test='itemCd != "" and itemCd != null'>
-            AND a.item_cd LIKE '%' + #{itemCd} + '%'
+        <if test="clientName != null and clientName != ''">
+            and c.client_name like '%' + #{clientName} + '%'
         </if>
-        <if test='itemName != "" and itemName != null'>
-            AND b.item_name LIKE '%' + #{itemName} + '%'
+        <if test="managerName != null and managerName != ''">
+            and e.member_nm like '%' + #{managerName} + '%'
         </if>
-        <if test='managerName != "" and managerName != null'>
-            AND e.member_nm LIKE '%' + #{managerName} + '%'
+        <if test="prodType != null and prodType != ''">
+            and b.prod_type = #{prodType}
         </if>
-        <if test='clientName != "" and clientName != null'>
-            AND d.client_name LIKE '%' + #{clientName} + '%'
+        <if test="orderType != null and orderType != ''">
+            and b.order_type = #{orderType}
         </if>
-        <if test='statusType != "" and statusType != null'>
-            AND a.status_Type =  #{statusType}
+        <if test="itemCd != null and itemCd != ''">
+            and b.item_cd like '%' + #{itemCd} + '%'
         </if>
-        <if test='orderType != "" and orderType != null'>
-            AND a.order_type =  #{orderType}
+        <if test="itemName != null and itemName != ''">
+            and i.item_name like '%' + #{itemName} + '%'
         </if>
-        <if test='vatType != "" and vatType != null'>
-            AND a.vat_type =  #{vatType}
+        <if test="statusType != null and statusType != ''">
+            and b.status_type = #{statusType}
         </if>
-        order by a.po_no desc
+        order by a.contract_date desc, a.seq desc
     </select>
 
     <select id="getContractInfo">
         select a.contract_date
-             ,a.seq
-             ,a.expected_due_date
-             ,a.payment_condition
-             ,dbo.getUserName(a.manager_id) as managerName
-             ,dbo.getClientName(a.client_id) as clientName
-             ,a.order_type
-             ,a.vat_type
-             ,a.attach_file_id
-             ,a.manager_id
-             ,a.client_id
-             ,a.contract_id
+              ,a.seq
+              ,dbo.getUserName(a.manager_id) as managerName
+              ,dbo.getClientName(a.client_id) as clientName
+              ,a.attach_file_id
+              ,a.manager_id
+              ,a.client_id
+              ,a.client_no
+              ,a.vat_type
+              ,a.contract_id
         from   tb_contract_mst a
         where  a.contract_id = #{contractId}
     </select>
 
-    <delete id="deleteContractItemList">
-        delete from tb_contract_item where contract_id = #{contractId}
-    </delete>
-
-    <select id="getItemList">
+    <select id="getContractItemList">
         select a.po_no
              ,a.item_cd
              ,b.item_name
-             ,b.unit
-             ,b.item_grp1
+             ,b.spec
+             ,d.code as prod_type
+             ,a.order_type
              ,a.qty
              ,a.unit_price
              ,a.supply_price
              ,a.vat_price
              ,isnull(a.supply_price, 0)+ isnull(a.vat_price, 0) as totPrice
+             ,a.delivery_req_date
              ,a.degree
              ,a.status_type
              ,a.etc
@@ -100,68 +101,31 @@
         from  tb_contract_item a
               inner join tb_item_mst b
               on b.item_cd = a.item_cd
+              left join tb_common_code d
+              on b.item_grp2 = d.code
+              and d.com_type_cd = 'ITEM_GRP2'
         where a.contract_id = #{contractId}
     </select>
 
-    <select id="getContractItemList">
-        select   a.item_cd
-                ,b.item_name
-                ,a.unit
-                ,a.unit_price
-                ,a.supply_price
-                ,a.vat_price
-                ,a.etc
-                ,a.order_dist
-                ,a.contract_item_id
-                ,a.contract_id
-                ,isnull((
-                select isnull(qty, 0)
-                from   tb_sale_item
-                where  contract_item_id = a.contract_item_id
-                ), 0)  as saleQty
-                ,(
-                select qty
-                from   tb_contract_item
-                where   contract_item_id = a.contract_item_id
-                ) -
-                isnull((select isnull(qty, 0)
-                from   tb_sale_item
-                where   contract_item_id = a.contract_item_id
-                ),0) as qty
-        from   tb_contract_item a
-                inner join tb_item_mst b
-                on a.item_cd = b.item_cd
-        where  contract_id in
-        <foreach item="id" collection="contractIdList" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </select>
-
-    <insert id="insertContractInfo">
+    <insert id="insertContractInfo" parameterType="com.jct.mes_new.biz.order.vo.ContractVo" useGeneratedKeys="true" keyProperty="contractId">
         INSERT INTO tb_contract_mst (
-             contract_id
-            ,contract_date
+             contract_date
             ,seq
-            ,expected_due_date
-            ,payment_condition
-            ,manager_id
             ,client_id
+            ,client_no
+            ,manager_id
             ,vat_type
-            ,order_type
             ,attach_file_id
             ,reg_id
             ,upd_id
         )
         VALUES (
-                #{contractId}
-               ,#{contractDate}
+                #{contractDate}
                ,#{seq}
-               ,#{expectedDueDate}
-               ,#{paymentCondition}
-               ,#{managerId}
                ,#{clientId}
+               ,#{clientNo}
+               ,#{managerId}
                ,#{vatType}
-               ,#{orderType}
                ,#{attachFileId}
                ,#{userId}
                ,#{userId}
@@ -176,12 +140,11 @@
 
     <update id="updateContractInfo">
         UPDATE tb_contract_mst
-        SET    expected_due_date   = #{expectedDueDate}
-              ,payment_condition   = #{paymentCondition}
-              ,manager_id          = #{managerId}
+        SET    manager_id          = #{managerId}
               ,client_id           = #{clientId}
+              ,client_no           = #{clientNo}
               ,vat_type            = #{vatType}
-              ,order_type          = #{orderType}
+              ,etc                 = #{etc}
               ,upd_id              = #{userId}
               ,upd_dt              = GETDATE()
         WHERE contract_id = #{contractId}
@@ -189,11 +152,10 @@
 
     <insert id="insertContractItem">
         INSERT INTO tb_contract_item (
-            contract_item_id,contract_id,po_no,item_cd,qty,unit_price,supply_price,vat_price,degree,status_type,etc,order_dist,reg_id,upd_id
+            contract_id, po_no, item_cd, order_type, qty, unit_price, supply_price, vat_price, degree, delivery_req_date, status_type, etc,  order_dist,reg_id,upd_id
         )
         VALUES (
-                #{contractItemId}
-               ,#{contractId}
+                #{contractId}
                ,ISNULL(CAST(#{poNo} AS NVARCHAR(50)),
                          ( SELECT CAST(x.contract_date AS NVARCHAR) + '-' +CAST(x.seq AS NVARCHAR) + '-' +CAST(#{orderDist} AS NVARCHAR)
                              FROM tb_contract_mst x
@@ -201,11 +163,13 @@
                          )
                 )
                ,#{itemCd}
+               ,#{orderType}
                ,#{qty}
                ,#{unitPrice}
                ,#{supplyPrice}
                ,#{vatPrice}
                ,(SELECT COUNT(*) + 1 FROM tb_contract_item WHERE item_cd = #{itemCd})
+               ,#{deliveryReqDate}
                ,#{statusType}
                ,#{etc}
                ,#{orderDist}
@@ -216,14 +180,14 @@
 
     <update id="updateContractItem">
         UPDATE tb_contract_item
-        SET    qty          = #{qty}
+        SET    order_type   = #{orderType}
+              ,delivery_req_date = #{deliveryReqDate}
+              ,qty          = #{qty}
               ,unit_price   = #{unitPrice}
               ,supply_price = #{supplyPrice}
               ,vat_price    = #{vatPrice}
-              ,degree       = #{degree}
               ,status_type  = #{statusType}
               ,etc          = #{etc}
-              ,order_dist   = #{orderDist}
               ,upd_id       = #{userId}
               ,upd_dt       = GETDATE()
         WHERE contract_item_id = #{contractItemId}
