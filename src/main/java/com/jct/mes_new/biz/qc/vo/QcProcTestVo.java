@@ -10,10 +10,17 @@ public class QcProcTestVo {
 
     private Long  qcProcTestMstId;
     private Long  workBatchId;
-    private String qcProcTestType;
+    
+    private String qcTestType; /* 공정검사 구분*/
+    private String testType; /* 탭 구분*/
+
     private String testerId;
     private String testState;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate strDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private String areaCd;
     private String itemName;
     private String itemCd;
@@ -25,14 +32,26 @@ public class QcProcTestVo {
     private LocalDate chargingDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate packingDate;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate strDate;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate endDate;
+
 
     private String clientName;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate prodDate;
+    private String testerName;
     private String spec;
+    private String etc;
+
+    private String displayCapacity;
+    private String workStartTime;
+    private String workEndTime;
+    private String chargingCnt;
+    private String cappingRange;
+    private String essenceStd;
+    private String workFlow;
 
     private String userId;
+
+
+
 
 }

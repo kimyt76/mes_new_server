@@ -11,10 +11,12 @@
                  ,b.lot_no2
                  ,b.batch_status
                  ,isnull(m.test_state, 'N') as test_state
-                 ,m.qc_proc_test_type
+                 ,m.qc_test_type
                  ,c.proc_order_date as charging_date
                  ,d.proc_order_date as packing_date
                  ,b.work_batch_id
+                 ,b.work_batch_id
+                 ,m.qc_proc_test_mst_id
         from    TB_WORK_ORDER_MST a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_order_id = a.work_order_id
@@ -26,8 +28,7 @@
                 inner join TB_WORK_ORDER_PROC d
                 on  d.work_batch_id = b.work_batch_id
                 and d.proc_cd = 'PRC005'
-        where 1=1
-            --b.batch_status != '99' and b.batch_status >= '22'
+        where  b.batch_status != '99' and b.batch_status >= '22'
         and    d.proc_order_date between #{strDate} and #{endDate}
         <if test="areaCd != null and areaCd != ''">
           and  a.area_cd = #{areaCd}
@@ -44,13 +45,245 @@
         order by a.work_order_date desc, a.seq desc
     </select>
 
-
     <insert id="createQcProcTestInfo">
         insert into tb_qc_proc_test_mst
-            (work_batch_id, qc_proc_test_type, tester_id, test_state,  reg_id, upd_id)
+            (work_batch_id, qc_test_type, tester_id, test_state,  reg_id, upd_id)
         values
-            (#{workBatchId}, #{qcProcTestType}, #{testerId}, #{testState},  #{userId}, #{userId})
+            (#{workBatchId}, #{qcTestType}, #{testerId}, #{testState},  #{userId}, #{userId})
     </insert>
 
+    <select id="getQcProcTestMst">
+        select    a.item_cd
+                 ,i.item_name
+                 ,b.make_no
+                 ,b.lot_no
+                 ,b.lot_no2
+                 ,l.client_name
+                 ,id.display_capacity
+                 ,c.tester_id
+                 ,d.prod_date
+                 ,b.batch_status
+                 ,c.qc_test_type
+                 ,c.etc
+                 ,a.work_batch_id
+                 ,c.qc_proc_test_mst_id
+                 ,id.capping_range
+                 ,id.charging_cnt
+                 ,id.essence_std
+                 ,id.work_flow
+        from   TB_WORK_ORDER_PROC a
+               join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+               join tb_qc_proc_test_mst c
+                on c.work_batch_id = b.work_batch_id
+               join tb_item_mst i
+                on i.item_cd = a.item_cd
+               join tb_item_detail id
+                on id.item_cd = i.item_cd
+               join TB_WORK_ORDER_MST m
+                on a.work_order_id = m.work_order_id
+               left join tb_client_mst l
+                on l.client_id = m.client_id
+               left join TB_WORK_ORDER_PROC d
+                on d.work_batch_id = b.work_batch_id
+                and d.proc_cd = 'PRC002'
+        where  b.work_batch_id = #{workBatchId}
+        and    a.proc_cd =  #{procCd}
+    </select>
 
+    <select id="getQcProcSample">
+        select b.sample_date
+                 ,b.qty1
+                 ,b.qty2
+                 ,b.qty3
+                 ,b.qty4
+                 ,b.qty5
+                 ,b.qty6
+                 ,b.qty7
+                 ,b.qty8
+                 ,b.qty9
+                 ,b.qty1+b.qty2+b.qty3+b.qty4+b.qty5+b.qty6+b.qty7+b.qty8+b.qty9 as totQty
+                 ,b.qc_proc_test_mst_id
+                 ,b.qc_proc_test_sample_id
+        from    tb_qc_proc_test_sample b
+        where   b.qc_proc_test_mst_id = #{qcProcTestMstId}
+    </select>
+
+    <select id="getMethodList">
+        select    a.test_item
+                 ,a.test_method
+                 ,b.test_result
+                 ,b.tester_id
+                 ,a.order_dist
+                 ,b.qc_proc_test_mst_id
+                 ,b.qc_proc_test_method_id
+        from   tb_proc_test_type_method a
+                left join tb_qc_proc_test_method b
+                on a.test_type = b.test_type
+                and a.order_dist = b.order_dist
+                and b.qc_proc_test_mst_id = #{qcProcTestMstId}
+        where  a.test_type = #{testType}
+        order by  a.order_dist
+    </select>
+
+    <select id="getDetailList">
+        select    b.test_time
+                 ,b.line1
+                 ,b.line2
+                 ,b.line3
+                 ,b.line4
+                 ,b.line5
+                 ,b.line6
+                 ,b.line7
+                 ,b.line8
+                 ,b.line9
+                 ,b.line10
+                 ,b.pass_yn
+                 ,b.order_dist
+                 ,b.test_type
+                 ,b.qc_proc_test_mst_id
+                 ,b.qc_proc_test_detail_id
+        from    tb_qc_proc_test_detail b
+        where   b.qc_proc_test_mst_id =  #{qcProcTestMstId}
+        and     b.test_type = #{testType}
+    </select>
+
+    <select id="getLineList">
+        select    b.test_type
+                 ,b.line_name
+                 ,b.scale_cd
+                 ,c.scale_nickname
+                 ,b.order_dist
+                 ,b.qc_proc_test_mst_id
+                 ,b.qc_proc_test_line_id
+        from    tb_qc_proc_test_line b
+                left join tb_scale_mst c
+                on b.scale_cd = c.scale_cd
+        where   b.qc_proc_test_mst_id = #{qcProcTestMstId}
+        and     b.test_type  = #{testType}
+    </select>
+
+    <insert id="insertQcProcTestSample">
+        insert into tb_qc_proc_test_sample
+        (qc_proc_test_mst_id , sample_date, qty1,qty2,qty3,qty4,qty5,qty6,qty7,qty8,qty9,reg_id, upd_id)
+        values
+        ( #{qcProcTestMstId} , #{sampleDate}, #{qty1}, #{qty2}, #{qty3}, #{qty4}, #{qty5}, #{qty6}, #{qty7}, #{qty8}, #{qty9}, #{userId}, #{userId})
+    </insert>
+
+    <update id="tb_qc_proc_test_sample">
+        update tb_qc_proc_test_sample
+        set    sample_date = #{sampleDate}
+              ,qty1        =#{qty1}
+              ,qty2        =#{qty2}
+              ,qty3        =#{qty3}
+              ,qty4        =#{qty4}
+              ,qty5        =#{qty5}
+              ,qty6        =#{qty6}
+              ,qty7        =#{qty7}
+              ,qty8        =#{qty8}
+              ,qty9        =#{qty9}
+              ,upd_id      = #{userId}
+              ,upd_dt      = getdate()
+        where  qc_proc_test_sample_id = #{qcProcTestSampleId}
+    </update>
+
+    <update id="updateQcProcTest">
+        update tb_qc_proc_test_mst
+        set    etc = #{etc}
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where qc_proc_test_mst_id = #{qcProcTestMstId}
+    </update>
+
+    <insert id="insertQcProcTestMethod">
+        insert into tb_qc_proc_test_method
+        (qc_proc_test_mst_id , test_type, test_item, test_method, test_result, tester_id, order_dist, reg_id, upd_id)
+        values
+        ( #{qcProcTestMstId} , #{testType}, #{testItem}, #{testMethod}, #{testResult}, #{testerId}, #{orderDist}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateQcProcTestMethod">
+        update tb_qc_proc_test_method
+        set    test_item   = #{testItem}
+              ,test_method = #{testMethod}
+              ,test_result = #{testResult}
+              ,tester_id   = #{testerId}
+              ,order_dist  = #{orderDist}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  qc_proc_test_method_id = #{qcProcTestMethodId}
+    </update>
+
+    <insert id="insertQcProcTestDetail">
+        insert into tb_qc_proc_test_detail
+        (qc_proc_test_mst_id , test_type, test_time, line1,line2,line3,line4,line5,line6,line7,line8,line9,line10,
+         order_dist, pass_yn, reg_id, upd_id)
+        values
+        ( #{qcProcTestMstId} , #{testType}, #{testTime}, #{line1}, #{line2}, #{line3}, #{line4}, #{line5}, #{line6}, #{line7}, #{line8}, #{line9}, #{line10},
+          #{orderDist }, #{passYn}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateQcProcTestDetail">
+        update tb_qc_proc_test_detail
+        set    test_time    = #{testTime}
+              ,line1        =#{line1}
+              ,line2        =#{line2}
+              ,line3        =#{line3}
+              ,line4        =#{line4}
+              ,line5        =#{line5}
+              ,line6        =#{line6}
+              ,line7        =#{line7}
+              ,line8        =#{line8}
+              ,line9        =#{line9}
+              ,line10       =#{line10}
+              ,pass_yn      =#{passYn}
+              ,order_dist   =#{orderDist}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getdate()
+        where  qc_proc_test_detail_id = #{qcProcTestDetailId}
+    </update>
+
+    <insert id="insertQcProcTestLine">
+        insert into tb_qc_proc_test_line
+        (qc_proc_test_mst_id , test_type, line_name, scale_cd, order_dist, reg_id, upd_id)
+        values
+        ( #{qcProcTestMstId} , #{testType}, #{lineName}, #{scaleCd}, #{orderDist}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateQcProcTestLine">
+        update tb_qc_proc_test_line
+        set    line_name = #{lineName}
+              ,scale_cd  = #{scaleCd}
+              ,order_dist = #{orderDist}
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where  qc_proc_test_line_id = #{qcProcTestLineId}
+    </update>
+
+
+    <select id="getQcProcTestInfo">
+        select a.work_batch_id
+              ,a.qc_test_type
+              ,b.batch_status
+              ,a.etc
+              ,a.tester_id
+        from  tb_qc_proc_test_mst a
+              join TB_WORK_ORDER_BATCH b
+              on a.work_batch_id = b.work_batch_id
+        where  qc_proc_test_mst_id = #{qcProcTestMstId}
+    </select>
+
+    <select id="getProcItem">
+        select    a.work_start_time
+                 ,a.work_end_time
+                 ,a.order_qty as orderQty
+                 ,b.charging_cnt
+                 ,b.capping_range
+                 ,b.essence_std
+        from   TB_WORK_ORDER_PROC a
+                left join tb_item_detail b
+                on b.item_cd = a.item_cd
+        where  a.work_batch_id =  #{workBatchId}
+        and    a.proc_cd = #{procCd}
+    </select>
 </mapper>
