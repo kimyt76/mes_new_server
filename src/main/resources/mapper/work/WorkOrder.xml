@@ -28,7 +28,7 @@
                 ,a.work_order_id     AS workOrderId
                 ,'' AS etc
         FROM    TB_WORK_ORDER_MST a
-                inner join tb_client_mst b
+                left join tb_client_mst b
                 on b.client_id = a.client_id
                 inner join tb_item_mst c
                 on c.item_cd = a.item_cd
@@ -291,5 +291,56 @@
                 left outer join tb_equipment_mst d
                 on d.equipment_cd = a.work_equipment_Cd
         where  a.work_proc_id = #{workProcId}
+    </select>
+
+
+    <select id="getWorkOrderProgressList">
+        SELECT  a.po_no,
+                CONCAT(CONVERT(varchar(10), a.work_order_date, 23), ' - ', a.seq) AS workOrderDateSeq,
+                c.code_nm AS areaName,
+                i.item_name,
+                ROW_NUMBER() OVER (PARTITION BY b.work_order_id ORDER BY b.work_batch_id ) AS order_dist,
+                b.make_no,
+                b.lot_no,
+                c1.code_nm AS batch_status_name,
+                pr.weighOrderDate,
+                pr.matOrderDate,
+                pr.coatingOrderDate,
+                pr.chargeOrderDate,
+                pr.packingOrderDate,
+                b.batch_status,
+                a.work_order_id,
+                b.work_batch_id
+        FROM    TB_WORK_ORDER_MST a
+                JOIN TB_WORK_ORDER_BATCH b
+                ON b.work_order_id = a.work_order_id
+                JOIN TB_ITEM_MST i
+                ON i.item_cd = a.item_cd
+                LEFT JOIN TB_COMMON_CODE c
+                ON c.code = a.area_cd
+                AND c.com_type_cd = 'area'
+                LEFT JOIN TB_COMMON_CODE c1
+                ON c1.code = b.batch_status
+                AND c1.com_type_cd = 'batch_status'
+                OUTER APPLY (
+                    SELECT  MAX(CASE WHEN x.proc_cd = 'PRC001' THEN x.proc_order_date END) AS weighOrderDate,
+                            MAX(CASE WHEN x.proc_cd = 'PRC002' THEN x.proc_order_date END) AS matOrderDate,
+                            MAX(CASE WHEN x.proc_cd = 'PRC003' THEN x.proc_order_date END) AS coatingOrderDate,
+                            MAX(CASE WHEN x.proc_cd = 'PRC004' THEN x.proc_order_date END) AS chargeOrderDate,
+                            MAX(CASE WHEN x.proc_cd = 'PRC005' THEN x.proc_order_date END) AS packingOrderDate
+                    FROM TB_WORK_ORDER_PROC x
+                    WHERE x.work_batch_id = b.work_batch_id
+                ) pr
+        WHERE a.work_order_date between #{strDate} and #{endDate}
+        <if test="areaCd != null and areaCd != ''">
+            AND a.area_cd = #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            AND a.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            AND i.item_name like '%' + #{itemName} + '%'
+        </if>
+        order by a.work_order_date desc , b.work_batch_id desc
     </select>
 </mapper>

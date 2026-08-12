@@ -63,6 +63,16 @@ public class WorkOrderInfoVo {
     private String tranYn;
     private String endYn;
     private String moveStatus;
+    private String chargingCnt;
+    private String cappingRange;
+    private String essenceStd;
+    private Integer orderDist;
+
+    private String weighOrderDate;
+    private String matOrderDate;
+    private String coatingOrderDate;
+    private String chargeOrderDate;
+    private String packingOrderDate;
 
     private LocalDateTime workStartTime;
     private LocalDateTime workEndTime;

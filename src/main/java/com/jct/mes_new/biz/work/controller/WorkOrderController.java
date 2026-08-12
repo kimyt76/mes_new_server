@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.work.controller;
 
 import com.jct.mes_new.biz.work.service.WorkOrderService;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
@@ -23,6 +24,11 @@ public class WorkOrderController {
     @PostMapping("/getWorkOrderList")
     public List<WorkOrderVo> getWorkOrderList (@RequestBody WorkOrderVo vo){
         return workOrderService.getWorkOrderList(vo);
+    }
+
+    @PostMapping("/getWorkOrderProgressList")
+    public List<WorkOrderInfoVo> getWorkOrderProgressList (@RequestBody WorkOrderVo vo){
+        return workOrderService.getWorkOrderProgressList(vo);
     }
 
     @GetMapping("/getWorkOrderInfo/{id}")

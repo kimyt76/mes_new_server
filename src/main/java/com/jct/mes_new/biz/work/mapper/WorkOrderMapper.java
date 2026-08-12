@@ -37,4 +37,6 @@ public interface WorkOrderMapper {
      * @return
      */
     WorkOrderInfoVo getWorkOrderProcInfo(@Param("procCd") String procCd, @Param("workProcId") Long workProcId);
+
+    List<WorkOrderInfoVo> getWorkOrderProgressList(WorkOrderVo vo);
 }

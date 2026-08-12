@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.work.service.impl;
 
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.service.WorkOrderService;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,10 @@ public class WorkOrderServiceImpl implements WorkOrderService {
 
     public List<WorkOrderVo> getWorkOrderList(WorkOrderVo vo){
         return workOrderMapper.getWorkOrderList(vo);
+    }
+
+    public List<WorkOrderInfoVo> getWorkOrderProgressList(WorkOrderVo vo) {
+        return workOrderMapper.getWorkOrderProgressList(vo);
     }
 
     public WorkOrderVo getWorkOrderInfo(String workOrderId){
