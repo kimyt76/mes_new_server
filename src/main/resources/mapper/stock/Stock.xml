@@ -4,25 +4,162 @@
 <mapper namespace="com.jct.mes_new.biz.stock.mapper.StockMapper">
 
     <select id="getStockItemList">
-        SELECT  a.item_cd AS itemCd,
-                a.item_name AS itemName,
-                a.item_type_cd AS itemTypeCd,
-                a.storage_cd AS storageCd,
-                SUM(isnull(a.qty, 0)) AS qty
-        FROM    vw_inv_stock_tran a
-        where   a.tran_date <![CDATA[<=]]> #{stdDate}
+        WITH CloseRank AS (
+            /* 지역 + 창고 + 품목타입별 최근 마감 찾기 */
+            SELECT    m.real_stock_mst_id
+                    , m.real_stock_date
+                    , m.area_cd
+                    , m.storage_cd
+                    , m.item_type_cd
+                    , m.tran_id
+                    , ROW_NUMBER() OVER (PARTITION BY m.area_cd , m.storage_cd , m.item_type_cd ORDER BY m.real_stock_date DESC , m.real_stock_mst_id DESC ) AS rn
+            FROM    tb_real_stock_mst m
+            WHERE   m.end_yn = 'Y'
+            AND m.real_stock_date <![CDATA[ <= ]]> #{stdDate}
+            <if test="areaCd != null and areaCd != ''">
+                AND m.area_cd = #{areaCd}
+            </if>
+            <if test="itemTypeCd != null and itemTypeCd != ''">
+                AND m.item_type_cd = #{itemTypeCd}
+            </if>
+        ),
+        LastClose AS (
+            SELECT    real_stock_mst_id
+                    , real_stock_date
+                    , area_cd
+                    , storage_cd
+                    , item_type_cd
+                    , tran_id
+            FROM CloseRank
+            WHERE rn = 1
+        ),
+        BaseStock AS (
+            /* 마감된 실재고 */
+            SELECT    m.area_cd
+                    , m.storage_cd
+                    , m.item_type_cd
+                    , i.item_cd
+                    , i.test_no
+                    , ISNULL(i.reql_stock_qty, 0) AS qty
+            FROM LastClose m
+                JOIN tb_real_stock_item i
+                ON i.real_stock_mst_id = m.real_stock_mst_id
+                JOIN tb_item_mst im
+                ON im.item_cd = i.item_cd
+            WHERE 1 = 1
+            <if test="testNo != null and testNo != ''">
+                AND i.test_no = #{testNo}
+            </if>
+            <if test="itemCd != null and itemCd != ''">
+                AND i.item_cd LIKE '%' + #{itemCd} + '%'
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND im.item_name LIKE '%' + #{itemName} + '%'
+            </if>
+            <if test="itemTypeCd != null and itemTypeCd != ''">
+                AND m.item_type_cd = #{itemTypeCd}
+            </if>
+            <if test="areaCd != null and areaCd != ''">
+                AND m.area_cd = #{areaCd}
+            </if>
+        ),
+        AfterTran AS (
+            /*
+            마감이 있으면    : 마감 이후 거래만
+            마감이 없으면    : 최초 거래부터 조회기준일까지
+            */
+            SELECT v.area_cd
+                , v.storage_cd
+                , v.item_type_cd
+                , v.item_cd
+                , v.test_no
+                , SUM(ISNULL(v.qty, 0)) AS qty
+            FROM vw_inv_stock_tran v
+                LEFT JOIN LastClose lc
+                ON lc.area_cd      = v.area_cd
+                AND lc.storage_cd   = v.storage_cd
+                AND lc.item_type_cd = v.item_type_cd
+            WHERE v.tran_date <![CDATA[ <= ]]> #{stdDate}
+            <if test="testNo != null and testNo != ''">
+                AND v.test_no = #{testNo}
+            </if>
+            <if test="itemCd != null and itemCd != ''">
+                AND v.item_cd LIKE '%' + #{itemCd} + '%'
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND v.item_name LIKE '%' + #{itemName} + '%'
+            </if>
+            <if test="itemTypeCd != null and itemTypeCd != ''">
+                AND v.item_type_cd = #{itemTypeCd}
+            </if>
+            <if test="areaCd != null and areaCd != ''">
+                AND v.area_cd = #{areaCd}
+            </if>
+        /* 해당 지역/창고/품목타입에 마감이 없는 경우 */
+            AND (lc.real_stock_mst_id IS NULL OR
+                    /* 마감이 있는 경우 마감 이후 거래 */
+                    (v.tran_date > lc.real_stock_date OR (v.tran_date = lc.real_stock_date AND v.tran_id > ISNULL(lc.tran_id, 0) ))
+                )
+            GROUP BY v.area_cd , v.storage_cd , v.item_type_cd , v.item_cd , v.test_no
+        ),
+        Stock AS (
+            /*
+            마감재고 + 마감 이후 거래
+            BaseStock에만 있는 품목도 표시
+            AfterTran에만 있는 품목도 표시
+            */
+            SELECT COALESCE(b.area_cd, t.area_cd)           AS area_cd
+                , COALESCE(b.storage_cd, t.storage_cd)     AS storage_cd
+                , COALESCE(b.item_type_cd, t.item_type_cd) AS item_type_cd
+                , COALESCE(b.item_cd, t.item_cd)           AS item_cd
+                , COALESCE(b.test_no, t.test_no)           AS test_no
+                , ISNULL(b.qty, 0) + ISNULL(t.qty, 0)      AS qty
+            FROM BaseStock b
+                FULL OUTER JOIN AfterTran t
+                ON t.area_cd      = b.area_cd
+                AND t.storage_cd   = b.storage_cd
+                AND t.item_type_cd = b.item_type_cd
+                AND t.item_cd      = b.item_cd
+                AND ISNULL(t.test_no, '') = ISNULL(b.test_no, '')
+        )
+        SELECT    a.item_cd        AS itemCd
+                , i.item_name      AS itemName
+                , a.item_type_cd   AS itemTypeCd
+                , a.storage_cd     AS storageCd
+                , SUM(ISNULL(a.qty, 0)) AS qty
+                , SUM(ISNULL(b.safe_stock_qty, 0)) AS safe_stock_qty
+                <if test="type == 'TEST'">
+                    , a.test_no
+                </if>
+        FROM Stock a
+            JOIN tb_item_mst i
+            ON i.item_cd = a.item_cd
+            LEFT JOIN tb_item_detail b
+            ON b.item_cd = a.item_cd
+        WHERE 1 = 1
+        <if test="testNo != null and testNo != ''">
+            AND a.test_no = #{testNo}
+        </if>
         <if test="itemCd != null and itemCd != ''">
             AND a.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            AND a.item_name LIKE '%' + #{itemName} + '%'
+            AND i.item_name LIKE '%' + #{itemName} + '%'
         </if>
         <if test="itemTypeCd != null and itemTypeCd != ''">
             AND a.item_type_cd = #{itemTypeCd}
         </if>
-        GROUP BY a.item_cd, a.item_name, a.item_type_cd, a.storage_cd
-        HAVING SUM(a.qty) != 0
-        ORDER BY a.item_cd, a.storage_cd
+        <if test="areaCd != null and areaCd != ''">
+            AND a.area_cd = #{areaCd}
+        </if>
+        GROUP BY a.item_cd, i.item_name , a.item_type_cd , a.storage_cd
+        <if test="type == 'TEST'">
+            , a.test_no
+        </if>
+        ORDER BY a.item_cd , a.storage_cd
+        <if test="type == 'TEST'">
+            , a.test_no
+        </if>
     </select>
 
 
