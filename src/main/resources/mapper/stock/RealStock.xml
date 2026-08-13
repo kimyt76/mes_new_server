@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.stock.mapper.RealStockMapper">
+
+    <select id="getRealStockList">
+        SELECT   a.real_stock_mst_id
+                ,a.real_stock_date
+                ,c.code_nm AS item_type_name
+                ,CASE WHEN COUNT(DISTINCT b.item_cd) = 0 THEN ''
+                      WHEN COUNT(DISTINCT b.item_cd) = 1 THEN MAX(firstItem.item_name)
+                      ELSE CONCAT(MAX(firstItem.item_name), ' 외 ', COUNT(DISTINCT b.item_cd) - 1, '건') END AS item_name
+                ,dbo.getStorageName(a.storage_cd) AS storage_name
+                ,u.member_nm AS manager_name
+                ,c1.code_nm AS area_name
+                ,SUM(isnull(b.doc_stock_qty, 0)) AS doc_stock_qty
+                ,SUM(isnull(b.reql_stock_qty, 0)) AS reql_stock_qty
+                ,SUM(isnull(b.reql_stock_qty, 0))- SUM(isnull(b.doc_stock_qty, 0)) as diffStockQty
+                ,a.end_yn
+        FROM    tb_real_stock_mst a
+                left JOIN tb_real_stock_item b
+                    ON a.real_stock_mst_id = b.real_stock_mst_id
+                left JOIN tb_item_mst i
+                    ON i.item_cd = b.item_cd
+                LEFT JOIN tb_common_code c
+                    ON c.code = a.item_type_cd
+                    AND c.com_type_cd = 'item_type_cd'
+                LEFT JOIN tb_common_code c1
+                    ON c1.code = a.area_cd
+                    AND c1.com_type_cd = 'area'
+                LEFT JOIN tb_users u
+                    ON u.user_id = a.manager_id
+                OUTER APPLY (
+                    SELECT TOP 1
+                           im.item_name
+                    FROM tb_real_stock_item ri
+                         JOIN tb_item_mst im
+                         ON im.item_cd = ri.item_cd
+                    WHERE ri.real_stock_mst_id = a.real_stock_mst_id
+                    ORDER BY ri.item_cd ASC
+                ) firstItem
+        WHERE a.real_stock_date BETWEEN #{strDate} AND #{endDate}
+        <if test="itemTypeCd != null and itemTypeCd != ''">
+        AND a.item_type_cd = #{itemTypeCd}
+        </if>
+        <if test="areaCd != null and areaCd != ''">
+        AND a.area_cd = #{areaCd}
+        </if>
+        <if test="storageCd != null and storageCd != ''">
+        AND a.storage_cd = #{storageCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+        AND b.item_cd LIKE '%#{itemCd}%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+        AND i.item_name LIKE '%#{itemName}%'
+        </if>
+        GROUP BY a.real_stock_mst_id ,a.real_stock_date ,c.code_nm  ,a.storage_cd ,u.member_nm ,c1.code_nm,a.end_yn
+        ORDER BY a.real_stock_mst_id DESC
+    </select>
+
+    <select id="getRealStockItemList">
+        select   a.item_cd
+                ,i.item_name
+                ,a.test_no
+                ,a.doc_stock_qty
+                ,a.reql_stock_qty
+                ,a.diff_stock_qty
+                ,a.etc
+                ,a.real_stock_item_id
+        from    tb_real_stock_item a
+                join tb_item_mst i
+                on i.item_cd = a.item_cd
+        where  a.real_stock_mst_id = #{realStockMstId}
+        order by a.item_cd, a.test_no
+    </select>
+
+    <insert id="saveRealStock" parameterType="com.jct.mes_new.biz.stock.vo.RealStockVo"  useGeneratedKeys="true" keyProperty="realStockMstId">
+        insert into tb_real_stock_mst
+        (real_stock_date, item_type_cd, area_cd, storage_cd, manager_id, reg_id, upd_id)
+        values
+        (#{realStockDate}, #{itemTypeCd}, #{areaCd}, #{storageCd}, #{userId}, #{userId}, #{userId})
+    </insert>
+
+    <select id="realStockItemCnt">
+        select count(*) from tb_real_stock_item where real_stock_mst_id = #{realStockMstId}
+    </select>
+
+    <select id="getRealStockMst">
+        select real_stock_mst_id
+              ,real_stock_date
+              ,item_type_cd
+              ,area_cd
+              ,storage_cd
+              ,end_yn
+        from  tb_real_stock_mst
+        where real_stock_mst_id = #{realStockMstId}
+    </select>
+
+    <select id="getDocStockItemList">
+        WITH LastClose AS (
+            SELECT  TOP 1
+                    a.real_stock_mst_id,
+                    a.real_stock_date,
+                    a.area_cd,
+                    a.storage_cd,
+                    a.item_type_cd,
+                    a.tran_id
+            FROM tb_real_stock_mst a
+            WHERE a.end_yn = 'Y'
+            AND a.real_stock_date <![CDATA[  <=  ]]> CONVERT(DATE, GETDATE())
+            AND a.item_type_cd = #{itemTypeCd}
+            AND a.storage_cd = #{storageCd}
+            ORDER BY a.real_stock_date DESC, a.real_stock_mst_id DESC
+        ),
+        BaseStock AS (
+        -- 마감이 있을 경우 기준재고
+            SELECT   m.area_cd
+                    ,m.storage_cd
+                    ,i.item_cd
+                    ,i.test_no
+                    ,i.reql_stock_qty AS stock_qty
+            FROM LastClose m
+                JOIN tb_real_stock_item i
+                ON i.real_stock_mst_id = m.real_stock_mst_id
+        ),
+        AfterTran AS (
+            SELECT   v.area_cd
+                    ,v.storage_cd
+                    ,v.item_cd
+                    ,v.test_no
+                    ,SUM(v.qty) AS tran_qty
+            FROM vw_inv_stock_tran v
+            WHERE v.tran_date <![CDATA[ <= ]]> CONVERT(DATE, GETDATE())
+            AND v.item_type_cd = #{itemTypeCd}
+            AND v.storage_cd = #{storageCd}
+            AND (-- 마감 없음 → 전체 거래
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM LastClose
+                    )OR
+                    -- 마감 있음 → 마감 이후 거래만
+                    EXISTS (
+                        SELECT 1
+                        FROM LastClose lc
+                        WHERE
+                        v.tran_date > lc.real_stock_date
+                        OR (v.tran_date = lc.real_stock_date AND v.tran_id > ISNULL(lc.tran_id, 0))
+                    )
+                )
+            GROUP BY v.area_cd ,v.storage_cd ,v.item_cd ,v.test_no
+        )
+
+        SELECT   COALESCE(b.item_cd, t.item_cd) AS item_cd
+                ,i.item_name
+                ,COALESCE(b.test_no, t.test_no) AS test_no
+                ,COALESCE(b.storage_cd, t.storage_cd) AS storage_cd
+                ,ISNULL(b.stock_qty, 0)+ ISNULL(t.tran_qty, 0) AS docStockQty
+                ,0 as reqlStockQty
+                ,'' etc
+               --,COALESCE(b.area_cd, t.area_cd) AS area_cd
+                --,ISNULL(b.stock_qty, 0) AS base_stock_qty
+                --,ISNULL(t.tran_qty, 0) AS tran_qty
+        FROM BaseStock b
+            FULL OUTER JOIN AfterTran t
+                ON t.area_cd = b.area_cd
+                AND t.storage_cd = b.storage_cd
+                AND t.item_cd = b.item_cd
+                AND ISNULL(t.test_no, '') = ISNULL(b.test_no, '')
+            JOIN tb_item_mst i
+                 ON i.item_cd = COALESCE(b.item_cd, t.item_cd)
+        ORDER BY COALESCE(b.item_cd, t.item_cd) ,COALESCE(b.test_no, t.test_no)
+    </select>
+
+    <select id="getInvTranItemList">
+        select    c.code_nm as item_type_name
+                 ,a.item_cd
+                 ,a.item_name
+                 ,a.test_no
+                 ,sum(isnull(a.qty, 0)) as qty
+                 ,s.storage_name
+                 ,a.storage_cd
+                 ,a.item_type_cd
+                 ,a.tran_item_id
+        from   vw_inv_stock_tran a
+                left join tb_common_code c
+                    on c.code = a.item_type_cd
+                    and c.com_type_cd = 'item_type_cd'
+                left join tb_storage_mst s
+                    on s.storage_cd = a.storage_cd
+        where  a.item_type_cd = #{itemTypeCd}
+        <if test="itemCd != null and itemCd != ''">
+          and    a.item_cd LIKE '%#{itemCd}%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+         and    a.item_name LIKE '%#{itemName}%'
+        </if>
+        <if test="testNo != null and testNo != ''">
+          and    a.test_no LIKE '%#{testNo}%'
+        </if>
+        group by c.code_nm ,a.item_cd ,a.item_name ,a.test_no ,s.storage_name ,a.storage_cd ,a.item_type_cd, a.tran_item_id
+        order by a.item_cd, a.test_no
+    </select>
+
+    <insert id="insertRealStockItem">
+        insert into tb_real_stock_item
+         ( real_stock_mst_id, item_cd, test_no, doc_stock_qty, reql_stock_qty, diff_stock_qty, etc, reg_id, upd_id)
+        values
+         (#{realStockMstId}, #{itemCd}, #{testNo}, #{docStockQty}, #{reqlStockQty}, #{diffStockQty}, #{etc}, #{userId}, #{userId})
+    </insert>
+
+    <update id="updateRealStockItem">
+        update tb_real_stock_item
+        set    reql_stock_qty = #{reqlStockQty}
+              ,etc            = #{etc}
+              ,upd_id         = #{userId}
+              ,upd_dt         = getDate()
+        where  real_stock_item_id = #{realStockItemId}
+    </update>
+
+    <update id="updateRealStockComplete">
+        update tb_real_stock_mst
+        set    tran_id = #{tranId}
+              ,end_yn  = 'Y'
+              ,upd_id  = #{userId}
+              ,upd_dt  = getDate()
+        where  real_stock_mst_id = #{realStockMstId}
+    </update>
+
+</mapper>
