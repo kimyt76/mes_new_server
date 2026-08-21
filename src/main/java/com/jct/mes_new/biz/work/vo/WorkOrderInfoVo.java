@@ -74,6 +74,9 @@ public class WorkOrderInfoVo {
     private String chargeOrderDate;
     private String packingOrderDate;
 
+    private String equipmentCd;
+    private String equipmentName;
+
     private LocalDateTime workStartTime;
     private LocalDateTime workEndTime;
 
