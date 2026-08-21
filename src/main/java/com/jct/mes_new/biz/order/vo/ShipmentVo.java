@@ -1,42 +1,54 @@
 package com.jct.mes_new.biz.order.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.jct.mes_new.config.util.DateStringToYmdDeserializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class ShipmentVo {
-
-    private String shipmentId;
+    private Long shipmentId;
     private String shipmentDateSeq;
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String shipmentDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate shipmentDate;
     private int seq;
-    private String itemName;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate shipmentReqDate;     /* 출고요정일*/
+    private String shipmentTime;
     private String clientId;
-    private String clientName;
-    private String managerId;                /*출고요청자*/
-    private String managerName;
-    private String descStorageCd;
-    private String descStorageName;
-    private String deliveryManagerName;  /*납품담당자*/
-    private String deliveryTelno;       /*납품지연락처*/
-    @JsonDeserialize(using = DateStringToYmdDeserializer.class)
-    private String dueDate;             /*출하예정일*/
-    private String releaseTime;    /*출고시간*/
-    private String releaseType;    /*출고구분*/
-    private String accountStatement; /*거래명세서 */
-    private String address;
-    private String tradingMethod; /*거래방법*/
+    private String deliveryLocation;
+    private String deliveryAddress;
+    private String deliveryManagerName;
+    private String deliveryTelno;
+    private String shipmentType;
+    private String shipmentYn;
+    private String managedItem;
     private String attachFileId;
+    private String shipmentStatus;
     private String etc;
     private String printYn;
-    private String statusType;  /*진행상태*/
-    private String saleIds;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate strDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate strReqDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endReqDate;
     private String poNo;
-    private BigDecimal totQty;
+    private String itemCd;
+    private String itemName;
+    private String clientName;
+    private String businessManagerName;
+    private String shipmentStatusName;
+    private String shipmentTypeName;
+    private BigDecimal qty;
+    private Integer lotNo;
+    private BigDecimal pallet;
+
     private String userId;
 }

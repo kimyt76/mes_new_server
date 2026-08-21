@@ -4,242 +4,363 @@
 <mapper namespace="com.jct.mes_new.biz.order.mapper.ShipmentMapper">
 
     <select id="getShipmentList">
-        select   a.shipment_date +' -'+ CAST(a.seq AS NVARCHAR) AS shipmentDateSeq
-                ,b.item_name+'외'+ CAST(b.cnt AS NVARCHAR) + '건' as itemName
-                ,d.member_nm  as managerName
-                ,c.customer_name
-                ,a.due_date
-                ,a.release_time
-                ,b.totQty
-                ,dbo.getStorageName(a.desc_storage_cd) as descStorageName
-                ,a.status_type
-                ,isnull(a.print_yn, 'N') as printYn
+        WITH item_aggregate AS (
+            SELECT   b.shipment_id
+                    ,SUM(ISNULL(b.qty, 0)) AS qty
+                    ,COUNT(b.lot_no) AS lot_no_count
+                    ,SUM(ISNULL(b.pallet, 0)) AS pallet
+            FROM tb_shipment_item b
+            GROUP BY b.shipment_id
+        ),
+        item_distinct AS (
+            SELECT  DISTINCT
+                    b.shipment_id
+                    ,b.po_no
+                    ,b.item_cd
+                    ,i.item_name
+            FROM tb_shipment_item b
+            INNER JOIN tb_item_mst i
+            ON i.item_cd = b.item_cd
+        ),
+        item_rank AS (
+            SELECT shipment_id
+                    ,po_no
+                    ,item_cd
+                    ,item_name
+                    ,ROW_NUMBER() OVER (PARTITION BY shipment_id ORDER BY
+                            CASE WHEN po_no IS NULL OR po_no = '' THEN 1 ELSE 0 END, po_no, item_cd ) AS rn
+                    ,COUNT(*) OVER (PARTITION BY shipment_id ) AS item_count
+                    ,COUNT( CASE WHEN po_no IS NOT NULL AND po_no <![CDATA[ <> ]]> '' THEN 1 END) OVER (PARTITION BY shipment_id) AS po_count
+            FROM item_distinct
+        ),
+        item_summary AS (
+            SELECT  shipment_id
+                    ,CASE WHEN po_count > 1 THEN CONCAT(po_no, ' 외 ', po_count - 1, '건') WHEN po_count = 1 THEN po_no ELSE '' END AS po_no
+                    ,CASE WHEN item_count > 1 THEN CONCAT(item_cd, ' 외 ', item_count - 1, '건') ELSE item_cd END AS item_cd
+                    ,CASE WHEN item_count > 1 THEN CONCAT(item_name, ' 외 ', item_count - 1, '건') ELSE item_name END AS item_name
+            FROM item_rank
+            WHERE rn = 1
+        )
+
+        SELECT CONCAT(CONVERT(VARCHAR(10), a.shipment_date, 23), ' - ', a.seq ) AS shipmentDateSeq
+                ,a.shipment_req_date
+                ,c1.business_manager_name
+                ,c.client_name
+                ,s.po_no
+                ,s.item_cd
+                ,s.item_name
+                ,a.delivery_manager_name
+                ,ag.qty
+                ,ag.lot_no_count AS lotNo
+                ,ag.pallet
+                ,a.shipment_time
+                ,a.delivery_location
+                ,a.shipment_type
+                ,c3.code_nm as shipment_type_name
+                ,ISNULL(a.print_yn, 'N') AS print_yn
+                ,a.shipment_status
+                ,c2.code_nm as shipment_status_name
+                ,a.shipment_yn
                 ,a.shipment_id
-                ,a.sale_Ids
-        from   tb_shipment_mst a
-                inner join (
-                    select b.item_name
-                    ,a.item_cd
-                    ,a.cnt
-                    ,a.totQty
-                    ,a.min_order_dist
-                    ,a.shipment_id
-                    from   (
-                            select   a.item_cd
-                                    ,count(item_cd) as cnt
-                                    ,sum(qty) as totQty
-                                    ,MIN(a.order_dist) AS min_order_dist
-                                    ,a.shipment_id
-                            from    tb_shipment_item a
-                            group by a.item_cd, a.shipment_id
-                            ) a
-                inner join (
-                    select  b.item_cd
-                            ,(SELECT item_name FROM tb_item_mst im WHERE im.item_cd = b.item_cd) AS item_name
-                            ,b.order_dist
-                    from  tb_shipment_item b
-                    WHERE NOT EXISTS (
-                            SELECT 1
-                            FROM tb_shipment_item c
-                            WHERE c.shipment_id = b.shipment_id
-                            AND c.order_dist &lt; b.order_dist
-                            )
-                    ) b
-                    on a.item_cd = b.item_cd
-                    and a.min_order_dist = b.order_dist
-            ) b
-            on b.shipment_id = a.shipment_id
-            left outer join tb_customer c
-            on c.customer_cd = a.customer_cd
-            left outer join tb_users d
-            on d.user_id = a.manager_id
-        where   1=1
-        <if test='itemName != "" and itemName != null'>
-            AND b.item_name LIKE '%' + #{itemName} + '%'
+        FROM tb_shipment_mst a
+            left JOIN item_aggregate ag
+            ON ag.shipment_id = a.shipment_id
+            left JOIN item_summary s
+            ON s.shipment_id = a.shipment_id
+            LEFT JOIN tb_client_mst c
+            ON c.client_id = a.client_id
+            LEFT JOIN tb_client_Manager c1
+            ON c1.client_id = a.client_id
+            and c1.order_dist = 1
+            left join tb_common_code c2
+            on c2.code = a.shipment_status
+            and c2.com_type_cd = 'shipment_status'
+            left join tb_common_code c3
+            on c3.code = a.shipment_type
+            and c3.com_type_cd = 'shipment_type'
+        WHERE a.shipment_date BETWEEN #{strDate} AND #{endDate}
+        <if test="strReqDate != null and strReqDate != '' and endReqDate != null and endReqDate != ''">
+            AND a.shipment_req_date BETWEEN #{strReqDate} AND #{endReqDate}
         </if>
-        <if test='managerName != "" and managerName != null'>
-            AND d.member_nm LIKE '%' + #{managerName} + '%'
+        <if test="clientName != null and clientName != ''">
+            AND c.client_name LIKE CONCAT('%', #{clientName}, '%')
         </if>
-        <if test='customerName != "" and customerName != null'>
-            AND c.customer_name LIKE '%' + #{customerName} + '%'
+        <if test="poNo != null and poNo != ''">
+            AND EXISTS (
+                SELECT 1
+                FROM tb_shipment_item x
+                WHERE x.shipment_id = a.shipment_id
+                AND x.po_no LIKE CONCAT('%', #{poNo}, '%')
+            )
         </if>
-        <if test='statusType != "" and statusType != null'>
-            AND a.status_Type =  #{statusType}
+        <if test="itemCd != null and itemCd != ''">
+            AND EXISTS (
+                SELECT 1
+                FROM tb_shipment_item x
+                WHERE x.shipment_id = a.shipment_id
+                AND x.item_cd LIKE CONCAT('%', #{itemCd}, '%')
+            )
         </if>
-        order by a.shipment_date desc, seq desc
+        <if test="itemName != null and itemName != ''">
+            AND EXISTS (
+                SELECT 1
+                FROM tb_shipment_item x
+                    INNER JOIN tb_item_mst xi
+                    ON xi.item_cd = x.item_cd
+                WHERE x.shipment_id = a.shipment_id
+                AND xi.item_name LIKE CONCAT('%', #{itemName}, '%')
+            )
+        </if>
+        <if test="deliveryManagerName != null and deliveryManagerName != ''">
+            AND a.delivery_manager_name LIKE CONCAT('%', #{deliveryManagerName}, '%')
+        </if>
+        ORDER BY a.shipment_date DESC, a.seq DESC;
     </select>
 
     <select id="getShipmentInfo">
         select    a.shipment_id
                  ,a.shipment_date
                  ,a.seq
-                 ,(select customer_name from tb_customer where customer_cd = a.customer_cd ) as customerName
-                 ,dbo.getUserName(a.manager_id) as managerName
-                 ,(select storage_name from tb_storage_mst where storage_cd = a.desc_storage_cd) as descStorageName
-                 ,a.desc_storage_cd
-                 ,a.manager_id
-                 ,a.trading_method
-                 ,a.customer_cd
-                 ,a.shipment_id
+                 ,a.shipment_req_date
+                 ,a.shipment_time
+                 ,a.client_id
+                 ,b.client_name
+                 ,a.delivery_location
+                 ,a.delivery_address
                  ,a.delivery_manager_name
                  ,a.delivery_telno
-                 ,a.due_date
-                 ,a.release_time
-                 ,a.release_type
-                 ,a.account_statement
-                 ,a.address
-                 ,a.etc
+                 ,a.shipment_type
+                 ,a.shipment_yn
+                 ,a.managed_item
                  ,a.attach_file_id
-                 ,a.status_type
-                 ,a.sale_ids
-        from   tb_shipment_mst a
-        where  a.shipment_id = #{shipmentId}
+                 ,a.etc
+                 ,a.print_yn
+                 ,a.shipment_status
+        from     tb_shipment_mst a
+                 left join tb_client_mst b
+                 on b.client_id = a.client_id
+        where    a.shipment_id = #{shipmentId}
     </select>
-
-    <delete id="deleteShipmentItemList">
-        delete from tb_shipment_item where shipment_id = #{shipmentId}
-    </delete>
 
     <select id="getShipmentItemList">
-        select a.item_cd
-              ,b.item_name
-              ,a.qty
-              ,a.lot_no
-              ,a.order_dist as id
-              ,a.sale_item_id
-              ,a.shipment_id
-              ,( select distinct sale_date +' -'+ CAST(seq AS NVARCHAR) AS saleDateSeq
-                 from   tb_sale_mst
-                 where  sale_id = a.sale_id
-                ) as saleDateSeq
-              , a.sale_id
+        select    a.item_cd
+                 ,a.po_no
+                 ,a.lot_No
+                 ,a.make_no
+                 ,a.qc_status
+                 ,a.qty
+                 ,a.stock_qty
+                 ,a.pallet
+                 ,a.test_no
+                 ,a.storage_cd
+                 ,b.item_name
+                 ,a.shipment_item_id
+                 ,a.shipment_id
+                 ,a.item_type_cd
         from   tb_shipment_item a
-               inner join tb_item_mst b
-               on a.item_cd = b.item_cd
+                   join tb_item_mst b
+                        on b.item_cd = a.item_cd
         where  shipment_id = #{shipmentId}
     </select>
 
-    <update id="saveShipmentInfo">
-        merge into tb_shipment_mst a
-            using   (select #{shipmentId} as shipment_id ) b
-            on      a.shipment_id = b.shipment_id
-            when  matched  then
-                update set
-                     shipment_date = #{shipmentDate}
-                    ,seq =#{seq}
-                    ,customer_cd =#{customerCd}
-                    ,manager_Id=#{managerId}
-                    ,desc_storage_cd =#{descStorageCd}
-                    ,delivery_manager_name =#{deliveryManagerName}
-                    ,delivery_telno =#{deliveryTelno}
-                    ,due_date =#{dueDate}
-                    ,release_time =#{releaseTime}
-                    ,release_type =#{releaseType}
-                    ,account_statement =#{accountStatement}
-                    ,address =#{address}
-                    ,attach_file_id =#{attachFileId}
-                    ,trading_method =#{tradingMethod}
-                    ,status_type =#{statusType}
-                    ,etc =#{etc}
-                    ,sale_ids =#{saleIds}
-                    ,upd_id =#{userId}
-                    ,upd_dt = getdate()
-            when not matched then
-                insert ( shipment_id
-                    ,shipment_date
-                    ,seq
-                    ,customer_cd
-                    ,manager_id
-                    ,desc_storage_cd
-                    ,delivery_manager_name
-                    ,delivery_telno
-                    ,due_date
-                    ,release_time
-                    ,release_type
-                    ,account_statement
-                    ,address
-                    ,attach_file_id
-                    ,trading_method
-                    ,status_type
-                    ,etc
-                    ,sale_ids
-                    ,reg_id
-                    ,upd_id )
-                    values (
-                            #{shipmentId}
-                           ,#{shipmentDate}
-                           ,#{seq}
-                           ,#{customerCd}
-                           ,#{managerId}
-                           ,#{descStorageCd}
-                           ,#{deliveryManagerName}
-                           ,#{deliveryTelno}
-                           ,#{dueDate}
-                           ,#{releaseTime}
-                           ,#{releaseType}
-                           ,#{accountStatement}
-                           ,#{address}
-                           ,#{attachFileId}
-                           ,#{tradingMethod}
-                           ,'ING'
-                           ,#{etc}
-                           ,#{saleIds}
-                           ,#{userId}
-                           ,#{userId}
-                           )
-        ;
+    <insert id="insertShipmentMst" parameterType="com.jct.mes_new.biz.order.vo.ShipmentVo" useGeneratedKeys="true" keyProperty="shipmentId">
+        INSERT INTO tb_shipment_mst (
+             shipment_date
+            ,seq
+            ,shipment_req_date
+            ,shipment_time
+            ,client_id
+            ,delivery_location
+            ,delivery_address
+            ,delivery_manager_name
+            ,delivery_telno
+            ,shipment_type
+            ,shipment_yn
+            ,managed_item
+            ,attach_file_id
+            ,shipment_status
+            ,etc
+            ,reg_id
+            ,upd_id
+        )
+        VALUES (#{shipmentDate}
+               ,#{seq}
+               ,#{shipmentReqDate}
+               ,#{shipmentTime}
+               ,#{clientId}
+               ,#{deliveryLocation}
+               ,#{deliveryAddress}
+               ,#{deliveryManagerName}
+               ,#{deliveryTelno}
+               ,#{shipmentType}
+               ,#{shipmentYn}
+               ,#{managedItem}
+               ,#{attachFileId}
+               ,#{shipmentStatus}
+               ,#{etc}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
+
+    <update id="updateShipmentMst">
+        UPDATE tb_shipment_mst
+        SET    shipment_req_date      = #{shipmentReqDate}
+              ,shipment_time          = #{shipmentTime}
+              ,client_id              = #{clientId}
+              ,delivery_location      = #{deliveryLocation}
+              ,delivery_address       = #{deliveryAddress}
+              ,delivery_manager_name  = #{deliveryManagerName}
+              ,delivery_telno         = #{deliveryTelno}
+              ,shipment_type          = #{shipmentType}
+              ,shipment_yn            = #{shipmentYn}
+              ,managed_item           = #{managedItem}
+              ,attach_file_id         = #{attachFileId}
+              ,shipment_status        = #{shipmentStatus}
+              ,etc                    = #{etc}
+              ,upd_id                 = #{userId}
+              ,upd_dt                 = GETDATE()
+        WHERE shipment_id            = #{shipmentId}
     </update>
 
+    <insert id="insertShipmentItemList">
+        INSERT INTO tb_shipment_item (
+              shipment_id
+             ,po_no
+             ,item_cd
+             ,item_type_cd
+             ,qty
+             ,lot_no
+             ,make_no
+             ,qc_status
+             ,stock_qty
+             ,pallet
+             ,test_no
+             ,order_dist
+             ,storage_cd
+             ,reg_id
+             ,upd_id
+        )
+        VALUES (
+                #{shipmentId}
+               ,#{poNo}
+               ,#{itemCd}
+               ,#{itemTypeCd}
+               ,#{qty}
+               ,#{lotNo}
+               ,#{makeNo}
+               ,#{qcStatus}
+               ,#{stockQty}
+               ,#{pallet}
+               ,#{testNo}
+               ,#{orderDist}
+               ,#{storageCd}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
 
-    <update id="saveItemList">
-            MERGE INTO tb_shipment_item a
-            USING (SELECT #{shipmentItemId} AS shipment_item_id ) b
-            ON (a.shipment_item_id = b.shipment_item_id)
-            WHEN MATCHED THEN
-            UPDATE SET
-                     item_cd = #{itemCd}
-                    ,qty = #{qty}
-                    ,lot_no = #{lotNo}
-                    ,order_dist = #{orderDist}
-                    ,sale_id = #{saleId}
-                    ,sale_item_id = #{saleItemId}
-                    ,upd_id = #{userId}
-                    ,upd_dt = getDate()
-            WHEN NOT MATCHED THEN
-            INSERT (shipment_item_id, shipment_id, item_cd,  qty, lot_no, order_dist ,sale_id, sale_item_id, reg_id, upd_id)
-            VALUES (
-                     #{shipmentItemId}
-                    ,#{shipmentId}
-                    ,#{itemCd}
-                    ,#{qty}
-                    ,#{lotNo}
-                    ,#{orderDist}
-                    ,#{saleId}
-                    ,#{saleItemId}
-                    ,#{userId}
-                    ,#{userId}
-                    )
-            ;
+    <update id="updateShipmentItemList" >
+        UPDATE tb_shipment_item
+        SET    qty              = #{qty}
+              ,upd_id           = #{userId}
+              ,upd_dt           = GETDATE()
+        WHERE shipment_item_id = #{shipmentItemId}
     </update>
 
-    <select id="getItemList">
-        select a.item_cd
-             ,b.item_name
-             ,a.qty
-             ,a.lot_no
-             ,a.order_dist
-             ,a.shipment_Id
-             ,a.shipment_Item_Id
-             ,a.sale_item_id
-             ,a.sale_id
-             ,( select distinct sale_date +' -'+ CAST(seq AS NVARCHAR) AS saleDateSeq
-                    from   tb_sale_mst
-                    where  sale_id = a.sale_id
-               ) as saleDateSeq
-        from   tb_shipment_item a
-                   inner join tb_item_mst b
-                              on a.item_cd = b.item_cd
-        where  shipment_id = #{shipmentId}
+    <select id="getWorkOrderItemList">
+        select   ROW_NUMBER() OVER (ORDER BY po_no, work_proc_id, storage_cd ) AS row_id
+                , q.*
+        from  (
+            select    a.po_no
+                     ,d.code_nm as item_type_name
+                     ,a.item_cd
+                     ,c.item_type_cd
+                     ,c.item_name
+                     ,b.lot_no
+                     ,b.make_no
+                     ,sum(e.qty) as stock_qty
+                     ,sum(0) as pallet
+                     ,d1.code_nm as passStateName
+                     ,f.storage_name
+                     ,f.storage_cd
+                     ,a.work_proc_id
+                     ,t.pass_state as qc_status
+                     ,a.test_no
+            from    TB_WORK_ORDER_PROC a
+                    inner join TB_WORK_ORDER_BATCH b
+                    on b.work_batch_id = a.work_batch_id
+                    inner join tb_item_mst c
+                    on c.item_cd = a.item_cd
+                    LEFT join tb_item_test_no t
+                    on t.test_no = a.test_no
+                    left join tb_common_code d
+                    on d.code = c.item_type_cd
+                    and d.com_type_cd = 'item_type_cd'
+                    left join tb_common_code d1
+                    on d1.code = t.pass_state
+                    and d1.com_type_cd = 'pass_state'
+                    left join vw_inv_stock_tran e
+                    on e.item_cd = a.item_cd
+                    left join tb_storage_mst f
+                    on f.storage_cd = e.storage_cd
+            where  a.proc_cd = #{procCd}
+              and  a.proc_status = #{procStatus}
+            <if test="poNo != null and poNo != ''">
+                and  a.po_no like  '%' + #{poNo} + '%'
+            </if>
+            <if test="itemCd != null and itemCd != ''">
+                and  c.item_cd like  '%' + #{itemCd} + '%'
+            </if>
+            <if test="itemName != null and itemName != ''">
+                and  c.item_name like '%' + #{itemName} + '%'
+            </if>
+              and NOT EXISTS (
+                    SELECT 1
+                    FROM    tb_shipment_item x
+                            join tb_shipment_mst m
+                            on m.shipment_id = x.shipment_id
+                    WHERE   x.po_no = a.po_no
+                      and   x.work_proc_id = a.work_proc_id
+                      AND   m.shipment_yn ='N'
+                )
+            group by a.po_no
+                   ,d.code_nm
+                   ,a.item_cd
+                   ,c.item_name
+                   ,b.lot_no
+                   ,b.make_no
+                   ,d1.code_nm
+                   ,f.storage_name
+                   ,f.storage_cd
+                   ,a.work_proc_id
+                   ,t.pass_state
+                   ,a.test_no
+                   ,c.item_type_cd
+            ) q
     </select>
+
+    <delete id="deleteShipmentMst">
+        delete from tb_shipment_mst
+        where  shipment_id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteShipmentItem">
+        delete from tb_shipment_item
+        where  shipment_id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="insertShipmentInvTran">
+        insert into tb_shipment_inv_tran
+        (shipment_item_id, tran_id, reg_id)
+        values
+        (#{tranId}, #{tranId}, #{userId})
+    </insert>
+
 
 </mapper>

@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.service.ShipmentService;
 import com.jct.mes_new.biz.order.vo.*;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,84 +24,46 @@ import java.util.Map;
 public class ShipmentController {
 
     private final ShipmentService shipmentService;
+    private final MessageUtil messageUtil;
 
     @PostMapping("/getShipmentList")
     public List<ShipmentVo> getShipmentList(@RequestBody ShipmentVo shipmentVo) {
         return shipmentService.getShipmentList(shipmentVo);
     }
 
-    @GetMapping("/getShipmentItemList/{id}")
-    public List<ShipmentItemListVo> getShipmentItemList(@PathVariable("id") String shipmentId) {
-        return shipmentService.getShipmentItemList(shipmentId);
-    }
-
     @GetMapping("/getShipmentInfo/{id}")
-    public Map<String, Object> getShipmentInfo (@PathVariable("id") String shipmentId) {
+    public Map<String, Object> getShipmentInfo (@PathVariable("id") Long shipmentId) {
         return shipmentService.getShipmentInfo(shipmentId);
     }
 
-    @GetMapping("/getSalesItemList/{ids}")
-    public List<ShipmentItemListVo> getSalesItemList(@PathVariable("ids") String saleIds) {
-        return shipmentService.getSalesItemList(saleIds);
+
+    @PostMapping("/getWorkOrderItemList")
+    public List<ShipmentWorkOrderVo> getWorkOrderItemList(@RequestBody ShipmentWorkOrderVo vo) {
+        return shipmentService.getWorkOrderItemList(vo);
     }
 
-    @PostMapping("/saveShipmentInfo")
-    public ResponseEntity<?> saveShipmentInfo ( @RequestPart("shipmentInfo") String shipmentInfoJson,
-                                                @RequestPart("itemList") String itemListJson,
-                                                @RequestPart(value = "attachFile" , required = false) List<MultipartFile> attachFileList
-                                                ) throws Exception{
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-
-            ShipmentVo shipmentInfo = mapper.readValue(shipmentInfoJson, ShipmentVo.class);
-            List<ShipmentItemListVo> itemList = mapper.readValue(itemListJson, new TypeReference<List<ShipmentItemListVo>>() {});
-            String result = shipmentService.saveShipmentInfo(shipmentInfo, itemList, attachFileList);
-
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
+    @PostMapping(value = "/saveShipmentInfo",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public  ResponseEntity<ApiResponse<Long>> saveShipmentInfo(@RequestPart("request")
+                                                               ShipmentRequestVo vo,
+                                                               @RequestPart(value = "newFiles", required = false)
+                                                               List<MultipartFile> newFiles ) {
+        vo.setNewFiles(newFiles);
+        String result = shipmentService.saveShipmentInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
     @PostMapping("updateShipmentInfo")
-    public ResponseEntity<?> updateShipmentInfo ( @RequestPart("shipmentInfo") String shipmentInfoJson,
-                                                  @RequestPart("itemList") String itemListJson,
-                                                  @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles,
-                                                  @RequestPart(value = "deleteFiles", required = false) String deleteFilesJson,
-                                                  @RequestPart(value = "keptFiles", required = false) String keptFilesJson
+    public ResponseEntity<?> updateShipmentInfo ( @RequestPart("request")
+                                                      ShipmentRequestVo vo,
+                                                  @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles
                                                 ) throws Exception {
 
-        try{
-            ObjectMapper mapper = new ObjectMapper();
+        vo.setNewFiles(newFiles);
 
-            ShipmentSaveRequestVo vo = new ShipmentSaveRequestVo();
-
-            vo.setShipmentInfo(mapper.readValue((shipmentInfoJson), ShipmentVo.class));
-            vo.setItemList(mapper.readValue(itemListJson, new TypeReference<List<ShipmentItemListVo>>() {}));
-            vo.setNewFiles(newFiles != null ? newFiles : new ArrayList<>());
-
-            List<FileVo> deleteFiles = new ArrayList<>();
-            if (deleteFilesJson != null && !deleteFilesJson.isEmpty()) {
-                deleteFiles = mapper.readValue(deleteFilesJson, new TypeReference<List<FileVo>>() {});
-            }
-
-            vo.setDeleteFiles(deleteFiles);
-
-            vo.setKeptFiles(keptFilesJson != null ?
-                    mapper.readValue(keptFilesJson, new TypeReference<List<FileVo>>() {}) :
-                    new ArrayList<>());
-
-            String result = shipmentService.updateShipmentInfo(vo);
-
-            return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());  // 사용자에게 오류 메시지 반환
-        }
-
+        String result = shipmentService.updateShipmentInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
+
+
+
 }

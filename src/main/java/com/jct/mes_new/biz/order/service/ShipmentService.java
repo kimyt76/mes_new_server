@@ -9,13 +9,11 @@ import java.util.Map;
 public interface ShipmentService {
     List<ShipmentVo> getShipmentList(ShipmentVo shipmentVo);
 
-    List<ShipmentItemListVo> getSalesItemList(String saleIds);
+    String saveShipmentInfo(ShipmentRequestVo vo);
 
-    String saveShipmentInfo(ShipmentVo shipmentInfo, List<ShipmentItemListVo> itemList, List<MultipartFile> attachFileList) throws Exception;
+    Map<String, Object> getShipmentInfo(Long shipmentId);
 
-    Map<String, Object> getShipmentInfo(String shipmentId);
+    String updateShipmentInfo(ShipmentRequestVo vo) throws Exception;
 
-    List<ShipmentItemListVo> getShipmentItemList(String shipmentId);
-
-    String updateShipmentInfo(ShipmentSaveRequestVo vo) throws Exception;
+    List<ShipmentWorkOrderVo> getWorkOrderItemList(ShipmentWorkOrderVo vo);
 }

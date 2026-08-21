@@ -1,8 +1,6 @@
 package com.jct.mes_new.biz.order.mapper;
 
-import com.jct.mes_new.biz.order.vo.SaleItemListVo;
-import com.jct.mes_new.biz.order.vo.ShipmentItemListVo;
-import com.jct.mes_new.biz.order.vo.ShipmentVo;
+import com.jct.mes_new.biz.order.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -11,17 +9,21 @@ import java.util.List;
 public interface ShipmentMapper {
     List<ShipmentVo> getShipmentList(ShipmentVo shipmentVo);
 
-    List<SaleItemListVo> getSalesItemList(List<String> saleIdList);
+    void deleteShipmentItemList(Long shipmentId);
 
-    int saveShipmentInfo(ShipmentVo shipmentInfo);
+    ShipmentVo getShipmentInfo(Long shipmentId);
 
-    void deleteShipmentItemList(String shipmentId);
+    List<ShipmentItemListVo> getItemList(Long shipmentId);
 
-    int saveItemList(ShipmentItemListVo item);
+    List<ShipmentItemListVo> getShipmentItemList(Long shipmentId);
+    List<ShipmentWorkOrderVo> getWorkOrderItemList(ShipmentWorkOrderVo vo);
 
-    ShipmentVo getShipmentInfo(String shipmentId);
 
-    List<ShipmentItemListVo> getItemList(String shipmentId);
+    int insertShipmentMst(ShipmentVo mst);
+    int insertShipmentItemList(ShipmentItemListVo mst);
 
-    List<ShipmentItemListVo> getShipmentItemList(String shipmentId);
+    int updateShipmentMst(ShipmentVo mst);
+    int updateShipmentItemList(ShipmentItemListVo mst);
+
+    int insertShipmentInvTran(ShipmentInvTranVo relation);
 }
