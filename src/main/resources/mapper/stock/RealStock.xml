@@ -173,33 +173,36 @@
     </select>
 
     <select id="getInvTranItemList">
-        select    c.code_nm as item_type_name
-                 ,a.item_cd
-                 ,a.item_name
-                 ,a.test_no
-                 ,sum(isnull(a.qty, 0)) as qty
-                 ,s.storage_name
-                 ,a.storage_cd
-                 ,a.item_type_cd
-                 ,a.tran_item_id
-        from   vw_inv_stock_tran a
+        SELECT ROW_NUMBER() OVER (ORDER BY q.item_cd, q.test_no, q.storage_cd) AS row_id
+            ,q.*
+        from (
+                select c.code_nm as item_type_name
+                        ,a.item_cd
+                        ,a.item_name
+                        ,a.test_no
+                        ,sum(isnull(a.qty, 0)) as qty
+                        ,s.storage_name
+                        ,a.storage_cd
+                        ,a.item_type_cd
+                from vw_inv_stock_tran a
                 left join tb_common_code c
-                    on c.code = a.item_type_cd
-                    and c.com_type_cd = 'item_type_cd'
+                on c.code = a.item_type_cd
+                and c.com_type_cd = 'item_type_cd'
                 left join tb_storage_mst s
-                    on s.storage_cd = a.storage_cd
-        where  a.item_type_cd = #{itemTypeCd}
-        <if test="itemCd != null and itemCd != ''">
-          and    a.item_cd LIKE '%#{itemCd}%'
-        </if>
-        <if test="itemName != null and itemName != ''">
-         and    a.item_name LIKE '%#{itemName}%'
-        </if>
-        <if test="testNo != null and testNo != ''">
-          and    a.test_no LIKE '%#{testNo}%'
-        </if>
-        group by c.code_nm ,a.item_cd ,a.item_name ,a.test_no ,s.storage_name ,a.storage_cd ,a.item_type_cd, a.tran_item_id
-        order by a.item_cd, a.test_no
+                on s.storage_cd = a.storage_cd
+                where a.item_type_cd = #{itemTypeCd}
+                <if test="itemCd != null and itemCd != ''">    and    a.item_cd LIKE '%#{itemCd}%'
+                </if>
+                <if test="itemName != null and itemName != ''">
+                 and    a.
+                    item_name LIKE '%#{itemName}%'
+                </if>
+                <if test="testNo != null and testNo != ''">
+                  and    a.test_no LIKE '%#{testNo}%'
+                </if>
+                group by c.code_nm ,a.item_cd ,a.item_name ,a.test_no ,s.storage_name ,a.storage_cd ,a.item_type_cd
+        ) q
+        ORDER BY q.item_cd, q.test_no, q.storage_cd
     </select>
 
     <insert id="insertRealStockItem">
