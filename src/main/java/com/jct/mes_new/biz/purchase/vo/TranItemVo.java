@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Data
 public class TranItemVo {
 
+    private Integer rowId;
     private Long tranId;
     private Long tranItemId;
     private Long purItemId;
@@ -24,12 +25,18 @@ public class TranItemVo {
     private BigDecimal supplyPrice;
     private BigDecimal vatPrice;
     private String lotNo;
+    private String makeNo;
     private String testNo;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;
     private String inYn;
     private String qcStatus;
     private String etc;
+
+    private String storageName;
+    private String storageCd;
+    private String itemTypeName;
+
 
 
     private String userId;
