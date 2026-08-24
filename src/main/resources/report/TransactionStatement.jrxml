@@ -928,7 +928,6 @@
 
                     <textElement textAlignment="Center"
                                  verticalAlignment="Middle">
-
                         <font fontName="맑은 고딕"
                               size="7"
                               isBold="true"/>
@@ -936,7 +935,21 @@
 
                     <text><![CDATA[인수]]></text>
                 </staticText>
+                <!-- 인수란 맨 오른쪽 '인' -->
+                <staticText>
+                    <reportElement x="780"
+                                   y="54"
+                                   width="21"
+                                   height="18"/>
 
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+                        <font fontName="맑은 고딕"
+                              size="7"/>
+                    </textElement>
+
+                    <text><![CDATA[인]]></text>
+                </staticText>
 
                 <!-- 합계 행 세로선 -->
 
