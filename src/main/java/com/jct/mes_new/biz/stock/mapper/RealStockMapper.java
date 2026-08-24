@@ -26,4 +26,7 @@ public interface RealStockMapper {
     int updateRealStockItem(RealStockItemVo stockItem);
 
     int updateRealStockComplete(RealStockVo mst);
+
+    void deleteRealStockMst(Long realStockMstId);
+    void deleteRealStockItem(Long realStockMstId);
 }

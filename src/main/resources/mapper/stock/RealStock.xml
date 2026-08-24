@@ -230,4 +230,11 @@
         where  real_stock_mst_id = #{realStockMstId}
     </update>
 
+    <delete id="deleteRealStockMst">
+        delete tb_real_stock_mst where real_stock_mst_id = #{realStockMstId}
+    </delete>
+    <delete id="deleteRealStockItem">
+        delete tb_real_stock_item where real_stock_mst_id = #{realStockMstId}
+    </delete>
+
 </mapper>

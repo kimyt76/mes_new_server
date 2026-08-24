@@ -19,4 +19,6 @@ public interface RealStockService {
     Long saveRealStockItemList(RealStockRequestVo vo);
 
     String saveRealStockComplete(Long realStockMstId);
+
+    String deleteRealStock(Long realStockMstId);
 }

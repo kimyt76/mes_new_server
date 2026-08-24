@@ -6,12 +6,14 @@ import com.jct.mes_new.biz.stock.vo.*;
 import com.jct.mes_new.biz.system.mapper.StorageMapper;
 import com.jct.mes_new.biz.system.vo.StorageVo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class StockServiceImpl implements StockService {
@@ -136,15 +138,13 @@ public class StockServiceImpl implements StockService {
         // 창고별 재고 수량 조회
         List<StockVo> stockList;
 
-        if (vo.getType() == null || vo.getType().isEmpty() || "ITEM".equals(vo.getType())) {
-            stockList = stockMapper.getStockItemList(vo);
-        } else {
-            stockList = stockMapper.getStockTestList(vo);
-        }
+        stockList = stockMapper.getStockItemList(vo);
 
         // 품목별 / 시험번호별 피벗 데이터 생성
         for (StockVo row : stockList) {
-            String mapKey = row.getItemCd();
+            String itemCd = row.getItemCd() == null? "": row.getItemCd().trim();
+            String testNo = row.getTestNo() == null? "": row.getTestNo().trim();
+            String mapKey = itemCd;
 
             if ("TEST".equals(vo.getType())) {
                 mapKey = row.getItemCd() + "_" + row.getTestNo();
@@ -159,7 +159,7 @@ public class StockServiceImpl implements StockService {
                 stockVo.setTestNo(row.getTestNo());
 
                 stockVo.setInReQty(nvl(row.getInReQty()));
-                stockVo.setSaftQty(nvl(row.getSaftQty()));
+                stockVo.setSafeStockQty(nvl(row.getSafeStockQty()));
                 stockVo.setTotQty(BigDecimal.ZERO);
                 stockVo.setStorageQtyMap(new LinkedHashMap<>());
 
@@ -219,7 +219,7 @@ public class StockServiceImpl implements StockService {
 
             rowMap.put("inReQty", nvl(stockVo.getInReQty()));
             rowMap.put("totQty", nvl(stockVo.getTotQty()));
-            rowMap.put("saftQty", nvl(stockVo.getSaftQty()));
+            rowMap.put("safeStockQty", nvl(stockVo.getSafeStockQty()));
 
             for (StorageVo storage : filteredStorageList) {
                 String storageCd = storage.getStorageCd();

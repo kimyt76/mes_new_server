@@ -30,7 +30,7 @@ public class StockVo {
     private BigDecimal stockQty;
     private BigDecimal totQty;
     private BigDecimal inReQty;
-    private BigDecimal saftQty;
+    private BigDecimal safeStockQty;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;

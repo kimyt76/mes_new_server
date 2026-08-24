@@ -147,7 +147,14 @@ public class RealStockServiceImpl implements RealStockService {
     }
 
 
+    public String deleteRealStock(Long realStockMstId){
 
+        realStockMapper.deleteRealStockMst(realStockMstId);
+        realStockMapper.deleteRealStockItem(realStockMstId);
+
+
+        return "삭제되었습니다.";
+    }
 
 
 

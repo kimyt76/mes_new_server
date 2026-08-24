@@ -85,6 +85,12 @@ public class RealStockController {
     }
 
 
+    @GetMapping("/deleteRealStock/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteRealStock (@PathVariable("id") Long realStockMstId) {
+        String result = realStockService.deleteRealStock(realStockMstId);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.deleted")));
+    }
+
 
 
 }
