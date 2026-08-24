@@ -29,5 +29,4 @@ public interface ShipmentMapper {
 
     void updatePrintYn(Long shipmentId);
 
-    List<ShipmentItemListVo> getTransactionShipmentItemList(Long shipmentId);
 }

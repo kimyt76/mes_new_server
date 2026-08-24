@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 public class ShipmentItemListVo {
     private int rowId;
     private Integer copyNo;
+    private Integer pageNo;
     private Long shipmentItemId;
     private Long shipmentId;
     private Long workProcId;

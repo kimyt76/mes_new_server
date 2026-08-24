@@ -163,6 +163,7 @@
                    join tb_item_mst b
                         on b.item_cd = a.item_cd
         where  shipment_id = #{shipmentId}
+        ORDER BY a.shipment_item_id
     </select>
 
     <insert id="insertShipmentMst" parameterType="com.jct.mes_new.biz.order.vo.ShipmentVo" useGeneratedKeys="true" keyProperty="shipmentId">
@@ -363,41 +364,6 @@
         values
         (#{tranId}, #{tranId}, #{userId})
     </insert>
-
-    <select id="getTransactionShipmentItemList">
-        SELECT
-            a.item_cd
-             ,a.po_no
-             ,a.lot_no AS lotNo
-             ,a.make_no
-             ,a.qc_status
-             ,a.qty
-             ,a.stock_qty
-             ,a.pallet
-             ,a.test_no
-             ,a.storage_cd
-             ,b.item_name
-             ,a.shipment_item_id
-             ,a.shipment_id
-             ,a.item_type_cd
-             ,'' AS etc
-             ,c.copy_no AS copyNo
-        FROM tb_shipment_item a
-                 INNER JOIN tb_item_mst b
-                            ON b.item_cd = a.item_cd
-
-                 CROSS JOIN (
-            SELECT 1 AS copy_no
-            UNION ALL
-            SELECT 2 AS copy_no
-        ) c
-
-        WHERE a.shipment_id = #{shipmentId}
-
-        ORDER BY
-            c.copy_no
-               ,a.shipment_item_id
-    </select>
 
     <update id="updatePrintYn">
         update tb_shipment_mst set print_yn ='Y' where shipment_id = #{shipmentId}

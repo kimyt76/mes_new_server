@@ -325,6 +325,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     public byte[] printTransactionStatement(Long shipmentId) {
+
         // =========================================================
         // 1. DB 조회 - 본사정보
         // =========================================================
@@ -337,123 +338,366 @@ public class ShipmentServiceImpl implements ShipmentService {
         ShipmentVo shipmentMst = shipmentMapper.getShipmentInfo(shipmentId);
 
         if (shipmentMst == null) {
-            throw new IllegalArgumentException("거래명세서 데이터가 없습니다. shipmentId=" + shipmentId);
+            throw new IllegalArgumentException(
+                    "거래명세서 데이터가 없습니다. shipmentId=" + shipmentId
+            );
         }
 
         // =========================================================
         // 3. DB 조회 - 출고 품목
         // =========================================================
-        List<ShipmentItemListVo> items = shipmentMapper.getTransactionShipmentItemList(shipmentId);
-        // null 방지
+        List<ShipmentItemListVo> items = shipmentMapper.getShipmentItemList(shipmentId);
+
         if (items == null) {
             items = new ArrayList<>();
         }
 
         // =========================================================
-        // 4. 품목 총수량 계산
+        // 4. 수량 합계
         // =========================================================
-        BigDecimal totalQty = items.stream()
+        BigDecimal qtyTotal = items.stream()
                 .map(ShipmentItemListVo::getQty)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        // =========================================================
-        // 5. JRXML 파라미터
-        // =========================================================
-        Map<String, Object> params = new HashMap<>();
-        // ---------------------------------------------------------
-        // 상단 - 거래정보
-        // ---------------------------------------------------------
-        // PO NO
-        params.put("poNo", nvl(shipmentMst.getShipmentDateSeq()));
-
-        // ---------------------------------------------------------
-        // 상단 - 공급자(본사) 정보
-        // ---------------------------------------------------------
-        params.put("companyName", nvl(master.getCustomerName()) );
-        params.put("bizNo",nvl(master.getBusinessNo()));
-        params.put("ceoName", nvl(master.getPresident()) );
-        params.put("bizType", "" );
-        params.put("bizItem", "" );
-        params.put("address", nvl(master.getAddress()) );
-        params.put("tel", nvl(master.getTel()) );
-
-        // ---------------------------------------------------------
-        // 고객사명
-        // ---------------------------------------------------------
-        params.put("customerName", nvl(shipmentMst.getClientName()));
 
         // =========================================================
-        // 품목 리스트
-        // items는 아래에서 JRBeanCollectionDataSource로 넘기기 때문에
-        // 여기에서 for문으로 params.put() 할 필요 없음
-        // JRXML에서는
-        // $F{itemName}
-        // $F{spec}
-        // $F{qty}
-        // $F{etc}
-        //
-        // 형태로 사용
+        // 5. 파렛트 합계
+        // =========================================================
+        BigDecimal palletTotal = items.stream()
+                .map(ShipmentItemListVo::getPallet)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // =========================================================
+        // 6. 총수량 = 수량 + 파렛트
+        // =========================================================
+        BigDecimal totalQty = qtyTotal.add(palletTotal);
+
+        // =========================================================
+        // 5. 출고 요청일자
         // =========================================================
         String shipmentReqDate = "";
 
         if (shipmentMst.getShipmentReqDate() != null) {
-            shipmentReqDate = shipmentMst.getShipmentReqDate().toString();
+            shipmentReqDate =
+                    shipmentMst.getShipmentReqDate().toString();
         }
 
+        // 원본 리스트에 출고 요청일자 세팅
         for (ShipmentItemListVo item : items) {
             item.setShipmentReqDate(shipmentReqDate);
         }
-        // =========================================================
-        // 품목 리스트
-        // items는 아래에서 JRBeanCollectionDataSource로 넘기기 때문에
-        // 여기에서 for문으로 params.put() 할 필요 없음
-        // JRXML에서는
-        // $F{shipmentReqDate }   shipmentMst.getShipmentReqDate().toString(); 이 값이 들어가야함
-        // $F{itemName}
-        // $F{qty}
-        // $F{etc}
-        //
-        // 형태로 사용
-        // =========================================================
-        // =========================================================
-        // 하단 - 총수량
-        // =========================================================
-        params.put("totalQty",totalQty);
-        // =========================================================
-        // 하단 - 납품주소
-        // =========================================================
-        String deliveryAddress = (nvl(shipmentMst.getDeliveryLocation())+ " " + nvl(shipmentMst.getDeliveryAddress())).trim();
-        params.put("deliveryAddress", deliveryAddress );
 
         // =========================================================
-        // 하단 - 특이사항
+        // 6. Jasper 출력용 리스트 생성
+        //
+        // 한 명세서 = 10행
+        // 한 페이지 = 동일 명세서 2부
+        //
+        // copyNo = 1 : 상단
+        // copyNo = 2 : 하단
+        // pageNo = 실제 A4 페이지 번호
+        // rowId  = 명세서 내부 순번 1 ~ 10
+        // =========================================================
+        final int ROWS_PER_COPY = 10;
+
+        List<ShipmentItemListVo> printItems = new ArrayList<>();
+
+        int totalPage =
+                (int) Math.ceil(
+                        (double) items.size() / ROWS_PER_COPY
+                );
+
+        // 데이터가 없더라도 거래명세서 1페이지 출력
+        if (totalPage == 0) {
+            totalPage = 1;
+        }
+
+        for (int pageNo = 1; pageNo <= totalPage; pageNo++) {
+            int startIndex =
+                    (pageNo - 1) * ROWS_PER_COPY;
+
+            int endIndex =
+                    Math.min(
+                            startIndex + ROWS_PER_COPY,
+                            items.size()
+                    );
+
+            // =====================================================
+            // 현재 페이지의 원본 10행 생성
+            // =====================================================
+            List<ShipmentItemListVo> pageItems =
+                    new ArrayList<>();
+
+            // 실제 데이터
+            for (int i = startIndex; i < endIndex; i++) {
+
+                ShipmentItemListVo source = items.get(i);
+
+                ShipmentItemListVo row =
+                        new ShipmentItemListVo();
+
+                // -------------------------------------------------
+                // 실제 VO 필드 복사
+                // -------------------------------------------------
+                row.setShipmentReqDate(
+                        source.getShipmentReqDate()
+                );
+
+                row.setItemName(
+                        source.getItemName()
+                );
+
+                row.setQty(
+                        source.getQty()
+                );
+
+                row.setPallet(
+                        source.getPallet()
+                );
+
+                row.setLotNo(
+                        source.getLotNo()
+                );
+
+                // VO에 spec, etc 등이 있다면 필요시 추가
+                // row.setSpec(source.getSpec());
+                // row.setEtc(source.getEtc());
+
+                pageItems.add(row);
+            }
+
+            // =====================================================
+            // 10행보다 부족하면 빈행 추가
+            // =====================================================
+            while (pageItems.size() < ROWS_PER_COPY) {
+
+                ShipmentItemListVo emptyRow =
+                        new ShipmentItemListVo();
+
+                pageItems.add(emptyRow);
+            }
+
+            // =====================================================
+            // 상단 명세서
+            // copyNo = 1
+            // =====================================================
+            for (int i = 0; i < ROWS_PER_COPY; i++) {
+
+                ShipmentItemListVo source =
+                        pageItems.get(i);
+
+                ShipmentItemListVo row =
+                        new ShipmentItemListVo();
+
+                row.setRowId(i + 1);
+                row.setPageNo(pageNo);
+                row.setCopyNo(1);
+
+                row.setShipmentReqDate(
+                        source.getShipmentReqDate()
+                );
+
+                row.setItemName(
+                        source.getItemName()
+                );
+
+                row.setQty(
+                        source.getQty()
+                );
+
+                row.setPallet(
+                        source.getPallet()
+                );
+
+                row.setLotNo(
+                        source.getLotNo()
+                );
+
+                // 필요시 추가
+                // row.setSpec(source.getSpec());
+                // row.setEtc(source.getEtc());
+                printItems.add(row);
+            }
+
+            // =====================================================
+            // 하단 명세서
+            // copyNo = 2
+            // =====================================================
+            for (int i = 0; i < ROWS_PER_COPY; i++) {
+
+                ShipmentItemListVo source =
+                        pageItems.get(i);
+
+                ShipmentItemListVo row =
+                        new ShipmentItemListVo();
+
+                row.setRowId(i + 1);
+                row.setPageNo(pageNo);
+                row.setCopyNo(2);
+
+                row.setShipmentReqDate(
+                        source.getShipmentReqDate()
+                );
+
+                row.setItemName(
+                        source.getItemName()
+                );
+
+                row.setQty(
+                        source.getQty()
+                );
+
+                row.setPallet(
+                        source.getPallet()
+                );
+
+                row.setLotNo(
+                        source.getLotNo()
+                );
+
+                // 필요시 추가
+                // row.setSpec(source.getSpec());
+                // row.setEtc(source.getEtc());
+
+                printItems.add(row);
+            }
+        }
+
+        // =========================================================
+        // 7. JRXML 파라미터
+        // =========================================================
+        Map<String, Object> params = new HashMap<>();
+
+        // ---------------------------------------------------------
+        // 상단 - 거래정보
+        // ---------------------------------------------------------
+        params.put(
+                "poNo",
+                nvl(shipmentMst.getShipmentDateSeq())
+        );
+
+        // ---------------------------------------------------------
+        // 상단 - 공급자(본사) 정보
+        // ---------------------------------------------------------
+        params.put(
+                "companyName",
+                nvl(master.getCustomerName())
+        );
+
+        params.put(
+                "bizNo",
+                nvl(master.getBusinessNo())
+        );
+
+        params.put(
+                "ceoName",
+                nvl(master.getPresident())
+        );
+
+        params.put(
+                "bizType",
+                ""
+        );
+
+        params.put(
+                "bizItem",
+                ""
+        );
+
+        params.put(
+                "address",
+                nvl(master.getAddress())
+        );
+
+        params.put(
+                "tel",
+                nvl(master.getTel())
+        );
+
+        // ---------------------------------------------------------
+        // 고객사명
+        // ---------------------------------------------------------
+        params.put("customerName",nvl(shipmentMst.getClientName()));
+
+        // =========================================================
+        // 8. 하단 - 총수량
+        // =========================================================
+        params.put("totalQty", totalQty );
+        params.put("totalPallet", palletTotal);
+        params.put("totalLoadQty", qtyTotal );
+
+        // =========================================================
+        // 11. 하단 - 납품주소
+        // =========================================================
+        String deliveryAddress =(nvl(shipmentMst.getDeliveryLocation())+ " " + nvl(shipmentMst.getDeliveryAddress()) ).trim();
+
+        params.put("deliveryAddress", nvl(deliveryAddress) );
+        // =========================================================
+        // 12. 하단 - 납품 담당자
+        //
+        // ShipmentVo 실제 필드명에 맞게 변경
+        // 현재 필드가 없다면 빈값
+        // =========================================================
+        params.put("deliveryManager", nvl(shipmentMst.getDeliveryManagerName()) );
+        // 예:
+        // params.put(
+        //         "deliveryManager",
+        //         nvl(shipmentMst.getDeliveryManagerName())
+        // );
+
+        // =========================================================
+        // 13. 하단 - 연락처
+        // =========================================================
+        params.put("deliveryContact",  nvl(shipmentMst.getDeliveryTelno()) );
+
+        // 예:
+        // params.put(
+        //         "deliveryContact",
+        //         nvl(shipmentMst.getDeliveryTel())
+        // );
+
+        // =========================================================
+        // 14. 하단 - 특이사항
         // =========================================================
         params.put("etc", nvl(shipmentMst.getEtc()) );
 
         // =========================================================
-        // 회사 인장
-        // src/main/resources/report/company_seal.png
+        // 15. 회사 인장
+        // src/main/resources/static/images/company_seal.png
         // =========================================================
-        ClassPathResource sealResource = new ClassPathResource("static/images/company_seal.png" );
+        ClassPathResource sealResource = new ClassPathResource("static/images/company_seal.png");
 
         try {
             if (sealResource.exists()) {
-                params.put("sealImagePath", sealResource.getURL().toString() );
+
+                params.put(
+                        "sealImagePath",
+                        sealResource.getURL().toString()
+                );
+
             } else {
-                params.put("sealImagePath", null);
+
+                params.put(
+                        "sealImagePath",
+                        null
+                );
             }
 
             // =====================================================
-            // JRXML 파일
+            // 16. JRXML 파일
             // =====================================================
             ClassPathResource jrxmlResource =
                     new ClassPathResource(
                             "report/TransactionStatement.jrxml"
                     );
 
-            try (InputStream jrxml =jrxmlResource.getInputStream()) {
+            try (
+                    InputStream jrxml =
+                            jrxmlResource.getInputStream()
+            ) {
+
                 // =================================================
-                // JRXML 컴파일
+                // 17. JRXML 컴파일
                 // =================================================
                 JasperReport jasperReport =
                         JasperCompileManager.compileReport(
@@ -461,15 +705,18 @@ public class ShipmentServiceImpl implements ShipmentService {
                         );
 
                 // =================================================
-                // 품목 리스트를 Jasper Detail DataSource로 전달
+                // 18. Jasper Detail DataSource
+                //
+                // 중요:
+                // 기존 items가 아니라 printItems를 넘김
                 // =================================================
                 JRBeanCollectionDataSource dataSource =
                         new JRBeanCollectionDataSource(
-                                items
+                                printItems
                         );
 
                 // =================================================
-                // Jasper Report 생성
+                // 19. Jasper Report 생성
                 // =================================================
                 JasperPrint jasperPrint =
                         JasperFillManager.fillReport(
@@ -478,17 +725,28 @@ public class ShipmentServiceImpl implements ShipmentService {
                                 dataSource
                         );
 
-                shipmentMapper.updatePrintYn(shipmentId);
                 // =================================================
-                // PDF byte[] 반환
+                // 20. 출력 여부 업데이트
+                // =================================================
+                shipmentMapper.updatePrintYn(
+                        shipmentId
+                );
+
+                // =================================================
+                // 21. PDF byte[] 반환
                 // =================================================
                 return JasperExportManager
                         .exportReportToPdf(
                                 jasperPrint
                         );
             }
+
         } catch (Exception e) {
-            throw new RuntimeException("거래명세서 PDF 생성 중 오류가 발생했습니다.",e);
+
+            throw new RuntimeException(
+                    "거래명세서 PDF 생성 중 오류가 발생했습니다.",
+                    e
+            );
         }
     }
 
