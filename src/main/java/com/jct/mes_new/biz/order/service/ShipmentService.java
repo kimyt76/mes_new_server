@@ -16,4 +16,6 @@ public interface ShipmentService {
     String updateShipmentInfo(ShipmentRequestVo vo) throws Exception;
 
     List<ShipmentWorkOrderVo> getWorkOrderItemList(ShipmentWorkOrderVo vo);
+
+    byte[] printTransactionStatement(Long shipmentId);
 }

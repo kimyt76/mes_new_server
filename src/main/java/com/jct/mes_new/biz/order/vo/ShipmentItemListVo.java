@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 @Data
 public class ShipmentItemListVo {
     private int rowId;
+    private Integer copyNo;
     private Long shipmentItemId;
     private Long shipmentId;
     private Long workProcId;
@@ -26,5 +27,7 @@ public class ShipmentItemListVo {
     private String testNo;
     private Integer orderDist;
 
+    private String shipmentReqDate;
+    private String etc;
     private String userId;
 }

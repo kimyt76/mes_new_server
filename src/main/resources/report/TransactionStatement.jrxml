@@ -1,0 +1,1333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="TransactionStatement"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="10"
+              bottomMargin="10"
+              whenNoDataType="AllSectionsNoDetail"
+              uuid="6e7ab76b-6466-4fc9-9a02-33d52f349f11">
+
+    <!-- ===================================================== -->
+    <!-- STYLE -->
+    <!-- ===================================================== -->
+
+    <style name="Base"
+           fontName="맑은 고딕"
+           fontSize="8"/>
+
+    <style name="Center"
+           style="Base"
+           hTextAlign="Center"
+           vTextAlign="Middle"/>
+
+
+    <!-- ===================================================== -->
+    <!-- PARAMETER -->
+    <!-- ===================================================== -->
+
+    <parameter name="companyName" class="java.lang.String"/>
+    <parameter name="bizNo" class="java.lang.String"/>
+    <parameter name="ceoName" class="java.lang.String"/>
+    <parameter name="bizType" class="java.lang.String"/>
+    <parameter name="bizItem" class="java.lang.String"/>
+    <parameter name="address" class="java.lang.String"/>
+    <parameter name="tel" class="java.lang.String"/>
+    <parameter name="poNo" class="java.lang.String"/>
+    <parameter name="customerName" class="java.lang.String"/>
+    <parameter name="sealImagePath" class="java.lang.String"/>
+    <parameter name="totalQty" class="java.math.BigDecimal"/>
+    <parameter name="deliveryAddress" class="java.lang.String"/>
+    <parameter name="etc" class="java.lang.String"/>
+
+
+    <!-- ===================================================== -->
+    <!-- FIELD -->
+    <!-- ===================================================== -->
+
+    <field name="copyNo" class="java.lang.Integer"/>
+    <field name="shipmentReqDate" class="java.lang.String"/>
+    <field name="itemName" class="java.lang.String"/>
+    <field name="qty" class="java.math.BigDecimal"/>
+    <field name="pallet" class="java.math.BigDecimal"/>
+    <field name="lotNo" class="java.lang.String"/>
+
+
+    <!-- ===================================================== -->
+    <!-- COPY GROUP -->
+    <!--
+         copyNo = 1 : 첫 번째 거래명세서
+         copyNo = 2 : 두 번째 거래명세서
+
+         남은 공간이 230pt보다 작으면
+         다음 페이지에서 그룹 시작
+    -->
+    <!-- ===================================================== -->
+
+    <group name="CopyGroup"
+           keepTogether="true"
+           minHeightToStartNewPage="230">
+
+        <groupExpression><![CDATA[
+            $F{copyNo}
+        ]]></groupExpression>
+
+
+        <!-- ================================================= -->
+        <!-- GROUP HEADER -->
+        <!-- ================================================= -->
+
+        <groupHeader>
+
+            <band height="116">
+
+
+                <!-- ========================================= -->
+                <!-- 거래명세서 제목 -->
+                <!-- ========================================= -->
+
+                <staticText>
+                    <reportElement x="0"
+                                   y="5"
+                                   width="340"
+                                   height="34"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="20"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[거래명세서]]></text>
+                </staticText>
+
+
+                <!-- ========================================= -->
+                <!-- 고객사 -->
+                <!-- ========================================= -->
+
+                <textField isBlankWhenNull="true">
+
+                    <reportElement x="0"
+                                   y="43"
+                                   width="340"
+                                   height="54"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="11"
+                              isBold="true"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{customerName}
+                    ]]></textFieldExpression>
+
+                </textField>
+
+
+                <!-- 고객사 박스 -->
+                <line>
+                    <reportElement x="0"
+                                   y="43"
+                                   width="340"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0"
+                                   y="96"
+                                   width="340"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0"
+                                   y="43"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="339"
+                                   y="43"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- ========================================= -->
+                <!-- 공급자 -->
+                <!-- ========================================= -->
+
+                <staticText>
+                    <reportElement x="355"
+                                   y="5"
+                                   width="18"
+                                   height="92"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[공
+급
+자]]></text>
+                </staticText>
+
+
+                <!-- 일련번호 -->
+                <staticText>
+                    <reportElement x="373"
+                                   y="5"
+                                   width="75"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[일련번호]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="448"
+                                   y="5"
+                                   width="100"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{poNo}
+                    ]]></textFieldExpression>
+                </textField>
+
+
+                <!-- TEL -->
+                <staticText>
+                    <reportElement x="548"
+                                   y="5"
+                                   width="45"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[TEL]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="593"
+                                   y="5"
+                                   width="209"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{tel}
+                    ]]></textFieldExpression>
+                </textField>
+
+
+                <!-- 사업자등록번호 -->
+                <staticText>
+                    <reportElement x="373"
+                                   y="24"
+                                   width="75"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[사업자등록번호]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="448"
+                                   y="24"
+                                   width="145"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{bizNo}
+                    ]]></textFieldExpression>
+                </textField>
+
+
+                <!-- 성명 -->
+                <staticText>
+                    <reportElement x="593"
+                                   y="24"
+                                   width="55"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[성명]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="648"
+                                   y="24"
+                                   width="154"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{ceoName}
+                    ]]></textFieldExpression>
+                </textField>
+
+
+                <!-- 상호 -->
+                <staticText>
+                    <reportElement x="373"
+                                   y="43"
+                                   width="75"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[상호]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="448"
+                                   y="43"
+                                   width="354"
+                                   height="19"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{companyName}
+                    ]]></textFieldExpression>
+                </textField>
+
+
+                <!-- 주소 -->
+                <staticText>
+                    <reportElement x="373"
+                                   y="62"
+                                   width="75"
+                                   height="35"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="8"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[주소]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="448"
+                                   y="62"
+                                   width="354"
+                                   height="35"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{address}
+                    ]]></textFieldExpression>
+                </textField>
+
+
+                <!-- ========================================= -->
+                <!-- 공급자 표 세로선 -->
+                <!-- ========================================= -->
+
+                <line>
+                    <reportElement x="355" y="5"
+                                   width="1" height="92"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="373" y="5"
+                                   width="1" height="92"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="448" y="5"
+                                   width="1" height="92"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="548" y="5"
+                                   width="1" height="19"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="593" y="5"
+                                   width="1" height="38"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="648" y="24"
+                                   width="1" height="19"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="801" y="5"
+                                   width="1" height="92"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- 공급자 표 가로선 -->
+
+                <line>
+                    <reportElement x="355" y="5"
+                                   width="447" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="373" y="24"
+                                   width="429" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="373" y="43"
+                                   width="429" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="373" y="62"
+                                   width="429" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="355" y="96"
+                                   width="447" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- 직인 -->
+                <image scaleImage="RetainShape"
+                       onErrorType="Blank">
+
+                    <reportElement x="690"
+                                   y="35"
+                                   width="58"
+                                   height="58"/>
+
+                    <imageExpression class="java.lang.String"><![CDATA[
+                        $P{sealImagePath}
+                    ]]></imageExpression>
+
+                </image>
+
+
+                <!-- ========================================= -->
+                <!-- 리스트 헤더 -->
+                <!-- ========================================= -->
+
+
+                <staticText>
+                    <reportElement x="0"
+                                   y="103"
+                                   width="80"
+                                   height="13"
+                                   mode="Opaque"
+                                   backcolor="#EEEEEE"
+                                   forecolor="#000000"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[월/일]]></text>
+                </staticText>
+
+
+                <staticText>
+                    <reportElement x="80"
+                                   y="103"
+                                   width="385"
+                                   height="13"
+                                   mode="Opaque"
+                                   backcolor="#EEEEEE"
+                                   forecolor="#000000"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[품명 및 규격]]></text>
+                </staticText>
+
+
+                <staticText>
+                    <reportElement x="465"
+                                   y="103"
+                                   width="100"
+                                   height="13"
+                                   mode="Opaque"
+                                   backcolor="#EEEEEE"
+                                   forecolor="#000000"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[수량]]></text>
+                </staticText>
+
+
+                <staticText>
+                    <reportElement x="565"
+                                   y="103"
+                                   width="100"
+                                   height="13"
+                                   mode="Opaque"
+                                   backcolor="#EEEEEE"
+                                   forecolor="#000000"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[Pallet]]></text>
+                </staticText>
+
+
+                <staticText>
+                    <reportElement x="665"
+                                   y="103"
+                                   width="137"
+                                   height="13"
+                                   mode="Opaque"
+                                   backcolor="#EEEEEE"
+                                   forecolor="#000000"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[LOT]]></text>
+                </staticText>
+
+
+                <!-- 헤더 선 -->
+                <line>
+                    <reportElement x="0" y="103"
+                                   width="802" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0" y="115"
+                                   width="802" height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0" y="103"
+                                   width="1" height="13"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="80" y="103"
+                                   width="1" height="13"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="465" y="103"
+                                   width="1" height="13"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="565" y="103"
+                                   width="1" height="13"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="665" y="103"
+                                   width="1" height="13"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="801" y="103"
+                                   width="1" height="13"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+            </band>
+
+        </groupHeader>
+
+
+        <!-- ================================================= -->
+        <!-- GROUP FOOTER -->
+        <!-- ================================================= -->
+
+        <groupFooter>
+
+            <band height="124">
+
+
+                <!-- ========================================= -->
+                <!-- 빈행 3줄 -->
+                <!-- ========================================= -->
+
+
+                <!-- 세로선 -->
+
+                <line>
+                    <reportElement x="0"
+                                   y="0"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="80"
+                                   y="0"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="465"
+                                   y="0"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="565"
+                                   y="0"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="665"
+                                   y="0"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="801"
+                                   y="0"
+                                   width="1"
+                                   height="54"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- 빈행 가로선 -->
+
+                <line>
+                    <reportElement x="0"
+                                   y="18"
+                                   width="802"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0"
+                                   y="36"
+                                   width="802"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0"
+                                   y="54"
+                                   width="802"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- ========================================= -->
+                <!-- 총수량 -->
+                <!-- ========================================= -->
+
+                <staticText>
+                    <reportElement x="0"
+                                   y="54"
+                                   width="80"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[총수량]]></text>
+                </staticText>
+
+
+                <textField pattern="#,##0.###"
+                           isBlankWhenNull="true">
+
+                    <reportElement x="80"
+                                   y="54"
+                                   width="120"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{totalQty}
+                    ]]></textFieldExpression>
+
+                </textField>
+
+
+                <!-- 납품주소 -->
+                <staticText>
+                    <reportElement x="200"
+                                   y="54"
+                                   width="90"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[납품주소]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="290"
+                                   y="54"
+                                   width="305"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{deliveryAddress}
+                    ]]></textFieldExpression>
+
+                </textField>
+
+
+                <!-- 인수 -->
+                <staticText>
+                    <reportElement x="595"
+                                   y="54"
+                                   width="80"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[인수]]></text>
+                </staticText>
+
+
+                <!-- 합계 행 세로선 -->
+
+                <line>
+                    <reportElement x="0" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="80" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="200" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="290" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="595" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="675" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="801" y="54"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <line>
+                    <reportElement x="0"
+                                   y="72"
+                                   width="802"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- ========================================= -->
+                <!-- 특이사항 -->
+                <!-- ========================================= -->
+
+                <staticText>
+                    <reportElement x="0"
+                                   y="72"
+                                   width="125"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"
+                              isBold="true"/>
+                    </textElement>
+
+                    <text><![CDATA[특이사항]]></text>
+                </staticText>
+
+
+                <textField isBlankWhenNull="true">
+                    <reportElement x="125"
+                                   y="72"
+                                   width="677"
+                                   height="18"/>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"/>
+                    </textElement>
+
+                    <textFieldExpression><![CDATA[
+                        $P{etc}
+                    ]]></textFieldExpression>
+
+                </textField>
+
+
+                <!-- 특이사항 선 -->
+
+                <line>
+                    <reportElement x="0" y="72"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="125" y="72"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="801" y="72"
+                                   width="1" height="18"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+                <line>
+                    <reportElement x="0"
+                                   y="89"
+                                   width="802"
+                                   height="1"/>
+                    <graphicElement>
+                        <pen lineWidth="0.5"/>
+                    </graphicElement>
+                </line>
+
+
+                <!-- ========================================= -->
+                <!-- 첫 번째 사본 아래 절취선 -->
+                <!-- ========================================= -->
+
+                <line>
+                    <reportElement x="0"
+                                   y="108"
+                                   width="802"
+                                   height="1">
+
+                        <printWhenExpression><![CDATA[
+                            $F{copyNo} == 1
+                        ]]></printWhenExpression>
+
+                    </reportElement>
+
+                    <graphicElement>
+                        <pen lineWidth="0.5"
+                             lineStyle="Dashed"/>
+                    </graphicElement>
+                </line>
+
+
+                <staticText>
+                    <reportElement x="361"
+                                   y="99"
+                                   width="80"
+                                   height="17">
+
+                        <printWhenExpression><![CDATA[
+                            $F{copyNo} == 1
+                        ]]></printWhenExpression>
+
+                    </reportElement>
+
+                    <textElement textAlignment="Center"
+                                 verticalAlignment="Middle">
+
+                        <font fontName="맑은 고딕"
+                              size="7"/>
+                    </textElement>
+
+                    <text><![CDATA[절 취 선]]></text>
+                </staticText>
+
+
+            </band>
+
+        </groupFooter>
+
+    </group>
+
+
+    <!-- ===================================================== -->
+    <!-- DETAIL -->
+    <!-- ===================================================== -->
+
+    <detail>
+
+        <band height="18">
+
+
+            <!-- 월/일 -->
+            <textField isBlankWhenNull="true">
+
+                <reportElement x="0"
+                               y="0"
+                               width="80"
+                               height="18"/>
+
+                <textElement textAlignment="Center"
+                             verticalAlignment="Middle">
+
+                    <font fontName="맑은 고딕"
+                          size="7"/>
+                </textElement>
+
+                <textFieldExpression><![CDATA[
+                    $F{shipmentReqDate}
+                ]]></textFieldExpression>
+
+            </textField>
+
+
+            <!-- 품명 -->
+            <textField isBlankWhenNull="true">
+
+                <reportElement x="80"
+                               y="0"
+                               width="385"
+                               height="18"/>
+
+                <textElement textAlignment="Center"
+                             verticalAlignment="Middle">
+
+                    <font fontName="맑은 고딕"
+                          size="7"/>
+                </textElement>
+
+                <textFieldExpression><![CDATA[
+                    $F{itemName}
+                ]]></textFieldExpression>
+
+            </textField>
+
+
+            <!-- 수량 -->
+            <textField pattern="#,##0.###"
+                       isBlankWhenNull="true">
+
+                <reportElement x="465"
+                               y="0"
+                               width="100"
+                               height="18"/>
+
+                <textElement textAlignment="Center"
+                             verticalAlignment="Middle">
+
+                    <font fontName="맑은 고딕"
+                          size="7"/>
+                </textElement>
+
+                <textFieldExpression><![CDATA[
+                    $F{qty}
+                ]]></textFieldExpression>
+
+            </textField>
+
+
+            <!-- Pallet -->
+            <textField pattern="#,##0.###"
+                       isBlankWhenNull="true">
+
+                <reportElement x="565"
+                               y="0"
+                               width="100"
+                               height="18"/>
+
+                <textElement textAlignment="Center"
+                             verticalAlignment="Middle">
+
+                    <font fontName="맑은 고딕"
+                          size="7"/>
+                </textElement>
+
+                <textFieldExpression><![CDATA[
+                    $F{pallet}
+                ]]></textFieldExpression>
+
+            </textField>
+
+
+            <!-- LOT -->
+            <textField isBlankWhenNull="true">
+
+                <reportElement x="665"
+                               y="0"
+                               width="137"
+                               height="18"/>
+
+                <textElement textAlignment="Center"
+                             verticalAlignment="Middle">
+
+                    <font fontName="맑은 고딕"
+                          size="7"/>
+                </textElement>
+
+                <textFieldExpression><![CDATA[
+                    $F{lotNo}
+                ]]></textFieldExpression>
+
+            </textField>
+
+
+            <!-- 세로선 -->
+
+            <line>
+                <reportElement x="0" y="0"
+                               width="1" height="18"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+            <line>
+                <reportElement x="80" y="0"
+                               width="1" height="18"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+            <line>
+                <reportElement x="465" y="0"
+                               width="1" height="18"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+            <line>
+                <reportElement x="565" y="0"
+                               width="1" height="18"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+            <line>
+                <reportElement x="665" y="0"
+                               width="1" height="18"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+            <line>
+                <reportElement x="801" y="0"
+                               width="1" height="18"/>
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+
+            <!-- 하단선 -->
+            <line>
+                <reportElement x="0"
+                               y="17"
+                               width="802"
+                               height="1"/>
+
+                <graphicElement>
+                    <pen lineWidth="0.5"/>
+                </graphicElement>
+            </line>
+
+
+        </band>
+
+    </detail>
+
+
+</jasperReport>

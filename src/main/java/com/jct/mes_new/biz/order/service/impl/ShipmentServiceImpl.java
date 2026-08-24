@@ -1,5 +1,7 @@
 package com.jct.mes_new.biz.order.service.impl;
 
+import com.jct.mes_new.biz.base.service.CustomerService;
+import com.jct.mes_new.biz.base.vo.CustomerVo;
 import com.jct.mes_new.biz.common.mapper.FileHandlerMapper;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.mapper.SaleMapper;
@@ -19,15 +21,17 @@ import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -40,6 +44,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final FileHandlerMapper fileHandlerMapper;
     private final TranMapper tranMapper;
     private final StorageMapper storageMapper;
+    private final CustomerService customerService;
 
     public List<ShipmentVo> getShipmentList(ShipmentVo shipmentVo) {
         return shipmentMapper.getShipmentList(shipmentVo);
@@ -317,6 +322,193 @@ public class ShipmentServiceImpl implements ShipmentService {
                 }
             }
         }
+    }
+
+    public byte[] printTransactionStatement(Long shipmentId) {
+        // =========================================================
+        // 1. DB 조회 - 본사정보
+        // =========================================================
+        String customerCd = "1348668063";
+        CustomerVo master = customerService.getCustomerInfo(customerCd);
+
+        // =========================================================
+        // 2. DB 조회 - 출고 마스터
+        // =========================================================
+        ShipmentVo shipmentMst = shipmentMapper.getShipmentInfo(shipmentId);
+
+        if (shipmentMst == null) {
+            throw new IllegalArgumentException("거래명세서 데이터가 없습니다. shipmentId=" + shipmentId);
+        }
+
+        // =========================================================
+        // 3. DB 조회 - 출고 품목
+        // =========================================================
+        List<ShipmentItemListVo> items = shipmentMapper.getTransactionShipmentItemList(shipmentId);
+        // null 방지
+        if (items == null) {
+            items = new ArrayList<>();
+        }
+
+        // =========================================================
+        // 4. 품목 총수량 계산
+        // =========================================================
+        BigDecimal totalQty = items.stream()
+                .map(ShipmentItemListVo::getQty)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // =========================================================
+        // 5. JRXML 파라미터
+        // =========================================================
+        Map<String, Object> params = new HashMap<>();
+        // ---------------------------------------------------------
+        // 상단 - 거래정보
+        // ---------------------------------------------------------
+        // PO NO
+        params.put("poNo", nvl(shipmentMst.getShipmentDateSeq()));
+
+        // ---------------------------------------------------------
+        // 상단 - 공급자(본사) 정보
+        // ---------------------------------------------------------
+        params.put("companyName", nvl(master.getCustomerName()) );
+        params.put("bizNo",nvl(master.getBusinessNo()));
+        params.put("ceoName", nvl(master.getPresident()) );
+        params.put("bizType", "" );
+        params.put("bizItem", "" );
+        params.put("address", nvl(master.getAddress()) );
+        params.put("tel", nvl(master.getTel()) );
+
+        // ---------------------------------------------------------
+        // 고객사명
+        // ---------------------------------------------------------
+        params.put("customerName", nvl(shipmentMst.getClientName()));
+
+        // =========================================================
+        // 품목 리스트
+        // items는 아래에서 JRBeanCollectionDataSource로 넘기기 때문에
+        // 여기에서 for문으로 params.put() 할 필요 없음
+        // JRXML에서는
+        // $F{itemName}
+        // $F{spec}
+        // $F{qty}
+        // $F{etc}
+        //
+        // 형태로 사용
+        // =========================================================
+        String shipmentReqDate = "";
+
+        if (shipmentMst.getShipmentReqDate() != null) {
+            shipmentReqDate = shipmentMst.getShipmentReqDate().toString();
+        }
+
+        for (ShipmentItemListVo item : items) {
+            item.setShipmentReqDate(shipmentReqDate);
+        }
+        // =========================================================
+        // 품목 리스트
+        // items는 아래에서 JRBeanCollectionDataSource로 넘기기 때문에
+        // 여기에서 for문으로 params.put() 할 필요 없음
+        // JRXML에서는
+        // $F{shipmentReqDate }   shipmentMst.getShipmentReqDate().toString(); 이 값이 들어가야함
+        // $F{itemName}
+        // $F{qty}
+        // $F{etc}
+        //
+        // 형태로 사용
+        // =========================================================
+        // =========================================================
+        // 하단 - 총수량
+        // =========================================================
+        params.put("totalQty",totalQty);
+        // =========================================================
+        // 하단 - 납품주소
+        // =========================================================
+        String deliveryAddress = (nvl(shipmentMst.getDeliveryLocation())+ " " + nvl(shipmentMst.getDeliveryAddress())).trim();
+        params.put("deliveryAddress", deliveryAddress );
+
+        // =========================================================
+        // 하단 - 특이사항
+        // =========================================================
+        params.put("etc", nvl(shipmentMst.getEtc()) );
+
+        // =========================================================
+        // 회사 인장
+        // src/main/resources/report/company_seal.png
+        // =========================================================
+        ClassPathResource sealResource = new ClassPathResource("static/images/company_seal.png" );
+
+        try {
+            if (sealResource.exists()) {
+                params.put("sealImagePath", sealResource.getURL().toString() );
+            } else {
+                params.put("sealImagePath", null);
+            }
+
+            // =====================================================
+            // JRXML 파일
+            // =====================================================
+            ClassPathResource jrxmlResource =
+                    new ClassPathResource(
+                            "report/TransactionStatement.jrxml"
+                    );
+
+            try (InputStream jrxml =jrxmlResource.getInputStream()) {
+                // =================================================
+                // JRXML 컴파일
+                // =================================================
+                JasperReport jasperReport =
+                        JasperCompileManager.compileReport(
+                                jrxml
+                        );
+
+                // =================================================
+                // 품목 리스트를 Jasper Detail DataSource로 전달
+                // =================================================
+                JRBeanCollectionDataSource dataSource =
+                        new JRBeanCollectionDataSource(
+                                items
+                        );
+
+                // =================================================
+                // Jasper Report 생성
+                // =================================================
+                JasperPrint jasperPrint =
+                        JasperFillManager.fillReport(
+                                jasperReport,
+                                params,
+                                dataSource
+                        );
+
+                shipmentMapper.updatePrintYn(shipmentId);
+                // =================================================
+                // PDF byte[] 반환
+                // =================================================
+                return JasperExportManager
+                        .exportReportToPdf(
+                                jasperPrint
+                        );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("거래명세서 PDF 생성 중 오류가 발생했습니다.",e);
+        }
+    }
+
+
+
+
+    private String nvl(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private BigDecimal toBigDecimal(Object value) {
+        if (value == null) {
+            return BigDecimal.ZERO;
+        }
+
+        if (value instanceof BigDecimal decimal) {
+            return decimal;
+        }
+
+        return new BigDecimal(String.valueOf(value));
     }
 
 }

@@ -26,4 +26,8 @@ public interface ShipmentMapper {
     int updateShipmentItemList(ShipmentItemListVo mst);
 
     int insertShipmentInvTran(ShipmentInvTranVo relation);
+
+    void updatePrintYn(Long shipmentId);
+
+    List<ShipmentItemListVo> getTransactionShipmentItemList(Long shipmentId);
 }

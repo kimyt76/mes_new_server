@@ -51,4 +51,6 @@ public class ShipmentVo {
     private BigDecimal pallet;
 
     private String userId;
+
+
 }
