@@ -355,7 +355,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         // =========================================================
         // 4. 수량 합계
         // =========================================================
-        BigDecimal qtyTotal = items.stream()
+        BigDecimal totalQty = items.stream()
                 .map(ShipmentItemListVo::getQty)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -367,10 +367,6 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .map(ShipmentItemListVo::getPallet)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        // =========================================================
-        // 6. 총수량 = 수량 + 파렛트
-        // =========================================================
-        BigDecimal totalQty = qtyTotal.add(palletTotal);
 
         // =========================================================
         // 5. 출고 요청일자
@@ -624,7 +620,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         // =========================================================
         params.put("totalQty", totalQty );
         params.put("totalPallet", palletTotal);
-        params.put("totalLoadQty", qtyTotal );
+        params.put("totalLoadQty", shipmentMst.getLotCnt() );
 
         // =========================================================
         // 11. 하단 - 납품주소

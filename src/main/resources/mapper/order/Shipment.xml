@@ -51,7 +51,7 @@
                 ,s.item_name
                 ,a.delivery_manager_name
                 ,ag.qty
-                ,ag.lot_no_count AS lotNo
+                ,ag.lot_no_count AS lotCnt
                 ,ag.pallet
                 ,a.shipment_time
                 ,a.delivery_location
@@ -137,9 +137,18 @@
                  ,a.etc
                  ,a.print_yn
                  ,a.shipment_status
+                 ,c.lotCnt
         from     tb_shipment_mst a
                  left join tb_client_mst b
                  on b.client_id = a.client_id
+                 left join (
+                    select  COUNT(lot_no) as lotCnt
+                         ,shipment_id
+                    from   tb_shipment_item
+                    where  item_type_cd not in ('M1','M2','M7')
+                    group by shipment_id
+                 ) c
+                 on c.shipment_Id = a.shipment_Id
         where    a.shipment_id = #{shipmentId}
     </select>
 

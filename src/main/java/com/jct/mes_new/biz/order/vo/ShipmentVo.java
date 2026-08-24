@@ -47,7 +47,7 @@ public class ShipmentVo {
     private String shipmentStatusName;
     private String shipmentTypeName;
     private BigDecimal qty;
-    private Integer lotNo;
+    private Integer lotCnt;
     private BigDecimal pallet;
 
     private String userId;
