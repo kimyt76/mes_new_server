@@ -44,6 +44,7 @@
     <!-- ========================================================= -->
     <field name="pageNo" class="java.lang.Integer"/>
     <field name="copyNo" class="java.lang.Integer"/>
+    <field name="rowId" class="java.lang.Integer"/>
     <field name="shipmentReqDate" class="java.lang.String"/>
     <field name="itemName" class="java.lang.String"/>
     <field name="qty" class="java.math.BigDecimal"/>
@@ -197,8 +198,9 @@
                 </image>
 
                 <!-- LIST HEADER : y 118 ~ 136 -->
-                <staticText><reportElement x="0" y="118" width="55" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[월/일]]></text></staticText>
-                <staticText><reportElement x="55" y="118" width="260" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[품명 및 규격]]></text></staticText>
+                <staticText><reportElement x="0" y="118" width="30" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[No]]></text></staticText>
+                <staticText><reportElement x="30" y="118" width="55" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[월/일]]></text></staticText>
+                <staticText><reportElement x="85" y="118" width="230" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[품명 및 규격]]></text></staticText>
                 <staticText><reportElement x="315" y="118" width="70" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[수량]]></text></staticText>
                 <staticText><reportElement x="385" y="118" width="70" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[파렛트]]></text></staticText>
                 <staticText><reportElement x="455" y="118" width="100" height="18" mode="Opaque" backcolor="#EEEEEE"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7" isBold="true"/></textElement><text><![CDATA[LOT]]></text></staticText>
@@ -207,7 +209,8 @@
                 <line><reportElement x="0" y="118" width="555" height="1"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
                 <line><reportElement x="0" y="135" width="555" height="1"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
                 <line><reportElement x="0" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
-                <line><reportElement x="55" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
+                <line><reportElement x="30" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
+                <line><reportElement x="85" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
                 <line><reportElement x="315" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
                 <line><reportElement x="385" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
                 <line><reportElement x="455" y="118" width="1" height="18"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
@@ -456,14 +459,16 @@
     <detail>
         <band height="16" splitType="Prevent">
 
-            <textField isBlankWhenNull="true"><reportElement x="0" y="0" width="55" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{shipmentReqDate}]]></textFieldExpression></textField>
-            <textField isBlankWhenNull="true"><reportElement x="55" y="0" width="260" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{itemName}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true"><reportElement x="0" y="0" width="30" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{rowId}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true"><reportElement x="30" y="0" width="55" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{shipmentReqDate}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true"><reportElement x="85" y="0" width="230" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{itemName}]]></textFieldExpression></textField>
             <textField pattern="#,##0.###" isBlankWhenNull="true"><reportElement x="315" y="0" width="70" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression></textField>
             <textField pattern="#,##0.###" isBlankWhenNull="true"><reportElement x="385" y="0" width="70" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{pallet}]]></textFieldExpression></textField>
             <textField isBlankWhenNull="true"><reportElement x="455" y="0" width="100" height="16"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="맑은 고딕" size="7"/></textElement><textFieldExpression><![CDATA[$F{lotNo}]]></textFieldExpression></textField>
 
             <line><reportElement x="0" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
-            <line><reportElement x="55" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
+            <line><reportElement x="30" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
+            <line><reportElement x="85" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
             <line><reportElement x="315" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
             <line><reportElement x="385" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
             <line><reportElement x="455" y="0" width="1" height="16"/><graphicElement><pen lineWidth="0.5"/></graphicElement></line>
