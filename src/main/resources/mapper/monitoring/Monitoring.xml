@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.monitoring.mapper.MonitoringMapper">
+    <select id="getEquipOperationInfoList">
+        select tag_value_id
+              , tag_cd
+             , measure_value
+             , string_value
+             , measure_time
+             , datediff(second, lag(measure_time) over(order by measure_time), measure_time) as diff
+        from tb_tag_value
+        where tag_cd = #{tagCd}
+        and measure_time  <![CDATA[>= ]]> dateadd(hour, 8, cast(cast(getdate() as date) as datetime))
+        and measure_time  <![CDATA[<  ]]> dateadd(day, 1, cast(cast(getdate() as date) as datetime))
+        order by measure_time asc
+    </select>
+
+    <select id="getMatMonitoring">
+        select c.area_name
+             ,a.equipment_cd
+             ,a.equipment_name
+             ,e.item_cd
+             ,e.item_name
+             ,e.prod_qty
+             ,e.work_proc_id
+        from   tb_equipment_mst a
+                   join tb_storage_mst b
+                        on b.storage_cd = a.storage_cd
+                   join tb_area_mst c
+                        on c.area_cd = b.area_cd
+                   left join (
+                    select a.item_cd
+                         ,i.item_name
+                         ,a.work_equipment_Cd
+                         ,a.prod_qty
+                         ,a.work_proc_id
+                    from  TB_WORK_ORDER_PROC a
+                              join tb_item_mst i
+                                   on i.item_cd = a.item_cd
+                    where  a.proc_cd = 'PRC002'
+                      and    a.proc_status = '21'
+                      and    isnull(a.cancel_yn, 'N') = 'N'
+                ) e
+                on e.work_equipment_Cd = a.equipment_cd
+        where   a.prod_yn ='Y'
+        and     a.use_yn ='Y'
+        ORDER BY b.storage_cd ASC
+    </select>
+
+
+    <select id="getProdPerformaceStatus">
+        select    m.area_name
+                 ,c.item_cd
+                 ,i.item_name
+                 ,a.make_no
+                 ,a.lot_no
+                 ,a.lot_no2
+                 ,co.code_nm as batch_status
+                 ,b.prod_qty
+                 ,b.coating_qty
+                 ,b.charging_qty
+                 ,b.packing_qty
+        from   TB_WORK_ORDER_BATCH a
+                   left join (
+                        select work_batch_id
+                             , max(case when proc_cd = 'PRC002' then prod_qty end) as prod_qty-- 제조
+                             , max(case when proc_cd = 'PRC003' then prod_qty end) as coating_qty-- 코팅
+                             , max(case when proc_cd = 'PRC004' then prod_qty end) as charging_qty-- 충전
+                             , max(case when proc_cd = 'PRC005' then prod_qty end) as packing_qty-- 포장
+                        from   TB_WORK_ORDER_PROC
+                        group by work_batch_id
+                    ) b on A.work_batch_id = B.work_batch_id
+                   left join TB_WORK_ORDER_MST c
+                             on c.work_order_id = a.work_order_id
+                   left join tb_item_mst i
+                             on i.item_cd = c.item_cd
+                   left join tb_area_mst m
+                        on m.area_cd = c.area_cd
+                   left join tb_common_code co
+                        on co.code = a.batch_status
+                        and co.com_type_cd = 'batch_STATUS'
+        where    a.batch_status >= '22'
+          and    c.work_order_date between #{strDate} and #{endDate}
+        <if test="areaCd != null and areaCd != ''">
+          and    c.area_cd =  #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+          and    c.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+          and    i.item_name like '%' + #{itemName} + '%'
+        </if>
+    </select>
+
+    <select id="getContactTagInfo">
+        select tag_cd
+              ,tag_name
+        from  tb_tag_info
+        where  source = #{tagCd}
+    </select>
+
+    <select id="getContactTagValue">
+        SELECT TAG_VALUE_ID
+             ,TAG_CD
+             ,MEASURE_VALUE
+             ,STRING_VALUE
+             ,MEASURE_TIME
+             ,REG_TIME
+        FROM tb_tag_value
+        WHERE (tag_cd = #{tagCd} AND measure_time <![CDATA[ >= ]]> #{strDate} AND measure_time <![CDATA[ < ]]> #{endDate})
+        ORDER BY measure_time ASC
+    </select>
+
+    <select id="getChargeMonitoringInfo">
+        SELECT  TAG_VALUE_ID
+               ,TAG_CD
+               ,MEASURE_VALUE
+               ,STRING_VALUE
+               ,MEASURE_TIME
+               ,REG_TIME
+        FROM tb_tag_value
+        WHERE  (measure_time <![CDATA[ >= ]]> #{strDate}
+               AND measure_time <![CDATA[ < ]]> #{endDate}
+               AND tag_cd = #{tagCd}
+            )
+        ORDER BY measure_time ASC
+    </select>
+</mapper>
