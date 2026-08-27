@@ -8,4 +8,6 @@ import java.util.List;
 @Mapper
 public interface ProdMapper {
     List<ProdVo> getProdPerformanc(ProdVo vo);
+
+    List<ProdVo> getProdCompany(ProdVo vo);
 }

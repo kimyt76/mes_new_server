@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ProdService {
     List<ProdVo> getProdPerformanc(ProdVo vo);
+
+    List<ProdVo> getProdCompany(ProdVo vo);
 }

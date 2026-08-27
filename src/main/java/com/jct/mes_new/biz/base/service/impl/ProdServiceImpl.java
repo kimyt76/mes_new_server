@@ -19,4 +19,7 @@ public class ProdServiceImpl implements ProdService {
         return prodMapper.getProdPerformanc(vo);
     }
 
+    public List<ProdVo> getProdCompany(ProdVo vo){
+        return prodMapper.getProdCompany(vo);
+    }
 }

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.ProdMapper">
+
+<!--    생산실적, 수율 리스트 목록 -->
+    <select id="getProdPerformanc">
+        select    a.prod_Lg_name
+                 ,a.prod_md_name
+                 , sum(case when month_str = '01' then prod_qty else 0 end) as  mon1Qty
+                 , sum(case when month_str = '02' then prod_qty else 0 end) as mon2Qty
+                 , sum(case when month_str = '03' then prod_qty else 0 end) as mon3Qty
+                 , sum(case when month_str = '04' then prod_qty else 0 end) as mon4Qty
+                 , sum(case when month_str = '05' then prod_qty else 0 end) as mon5Qty
+                 , sum(case when month_str = '06' then prod_qty else 0 end) as mon6Qty
+                 , sum(case when month_str = '07' then prod_qty else 0 end) as mon7Qty
+                 , sum(case when month_str = '08' then prod_qty else 0 end) as mon8Qty
+                 , sum(case when month_str = '09' then prod_qty else 0 end) as mon9Qty
+                 , sum(case when month_str = '10' then prod_qty else 0 end) as mon1Qty
+                 , sum(case when month_str = '11' then prod_qty else 0 end) as mon11ty
+                 , sum(case when month_str = '12' then prod_qty else 0 end) as mon12ty
+                 , isnull(sum(prod_qty), 0) as totProdQty
+                 , cast(isnull(avg(case when month_str = '01' then prod_yield else null end), 0) as numeric(5,2)) as mon1Avg
+                 , cast(isnull(avg(case when month_str = '02' then prod_yield else null end), 0) as numeric(5,2)) as mon2Avg
+                 , cast(isnull(avg(case when month_str = '03' then prod_yield else null end), 0) as numeric(5,2)) as mon3Avg
+                 , cast(isnull(avg(case when month_str = '04' then prod_yield else null end), 0) as numeric(5,2)) as mon4Avg
+                 , cast(isnull(avg(case when month_str = '05' then prod_yield else null end), 0) as numeric(5,2)) as mon5Avg
+                 , cast(isnull(avg(case when month_str = '06' then prod_yield else null end), 0) as numeric(5,2)) as mon6Avg
+                 , cast(isnull(avg(case when month_str = '07' then prod_yield else null end), 0) as numeric(5,2)) as mon7Avg
+                 , cast(isnull(avg(case when month_str = '08' then prod_yield else null end), 0) as numeric(5,2)) as mon8Avg
+                 , cast(isnull(avg(case when month_str = '09' then prod_yield else null end), 0) as numeric(5,2)) as mon9Avg
+                 , cast(isnull(avg(case when month_str = '10' then prod_yield else null end), 0) as numeric(5,2)) as mon10Avg
+                 , cast(isnull(avg(case when month_str = '11' then prod_yield else null end), 0) as numeric(5,2)) as mon11Avg
+                 , cast(isnull(avg(case when month_str = '12' then prod_yield else null end), 0) as numeric(5,2)) as mon12Avg
+                 , cast(isnull(avg(prod_yield), 0) as numeric(5,2)) as totAvgYield
+                 ,a.prod_Lg_code
+                 ,a.prod_md_code
+        from 	(
+                    select prod_Lg_code
+                         ,prod_Lg_name
+                         ,prod_md_code
+                         ,prod_md_name
+                    from   tb_prod_type
+                    where  prod_Lg_code != 'PT5'
+                ) a
+                left join (
+                    select i.item_cd
+                          ,i.item_name
+                          ,convert(int, w.prod_qty) as prod_qty
+                          ,RIGHT(CONVERT(CHAR(6), prod_date, 112), 2) as month_str
+                          ,id.prod_md_type
+                          ,w.prod_yield
+                    from   TB_WORK_ORDER_PROC w
+                            join tb_item_mst i
+                            on w.item_cd = i.item_cd
+                            join tb_item_detail id
+                            on id.item_cd = i.item_cd
+                    where  w.proc_status ='52'
+                      and  w.prod_date between #{strDate} and #{endDate}
+                ) b
+                on a.prod_md_code = b.prod_md_type
+        group by  a.prod_Lg_name, a.prod_md_name ,a.prod_Lg_code ,a.prod_md_code
+        order by a.prod_Lg_code, a.prod_md_code
+    </select>
+
+
+    <select id="getProdCompany">
+        select isnull(cl.client_name, 'Z기타') as client_name
+             ,isnull(pd.prod_md_code, 'ETC') as prod_md_code
+             ,isnull(pd.prod_md_name, '기타') as prod_md_name
+             , sum(case when pd.prod_md_code = 'PT001' then a.prod_qty else 0 end) as qty1
+             , sum(case when pd.prod_md_code = 'PT002' then a.prod_qty else 0 end) as qty2
+             , sum(case when pd.prod_md_code = 'PT003' then a.prod_qty else 0 end) as qty3
+             , sum(case when pd.prod_md_code = 'PT004' then a.prod_qty else 0 end) as qty4
+             , sum(case when pd.prod_md_code = 'PT005' then a.prod_qty else 0 end) as qty5
+             , sum(case when pd.prod_md_code = 'PT006' then a.prod_qty else 0 end) as qty6
+             , sum(case when pd.prod_md_code = 'PT007' then a.prod_qty else 0 end) as qty7
+             , sum(case when pd.prod_md_code = 'PT008' then a.prod_qty else 0 end) as qty8
+             , sum(case when pd.prod_md_code = 'PT009' then a.prod_qty else 0 end) as qty9
+             , sum(case when pd.prod_md_code = 'PT010' then a.prod_qty else 0 end) as qty10
+             , sum(case when pd.prod_md_code = 'PT011' then a.prod_qty else 0 end) as qty11
+             , sum(case when pd.prod_md_code not in ( 'PT001', 'PT002', 'PT003', 'PT004', 'PT005', 'PT006', 'PT007', 'PT008', 'PT009', 'PT010', 'PT011' ) then prod_qty else 0 end) as etc_qty
+             , sum(prod_qty) as total_qty
+        from   TB_WORK_ORDER_PROC a
+                   left join TB_WORK_ORDER_BATCH b
+                             on b.work_batch_id = a.work_batch_id
+                   left join TB_WORK_ORDER_MST c
+                             on c.work_order_id = a.work_order_id
+                   left join tb_client_mst cl
+                             on cl.client_id = c.client_id
+                   join tb_item_detail id
+                        on id.item_cd = a.item_cd
+                   join tb_prod_type pd
+                        on pd.prod_md_code = id.prod_md_type
+        where  a.proc_status = '52'
+          and    a.proc_order_date between '2026-01-01' and '2026-09-01'
+
+        group by cl.client_name, pd.prod_md_code, pd.prod_md_name
+    </select>
+
+
+
+
+</mapper>

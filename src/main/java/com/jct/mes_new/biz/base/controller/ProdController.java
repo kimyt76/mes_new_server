@@ -22,4 +22,9 @@ public class ProdController {
         return prodService.getProdPerformanc(vo);
     }
 
+    @PostMapping("/getProdCompany")
+    public List<ProdVo> getProdCompany (@RequestBody ProdVo vo){
+        return prodService.getProdCompany(vo);
+    }
+
 }
