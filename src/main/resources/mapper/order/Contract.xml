@@ -37,8 +37,11 @@
                 and  d2.com_type_cd = 'status_type'
                 left join tb_users e
                 on e.user_id = a.manager_id
-        where  a.contract_date between #{strDate} and #{endDate}
-        <if test="deliveryReqDate != null and deliveryReqDate != ''">
+        where   1=1
+        <if test="strDate != null ">
+            and a.contract_date between #{strDate} and #{endDate}
+        </if>
+        <if test="deliveryReqDate != null">
             and b.delivery_req_date = #{deliveryReqDate}
         </if>
         <if test="clientName != null and clientName != ''">
@@ -76,6 +79,7 @@
               ,a.client_no
               ,a.vat_type
               ,a.contract_id
+              ,a.set_Yn
         from   tb_contract_mst a
         where  a.contract_id = #{contractId}
     </select>
@@ -116,6 +120,7 @@
             ,manager_id
             ,vat_type
             ,attach_file_id
+            ,set_Yn
             ,reg_id
             ,upd_id
         )
@@ -127,6 +132,7 @@
                ,#{managerId}
                ,#{vatType}
                ,#{attachFileId}
+               ,#{setYn}
                ,#{userId}
                ,#{userId}
                )
@@ -140,14 +146,15 @@
 
     <update id="updateContractInfo">
         UPDATE tb_contract_mst
-        SET    manager_id          = #{managerId}
-              ,client_id           = #{clientId}
-              ,client_no           = #{clientNo}
-              ,vat_type            = #{vatType}
-              ,etc                 = #{etc}
-              ,upd_id              = #{userId}
-              ,upd_dt              = GETDATE()
-        WHERE contract_id = #{contractId}
+        SET    manager_id   = #{managerId}
+              ,client_id    = #{clientId}
+              ,client_no    = #{clientNo}
+              ,vat_type     = #{vatType}
+              ,set_yn       = #{setYn}
+              ,etc          = #{etc}
+              ,upd_id       = #{userId}
+              ,upd_dt       = GETDATE()
+        WHERE contract_id   = #{contractId}
     </update>
 
     <insert id="insertContractItem">

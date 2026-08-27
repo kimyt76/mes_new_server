@@ -135,7 +135,7 @@ public class ContractServiceImpl implements ContractService {
                 }
                 // attachFileId가 새로 생긴 케이스면 mst에 반영 필요할 수 있음(선택)
                 // (현재 updateContractInfo SQL에 attach_file_id가 업데이트에 없으면 아래 추가 필요)
-                //contractMapper.updateAttachFileId(contractInfo.getContractId(), contractInfo.getAttachFileId());
+                contractMapper.updateAttachFileId(contractInfo.getContractId(), contractInfo.getAttachFileId());
             }
         }
         return "수정되었습니다.";

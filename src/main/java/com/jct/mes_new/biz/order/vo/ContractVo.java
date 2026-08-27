@@ -23,6 +23,7 @@ public class ContractVo {
     private String managerName;
     private String vatType; /*거래유형   과세, 비과세*/
     private String attachFileId;
+    private String setYn;
 
 
     /**************** 죄회 부분******************************************************************/
