@@ -134,6 +134,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         }
         invMst.setSrcStorageCd(storageCd);
         invMst.setManagerId(userId);
+        invMst.setPoNo(workOrder.getPoNo());
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
         invMst.setPoNo(workOrder.getPoNo());

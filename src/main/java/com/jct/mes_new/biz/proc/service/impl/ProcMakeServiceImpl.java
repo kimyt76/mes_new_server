@@ -223,12 +223,12 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         String userId = UserUtil.getUserId();
 
         //재고 마스터
-        WorkOrderInfoVo mst = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
+        WorkOrderInfoVo workOrder = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
         TranVo invMst = new TranVo();
         String toStorage = "";
-        if ( "A001".equals(mst.getAreaCd()) ){
+        if ( "A001".equals(workOrder.getAreaCd()) ){
             toStorage = "WS005";
-        }else if ( "A002".equals(mst.getAreaCd()) ){
+        }else if ( "A002".equals(workOrder.getAreaCd()) ){
             toStorage = "WA005";
         }else{
             toStorage = "WS005";
@@ -236,20 +236,21 @@ public class ProcMakeServiceImpl implements ProcMakeService {
 
         invMst.setTranDate(LocalDate.now());
         invMst.setTranTypeCd("B");
-        invMst.setAreaCd(mst.getAreaCd());
+        invMst.setAreaCd(workOrder.getAreaCd());
         invMst.setSrcStorageCd(toStorage);
-        invMst.setTarStorageCd(mst.getStorageCd());
-        invMst.setManagerId(mst.getManagerId());
+        invMst.setTarStorageCd(workOrder.getStorageCd());
+        invMst.setManagerId(workOrder.getManagerId());
+        invMst.setPoNo(workOrder.getPoNo());
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
-        invMst.setPoNo(mst.getPoNo());
+        invMst.setPoNo(workOrder.getPoNo());
         invMst.setUserId(userId);
 
         if (  tranMapper.insertTranMst(invMst) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
-        if ( itemTestMapper.updateQty(vo.getTestNo(), mst.getProdQty(), userId) <=0 ){
+        if ( itemTestMapper.updateQty(vo.getTestNo(), workOrder.getProdQty(), userId) <=0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
@@ -525,6 +526,22 @@ public class ProcMakeServiceImpl implements ProcMakeService {
     }
 
 
+    public List<WorkOrderInfoVo> getMatProcCondList(ProcSearchVo vo){
+        return procMakeMapper.getMatProcCondList(vo);
+    }
 
+    public List<MatConditionVo> getConditionList(Long workProcId){
+        int cnt =  procMakeMapper.conditionCnt(workProcId);
+
+        List<MatConditionVo> conditionList = null;
+
+        if (cnt <= 0 ) {
+            WorkOrderInfoVo worOrder = workOrderMapper.getWorkOrderProcInfo("PRC002", workProcId);
+            String itemCd = worOrder.getItemCd();
+            return conditionList = procMakeMapper.getRecipeCondition(itemCd);
+        }else{
+           return  conditionList = procMakeMapper.getMatCondition(workProcId);
+        }
+    }
 
 }
