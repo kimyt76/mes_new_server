@@ -4,21 +4,18 @@ import com.jct.mes_new.biz.common.mapper.FileHandlerMapper;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.mapper.ContractMapper;
 import com.jct.mes_new.biz.order.service.ContractService;
-import com.jct.mes_new.biz.order.vo.ContractSaveRequestVo;
-import com.jct.mes_new.biz.order.vo.ContractVo;
-import com.jct.mes_new.biz.order.vo.ContractItemVo;
-import com.jct.mes_new.config.common.CommonUtil;
+import com.jct.mes_new.biz.order.vo.*;
+import com.jct.mes_new.biz.stock.vo.StockVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.FileUpload;
-import com.jct.mes_new.config.common.Snowflake;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jfree.util.Log;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindException;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -141,6 +138,67 @@ public class ContractServiceImpl implements ContractService {
         return "수정되었습니다.";
     }
 
+
+    public List<OrderPlanVo> getOrderPlanList(OrderPlanVo vo){
+        return contractMapper.getOrderPlanList(vo);
+    }
+
+    public List<OrderPlanTypeVo> getOrderPlanType(OrderPlanTypeVo vo){
+        return contractMapper.getOrderPlanType(vo);
+    }
+
+    public String saveOrderPlan(OrderPlanTypeRequestVo vo){
+        String userId = UserUtil.getUserId();
+
+        OrderPlanTypeVo mst  = vo.getOrderPlanTypeInfo();
+        List<OrderPlanTypeVo> orderPlanTypeList = vo.getOrderPlanTypeList();
+        List<Long> ids = vo.getDeleteOrderPlanIds();
+
+        if ( ids.size() > 0 ) {
+            contractMapper.deleteOrderPlanTypeList(ids);
+        }
+
+        for(OrderPlanTypeVo orderPlanTypeVo : orderPlanTypeList){
+            orderPlanTypeVo.setTypeCd(mst.getTypeCd());
+            orderPlanTypeVo.setPoNo(mst.getPoNo());
+            orderPlanTypeVo.setUserId(userId);
+
+            if ( orderPlanTypeVo.getOrderPlanId() == null ) {
+                if ( contractMapper.insertOrderPlanType(orderPlanTypeVo) <=0 ) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }else{
+                if ( contractMapper.updateOrderPlanType(orderPlanTypeVo) <=0 ) {
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }
+
+        }
+        return "저장하였습니다.";
+    }
+
+    public String updateOrderPlanYn(OrderPlanVo vo){
+        String userId = UserUtil.getUserId();
+
+        vo.setUserId(userId);
+
+        if (contractMapper.updateOrderPlanYn(vo) <= 0 ) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+        return "저장되었습니다.";
+    }
+
+    public List<WorkOrderInfoVo> getMatWorkOrder(WorkOrderInfoVo vo){
+        return contractMapper.getMatWorkOrder(vo);
+    }
+
+    public Map<String, Object> getRequiredQuantityList(OrderPlanVo vo){
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderStockList", contractMapper.getRequiredQuantityList(vo));
+
+        return map;
+    }
 
 
 }

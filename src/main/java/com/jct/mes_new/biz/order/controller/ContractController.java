@@ -1,13 +1,9 @@
 package com.jct.mes_new.biz.order.controller;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jct.mes_new.biz.base.vo.ItemVo;
-import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.service.ContractService;
-import com.jct.mes_new.biz.order.vo.ContractItemVo;
-import com.jct.mes_new.biz.order.vo.ContractSaveRequestVo;
-import com.jct.mes_new.biz.order.vo.ContractVo;
+import com.jct.mes_new.biz.order.vo.*;
+import com.jct.mes_new.biz.stock.vo.StockVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +60,37 @@ public class ContractController {
         vo.setNewFiles(newFiles == null? Collections.emptyList(): newFiles);
         String result = contractService.updateContractInfo(vo);
 
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+
+    @PostMapping("/getOrderPlanList")
+    public List<OrderPlanVo> getOrderPlanList(@RequestBody OrderPlanVo vo) {
+        return contractService.getOrderPlanList(vo);
+    }
+
+    @PostMapping("/getOrderPlanType")
+    public List<OrderPlanTypeVo> getOrderPlanType(@RequestBody OrderPlanTypeVo vo) {
+        return contractService.getOrderPlanType(vo);
+    }
+    @PostMapping("/getMatWorkOrder")
+    public List<WorkOrderInfoVo> getMatWorkOrder(@RequestBody WorkOrderInfoVo vo) {
+        return contractService.getMatWorkOrder(vo);
+    }
+    @PostMapping("/getRequiredQuantityList")
+    public Map<String, Object> getRequiredQuantityList(@RequestBody OrderPlanVo vo) {
+        return contractService.getRequiredQuantityList(vo);
+    }
+
+    @PostMapping("/saveOrderPlan")
+    public ResponseEntity<ApiResponse<Long>> saveOrderPlan(@RequestBody OrderPlanTypeRequestVo vo) {
+        String result = contractService.saveOrderPlan(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+    @PostMapping("/updateOrderPlanYn")
+    public ResponseEntity<ApiResponse<Long>> updateOrderPlanYn(@RequestBody OrderPlanVo vo) {
+        String result = contractService.updateOrderPlanYn(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
