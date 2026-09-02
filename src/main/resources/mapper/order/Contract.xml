@@ -201,72 +201,37 @@
     </update>
 
     <select id="getOrderPlanList">
-        WITH bs_rank AS (
+        WITH bs AS (
+        /* =========================================================
+        자급계획 S
+        - seq = 1 수량 전체 합계
+        - 날짜는 가장 빠른 plan_date
+        ========================================================= */
         SELECT
         po_no
-        ,plan_date
-        ,qty
-        ,ROW_NUMBER() OVER (
-        PARTITION BY po_no
-        ORDER BY plan_date
-        ) AS rn
-        FROM (
-        SELECT
-        po_no
-        ,plan_date
+        ,MIN(plan_date) AS bs_plan_date
         ,SUM(ISNULL(qty, 0)) AS qty
         FROM tb_order_plan_type
         WHERE type_cd = 'S'
-        GROUP BY
-        po_no
-        ,plan_date
-        ) a
-        ),
-
-        bs AS (
-        SELECT
-        po_no
-        ,plan_date AS bs_plan_date
-        ,qty
-        FROM bs_rank
-        WHERE rn = 1
-        ),
-
-
-        /* =========================================================
-        부자재계획 J
-        ========================================================= */
-        bj_rank AS (
-        SELECT
-        po_no
-        ,plan_date
-        ,qty
-        ,ROW_NUMBER() OVER (
-        PARTITION BY po_no
-        ORDER BY plan_date
-        ) AS rn
-        FROM (
-        SELECT
-        po_no
-        ,plan_date
-        ,SUM(ISNULL(qty, 0)) AS qty
-        FROM tb_order_plan_type
-        WHERE type_cd = 'J'
-        GROUP BY
-        po_no
-        ,plan_date
-        ) a
+        AND seq = 1
+        GROUP BY po_no
         ),
 
         bj AS (
+        /* =========================================================
+        부자재계획 J
+        - seq = 1 수량 전체 합계
+        - 날짜는 가장 빠른 plan_date
+        ========================================================= */
         SELECT
         po_no
-        ,plan_date AS bj_plan_date
-        ,qty
-        FROM bj_rank
-        WHERE rn = 1
+        ,MIN(plan_date) AS bj_plan_date
+        ,SUM(ISNULL(qty, 0)) AS qty
+        FROM tb_order_plan_type
+        WHERE type_cd = 'J'
+        AND seq = 1
+        GROUP BY po_no
         ),
-
 
         /* =========================================================
         기타계획 O
@@ -301,7 +266,6 @@
         FROM op_rank
         WHERE rn = 1
         ),
-
 
         /* =========================================================
         생산일자
@@ -342,7 +306,6 @@
         GROUP BY po_no
         ),
 
-
         /* =========================================================
         칭량 LOT 수
         ========================================================= */
@@ -350,7 +313,6 @@
         SELECT
         a.po_no
         ,COUNT(b.lot_no) AS weigh_prod_qty
-
         FROM TB_WORK_ORDER_PROC a
 
         INNER JOIN tb_work_order_batch b
@@ -361,7 +323,6 @@
         GROUP BY a.po_no
         ),
 
-
         /* =========================================================
         제조 LOT 수
         ========================================================= */
@@ -369,7 +330,6 @@
         SELECT
         a.po_no
         ,COUNT(b.lot_no) AS mat_prod_qty
-
         FROM TB_WORK_ORDER_PROC a
 
         INNER JOIN tb_work_order_batch b
@@ -391,6 +351,7 @@
         WHERE proc_cd = 'PRC005'
         GROUP BY po_no
         ),
+
         /* =========================================================
         PO / 창고별 현재재고
         ========================================================= */
@@ -418,6 +379,7 @@
         FROM stock_storage
         GROUP BY po_no
         ),
+
         /* =========================================================
         출고일 + 출고수량
         ========================================================= */
@@ -426,7 +388,6 @@
         y.po_no
         ,MAX(x.shipment_req_date) AS shipment_req_date
         ,SUM(ISNULL(y.qty, 0)) AS shipment_qty
-
         FROM tb_shipment_mst x
 
         INNER JOIN tb_shipment_item y
@@ -437,62 +398,66 @@
         GROUP BY y.po_no
         ),
 
-
         /* =========================================================
         기본 데이터
         ========================================================= */
         base AS (
         SELECT
-         b.po_no
+        b.po_no
         ,b.prod_type
         ,c.client_name
         ,a.manager_id
         ,b.item_cd
         ,i.item_name
+
         /* 주문수량 */
         ,ISNULL(b.qty, 0) AS qty
         ,b.delivery_req_date
         ,co.code_nm AS order_type_name
+
         ,ISNULL(ch.advance_pay_yn, 'N') AS advance_pay_yn
-        ,ISNULL(ch.prod_sheet, 'N')     AS prod_sheet
-        ,ISNULL(ch.m1_yn, 'N')          AS m1_yn
-        ,ISNULL(ch.m2_yn, 'N')          AS m2_yn
-        /* 계획수량 */
+        ,ISNULL(ch.prod_sheet, 'N') AS prod_sheet
+        ,ISNULL(ch.m1_yn, 'N') AS m1_yn
+        ,ISNULL(ch.m2_yn, 'N') AS m2_yn
+
+        /* =====================================================
+        자급계획 S
+        seq = 1 전체 합계 / 가장 빠른 계획일
+        ===================================================== */
         ,bs.bs_plan_date
         ,ISNULL(bs.qty, 0) AS bs_qty
 
+        /* =====================================================
+        부자재계획 J
+        seq = 1 전체 합계 / 가장 빠른 계획일
+        ===================================================== */
         ,bj.bj_plan_date
         ,ISNULL(bj.qty, 0) AS bj_qty
 
+        /* 출고계획 */
         ,op.out_Plan_Date
         ,ISNULL(op.qty, 0) AS out_qty
-
 
         /* 생산일 */
         ,wd.weigh_prod_date
         ,wd.mat_prod_date
         ,wd.packing_prod_date
 
-
         /* 생산수량 */
         ,ISNULL(wq.weigh_prod_qty, 0) AS weigh_prod_qty
         ,ISNULL(mq.mat_prod_qty, 0) AS mat_prod_qty
         ,ISNULL(pq.packing_prod_qty, 0) AS packing_prod_qty
 
-
         /* 창고 */
         ,ISNULL(st.storage_cnt, 0) AS storage_cnt
         ,ISNULL(st.storage_qty, 0) AS storage_qty
-
 
         /* 출고 */
         ,sh.shipment_req_date
         ,ISNULL(sh.shipment_qty, 0) AS shipment_qty
 
-
         /* 상태 */
         ,co2.code_nm AS status_type
-
 
         /* 리드타임 */
         ,DATEDIFF(
@@ -503,7 +468,6 @@
         CONVERT(date, GETDATE())
         )
         ) AS read_day
-
 
         FROM tb_contract_mst a
 
@@ -519,7 +483,6 @@
         LEFT JOIN tb_order_plan_check ch
         ON ch.po_no = b.po_no
 
-
         LEFT JOIN bs
         ON bs.po_no = b.po_no
 
@@ -529,10 +492,8 @@
         LEFT JOIN op
         ON op.po_no = b.po_no
 
-
         LEFT JOIN work_date wd
         ON wd.po_no = b.po_no
-
 
         LEFT JOIN weigh_qty wq
         ON wq.po_no = b.po_no
@@ -543,70 +504,55 @@
         LEFT JOIN packing_qty pq
         ON pq.po_no = b.po_no
 
-
         LEFT JOIN stock st
         ON st.po_no = b.po_no
 
-
         LEFT JOIN shipment sh
         ON sh.po_no = b.po_no
-
 
         LEFT JOIN tb_common_code co
         ON co.code = b.order_type
         AND co.com_type_cd = 'order_type'
 
-
         LEFT JOIN tb_common_code co2
         ON co2.code = b.status_type
         AND co2.com_type_cd = 'status_type'
 
-
         WHERE 1 = 1
-
 
         <if test="strDate != null and strDate != ''">
             AND a.contract_date <![CDATA[ >= ]]> #{strDate}
         </if>
 
-
         <if test="endDate != null and endDate != ''">
             AND a.contract_date <![CDATA[ <= ]]> #{endDate}
         </if>
-
 
         <if test="poNo != null and poNo != ''">
             AND b.po_no LIKE CONCAT('%', #{poNo}, '%')
         </if>
 
-
         <if test="prodType != null and prodType != ''">
             AND b.prod_type = #{prodType}
         </if>
-
 
         <if test="clientName != null and clientName != ''">
             AND c.client_name LIKE CONCAT('%', #{clientName}, '%')
         </if>
 
-
         <if test="managerId != null and managerId != ''">
             AND a.manager_id = #{managerId}
         </if>
-
 
         <if test="itemCd != null and itemCd != ''">
             AND b.item_cd LIKE CONCAT('%', #{itemCd}, '%')
         </if>
 
-
         <if test="itemName != null and itemName != ''">
             AND i.item_name LIKE CONCAT('%', #{itemName}, '%')
         </if>
 
-
         <choose>
-
             <when test='"Y".equals(endYn)'>
                 AND b.status_type IN ('ING', 'END')
             </when>
@@ -614,14 +560,13 @@
             <otherwise>
                 AND b.status_type = 'ING'
             </otherwise>
-
         </choose>
         ),
+
         /* =========================================================
         화면용 2 ROW
         ========================================================= */
         result AS (
-
 
         /* =====================================================
         ROW 0
@@ -630,7 +575,7 @@
         SELECT
         0 AS rowId
         ,po_no
-        ,po_no as sort_po_no
+        ,po_no AS sort_po_no
         ,prod_type
         ,client_name
         ,manager_id
@@ -643,20 +588,18 @@
         ,prod_sheet
         ,m1_yn
         ,m2_yn
+
         /* 자급 계획 */
         ,bs_plan_date
         ,ISNULL(bs_qty, 0) AS bs_qty
-
 
         /* 사급 계획 */
         ,bj_plan_date
         ,ISNULL(bj_qty, 0) AS bj_qty
 
-
         /* 출고 계획 */
         ,out_Plan_Date
         ,ISNULL(out_qty, 0) AS out_qty
-
 
         /* 생산일자 */
         ,CONVERT(
@@ -677,13 +620,11 @@
         23
         ) AS packing_prod_date
 
-
         /* 창고 개수 */
         ,CAST(
         ISNULL(storage_cnt, 0)
         AS varchar(50)
         ) AS storage_cnt
-
 
         /* 출고일 */
         ,CONVERT(
@@ -692,18 +633,13 @@
         23
         ) AS shipment_req_date
 
-
         ,status_type
-
         ,read_day
-
 
         FROM base
 
 
-
         UNION ALL
-
 
 
         /* =====================================================
@@ -712,66 +648,99 @@
 
         부족수량 = 주문수량 - 계획수량
         ===================================================== */
-        SELECT  1 AS rowId
-                ,'' as po_no
-                ,po_no as sort_po_no
-                ,NULL AS prod_type
-                ,NULL AS client_name
-                ,NULL AS manager_id
-                ,NULL AS item_cd
-                ,NULL AS item_name
-                ,NULL AS qty
-                ,NULL AS delivery_req_date
-                ,NULL AS order_type_name
-                ,NULL AS advance_pay_yn
-                ,NULL AS prod_sheet
-                ,NULL AS m1_yn
-                ,NULL AS m2_yn
+        SELECT
+        1 AS rowId
+        ,'' AS po_no
+        ,po_no AS sort_po_no
+        ,NULL AS prod_type
+        ,NULL AS client_name
+        ,NULL AS manager_id
+        ,NULL AS item_cd
+        ,NULL AS item_name
+        ,NULL AS qty
+        ,NULL AS delivery_req_date
+        ,NULL AS order_type_name
+        ,NULL AS advance_pay_yn
+        ,NULL AS prod_sheet
+        ,NULL AS m1_yn
+        ,NULL AS m2_yn
+
         /* =============================================
         자급 부족수량
-        qty - bsQty
-        ============================================== */
-                ,NULL AS bs_plan_date
-                ,CASE WHEN ISNULL(qty, 0) - ISNULL(bs_qty, 0) <![CDATA[ < ]]> 0 THEN 0 ELSE ISNULL(qty, 0) - ISNULL(bs_qty, 0) END AS bs_qty
+        주문수량 - seq 1 전체 계획수량
+        ============================================= */
+        ,NULL AS bs_plan_date
+
+        ,CASE
+        WHEN ISNULL(qty, 0) - ISNULL(bs_qty, 0) <![CDATA[ < ]]> 0
+        THEN 0
+        ELSE ISNULL(qty, 0) - ISNULL(bs_qty, 0)
+        END AS bs_qty
+
         /* =============================================
         사급 부족수량
-        qty - bjQty
-        ============================================== */
-                ,NULL AS bj_plan_date
-                ,CASE WHEN ISNULL(qty, 0) - ISNULL(bj_qty, 0) <![CDATA[ < ]]> 0 THEN 0 ELSE ISNULL(qty, 0) - ISNULL(bj_qty, 0) END AS bj_qty
+        주문수량 - seq 1 전체 계획수량
+        ============================================= */
+        ,NULL AS bj_plan_date
+
+        ,CASE
+        WHEN ISNULL(qty, 0) - ISNULL(bj_qty, 0) <![CDATA[ < ]]> 0
+        THEN 0
+        ELSE ISNULL(qty, 0) - ISNULL(bj_qty, 0)
+        END AS bj_qty
+
         /* =============================================
         출고 부족수량
-        qty - outQty
-        ============================================== */
-                ,NULL AS out_Plan_Date
-                ,CASE WHEN ISNULL(qty, 0) - ISNULL(out_qty, 0) <![CDATA[ < ]]> 0 THEN 0 ELSE ISNULL(qty, 0) - ISNULL(out_qty, 0) END AS out_qty
-                /* 칭량 LOT 수 */
-                ,CAST( ISNULL(weigh_prod_qty, 0) AS varchar(50) ) AS weigh_prod_date
-                /* 제조 LOT 수 */
-                ,CAST( ISNULL(mat_prod_qty, 0) AS varchar(50) ) AS mat_prod_date
-                /* 포장 생산수량 */
-                ,CAST(
-                ISNULL(packing_prod_qty, 0)
-                AS varchar(50)
-                ) AS packing_prod_date
-                /* 현재 재고수량 */
-                ,CAST(
-                ISNULL(storage_qty, 0)
-                AS varchar(50)
-                ) AS storage_cnt
-                /* 출고수량 */
-                ,CAST(
-                ISNULL(shipment_qty, 0)
-                AS varchar(50)
-                ) AS shipment_req_date
-                ,NULL AS status_type
-                ,NULL AS read_day
+        ============================================= */
+        ,NULL AS out_Plan_Date
+
+        ,CASE
+        WHEN ISNULL(qty, 0) - ISNULL(out_qty, 0) <![CDATA[ < ]]> 0
+        THEN 0
+        ELSE ISNULL(qty, 0) - ISNULL(out_qty, 0)
+        END AS out_qty
+
+        /* 칭량 LOT 수 */
+        ,CAST(
+        ISNULL(weigh_prod_qty, 0)
+        AS varchar(50)
+        ) AS weigh_prod_date
+
+        /* 제조 LOT 수 */
+        ,CAST(
+        ISNULL(mat_prod_qty, 0)
+        AS varchar(50)
+        ) AS mat_prod_date
+
+        /* 포장 생산수량 */
+        ,CAST(
+        ISNULL(packing_prod_qty, 0)
+        AS varchar(50)
+        ) AS packing_prod_date
+
+        /* 현재 재고수량 */
+        ,CAST(
+        ISNULL(storage_qty, 0)
+        AS varchar(50)
+        ) AS storage_cnt
+
+        /* 출고수량 */
+        ,CAST(
+        ISNULL(shipment_qty, 0)
+        AS varchar(50)
+        ) AS shipment_req_date
+
+        ,NULL AS status_type
+        ,NULL AS read_day
+
         FROM base
         )
+
         /* =========================================================
         최종 조회
         ========================================================= */
-        SELECT rowId
+        SELECT
+        rowId
         ,po_no
         ,prod_type
         ,client_name
@@ -799,7 +768,7 @@
         ,status_type
         ,read_day
         FROM result
-        ORDER BY sort_po_no ,rowId
+        ORDER BY sort_po_no, rowId
     </select>
 
     <select id="getOrderPlanType">
