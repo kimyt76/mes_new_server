@@ -14,7 +14,7 @@ public class ClientDealVo {
     private BigDecimal dealAmt;
     private BigDecimal orderQty;
     private String managerName;
-    private LocalDate lastDealDate;
+    private String lastDealDate;
     private int orderDist;
 
     private String userId;
