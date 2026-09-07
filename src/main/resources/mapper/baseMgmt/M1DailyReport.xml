@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.M1DailyReportMapper">
+
+<!--    생산일보 원료 신규건 -->
+    <select id="getDailyRepostList">
+        select  a.daily_date
+             ,b.order_dist
+             ,b.item_cd
+             ,b.item_name
+             ,b.customer_name
+             ,b.spec
+             ,b.qty
+             ,b.in_price
+             ,b.supply_price
+             ,b.expiry_date
+             ,b.etc
+             , a.daily_id
+             , b.daily_item_id
+        from   tb_daily_mst a
+                   join tb_daily_M1 b
+                    on a.daily_id = b.daily_id
+                    and b.tran_type_cd = #{tranTypeCd}
+        where  a.daily_id = #{dailyId}
+    </select>
+
+    <select id="getProdList">
+        select a.daily_date
+              ,b.*
+              ,b.in_price*b.qty as totalPrice
+        from  tb_daily_mst a
+                  join tb_daily_prod b
+                       on a.daily_id = b.daily_id
+        where a.daily_id = #{dailyId}
+    </select>
+
+    <select id="getUseList">
+        select  a.daily_date
+               ,b.*
+               ,b.required_quantity*in_price as totalPrice
+        from  tb_daily_mst a
+                  join tb_daily_item_use b
+                       on a.daily_id = b.daily_id
+        where a.daily_id = #{dailyId}
+    </select>
+
+
+    <insert id="insertDailyReportM1" parameterType="com.jct.mes_new.biz.base.vo.DailyReportVo" useGeneratedKeys="true" keyProperty="dailyId">
+        INSERT INTO tb_daily_M1 (
+             daily_id
+            ,tran_type_cd
+            ,order_dist
+            ,spec
+            ,item_cd
+            ,item_name
+            ,customer_name
+            ,qty
+            ,in_price
+            ,supply_price
+            ,area_name
+            ,expiry_date
+            ,etc
+            ,reg_id
+            ,reg_dt
+            ,upd_id
+            ,upd_dt
+        )
+        VALUES (
+                #{dailyId}
+               ,#{tranTypeCd}
+               ,#{orderDist}
+               ,#{spec}
+               ,#{itemCd}
+               ,#{itemName}
+               ,#{customerName}
+               ,#{qty}
+               ,#{inPrice}
+               ,#{supplyPrice}
+               ,#{areaName}
+               ,#{expiryDate}
+               ,#{etc}
+               ,#{userId}
+               ,GETDATE()
+               ,#{userId}
+               ,GETDATE()
+               )
+    </insert>
+
+    <update id="updateDailyReportM1">
+        UPDATE tb_daily_M1
+        SET    order_dist      = #{orderDist}
+              ,spec            = #{spec}
+              ,qty             = #{qty}
+              ,in_price        = #{inPrice}
+              ,supply_price    = #{supplyPrice}
+              ,area_name       = #{areaName}
+              ,etc             = #{etc}
+              ,upd_id          = #{userId}
+              ,upd_dt          = GETDATE()
+        WHERE daily_item_id   = #{dailyItemId}
+    </update>
+
+    <insert id="insertDailyReportProd">
+        INSERT INTO tb_daily_prod (
+               daily_id
+              ,order_dist
+              ,item_cd
+              ,item_name
+              ,lot_no
+              ,customer_name
+              ,qty
+              ,in_price
+              ,supply_price
+              ,area_name
+              ,expiry_date
+              ,etc
+              ,reg_id
+              ,upd_id
+        )
+        VALUES (
+                 #{dailyId}
+               ,#{orderDist}
+               ,#{itemCd}
+               ,#{itemName}
+               ,#{lotNo}
+               ,#{customerName}
+               ,#{qty}
+               ,#{inPrice}
+               ,#{supplyPrice}
+               ,#{areaName}
+               ,#{expiryDate}
+               ,#{etc}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
+
+    <update id="updateDailyReportProd">
+        UPDATE tb_daily_prod
+        SET    order_dist     = #{orderDist}
+              ,customer_name  = #{customerName}
+              ,qty            = #{qty}
+              ,in_price       = #{inPrice}
+              ,supply_price   = #{supplyPrice}
+              ,area_name      = #{areaName}
+              ,expiry_date    = #{expiryDate}
+              ,etc            = #{etc}
+              ,upd_id         = #{userId}
+              ,upd_dt         = GETDATE()
+        WHERE daily_prod_id  = #{dailyProdId}
+    </update>
+
+    <insert id="insertDailyReportUse">
+        INSERT INTO tb_daily_item_use (
+               daily_id
+              ,order_dist
+              ,item_cd
+              ,item_name
+              ,customer_name
+              ,required_quantity
+              ,in_price
+              ,etc
+              ,reg_id
+              ,upd_id
+        )
+        VALUES (
+                #{dailyId}
+               ,#{orderDist}
+               ,#{itemCd}
+               ,#{itemName}
+               ,#{customerName}
+               ,#{requiredQuantity}
+               ,#{inPrice}
+               ,#{etc}
+               ,#{userId}
+               ,#{userId}
+    </insert>
+
+    <update id="updateDailyReportUse">
+        UPDATE tb_daily_item_use
+        SET order_dist     = #{orderDist}
+           ,customer_name  = #{customerName}
+           ,required_quantity  = #{requiredQuantity}
+           ,in_price       = #{inPrice}
+           ,etc            = #{etc}
+           ,upd_id         = #{userId}
+           ,upd_dt         = GETDATE()
+        WHERE daily_item_use_id = #{dailyItemUseId}
+    </update>
+
+    <delete id="deleteDailyReport">
+        delete tb_daily_M1
+        where  daily_item_id IN
+        <foreach collection="deleteInIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteDailyReportProd">
+        delete tb_daily_prod
+        where  daily_prod_id IN
+        <foreach collection="deleteProdIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteDailyReportUse">
+        delete tb_daily_item_use
+        where  daily_item_use_id IN
+        <foreach collection="deleteUseIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+</mapper>
