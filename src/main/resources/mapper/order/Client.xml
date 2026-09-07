@@ -19,7 +19,7 @@
                 ,d1.sales_amt AS oneYearAgo
                 ,d2.sales_amt AS twoYearAgo
                 ,d3.sales_amt AS threeYearAgo
-                ,( SELECT min(cm.contract_date) FROM tb_contract_mst cm WHERE cm.client_id = a.client_id ) AS firstDealDate
+                ,a.first_Trade_Date
                 ,( SELECT MAX(cm.contract_date) FROM tb_contract_mst cm WHERE cm.client_id = a.client_id ) AS lastDealDate
                 ,a.client_type AS clientType
                 ,a.client_type_name AS clientTypeName
@@ -38,6 +38,7 @@
                 ,a.groups_name AS groupsName
                 ,a.payment_cd AS paymentCd
                 ,a.payment_name AS paymentName
+                ,ad.location
                 ,isnull(a.manager_rank, a.manager_rank2)  AS managerRank
                 ,a.client_id AS clientId
             FROM tb_client_mst a
@@ -53,6 +54,9 @@
                 LEFT JOIN tb_client_manager m
                 ON m.client_id = a.client_id
                 AND m.order_dist = 1
+                left join tb_client_address ad
+                on ad.client_id = a.client_id
+                and  ad.order_dist = 1
          where  1=1
             <if test="strDate != null and strDate != ''">
                 AND a.client_reg_date BETWEEN #{strDate} AND #{endDate}
@@ -107,7 +111,7 @@
                  ,a.manager_rank
                  ,a.manager_rank2
                  ,a.client_id
-                 ,( SELECT min(cm.contract_date) FROM tb_contract_mst cm WHERE cm.client_id = a.client_id ) AS firstDealDate
+                 ,a.first_trade_Date
         from  tb_client_mst	 a
         where  a.client_id = #{clientId}
     </select>
@@ -119,6 +123,7 @@
         ,client_type
         ,client_type_name
         ,trade_type
+        ,first_trade_Date
         ,client_reg_date
         ,respon_sales_biz
         ,establish_date
@@ -146,6 +151,7 @@
             ,#{clientType}
             ,#{clientTypeName}
             ,#{tradeType}
+            ,#{firstTradeDate}
             ,#{clientRegDate, jdbcType=DATE}
             ,#{responSalesBiz}
             ,#{establishDate, jdbcType=DATE}
@@ -175,6 +181,7 @@
               ,client_type       = #{clientType}
               ,client_type_name  = #{clientTypeName}
               ,trade_type        = #{tradeType}
+              ,first_trade_Date  = #{firstTradeDate}
               ,respon_sales_biz  = #{responSalesBiz}
               ,establish_date    = #{establishDate, jdbcType=DATE}
               ,president         = #{president}

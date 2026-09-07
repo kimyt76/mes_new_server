@@ -26,6 +26,7 @@ public class ClientVo {
     private String president;
     private String businessType;
     private String businessItem;
+    private String firstTradeDate;
     private String telNo;
     private String faxNo;
     private String email;
@@ -47,10 +48,10 @@ public class ClientVo {
     private String managerRank2From;
     private String managerRank2To;
     private String businessManagerName;
+    private String location;
     private BigDecimal oneYearAgo;
     private BigDecimal twoYearAgo;
     private BigDecimal threeYearAgo;
-    private String firstDealDate;
     private String lastDealDate;
 
     private String userId;
