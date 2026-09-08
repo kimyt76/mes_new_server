@@ -14,7 +14,7 @@ public class ClientApprovalVo {
     private BigDecimal middleAmt;
     private BigDecimal lastAmt;
     private int credit;
-    private int creditPeriod;
+    private String creditPeriod;
     private String paymentMethod;
     private int orderDist;
 
