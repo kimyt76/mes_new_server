@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.M2DailyReportMapper">
+
+<!--    생산일보 부자재 입고, 반품, 불량 리스트 목록 -->
+    <select id="getDailyRepostList">
+        select    a.daily_date
+                 ,b.order_dist
+                 ,b.item_cd
+                 ,b.item_name
+                 ,b.customer_name
+                 ,b.qty
+                 ,b.in_price
+                 ,b.supply_price
+                 ,b.storage_name
+                 ,b.etc
+                 ,a.daily_id
+                 ,b.daily_sub_item_id
+        from  tb_daily_mst a
+              join tb_daily_M2 b
+              on a.daily_id = b.daily_id
+              and b.tran_type_cd = #{tranTypeCd}
+        where  a.daily_id = #{dailyId}
+    </select>
+
+    <select id="getUseList">
+        select a.daily_date
+              ,b.*
+        from  tb_daily_mst a
+              join tb_daily_sub_use b
+              on a.daily_id = b.daily_id
+        where a.daily_id = #{dailyId}
+    </select>
+
+    <insert id="insertDailyReportM2" parameterType="com.jct.mes_new.biz.base.vo.DailyReportVo" useGeneratedKeys="true" keyProperty="dailyId">
+        INSERT INTO tb_daily_M2 (
+                     daily_id
+                    ,tran_type_cd
+                    ,order_dist
+                    ,item_cd
+                    ,item_name
+                    ,customer_name
+                    ,qty
+                    ,bad_qty
+                    ,work_bad_qty
+                    ,in_price
+                    ,supply_price
+                    ,storage_name
+                    ,etc
+                    ,reg_id
+                    ,reg_dt
+                    ,upd_id
+                    ,upd_dt
+        )
+        VALUES (
+                #{dailyId}
+               ,#{tranTypeCd}
+               ,#{orderDist}
+               ,#{itemCd}
+               ,#{itemName}
+               ,#{customerName}
+               ,#{qty}
+               ,#{badQty}
+               ,#{workBadQty}
+               ,#{inPrice}
+               ,#{supplyPrice}
+               ,#{storageName}
+               ,#{etc}
+               ,#{userId}
+               ,GETDATE()
+               ,#{userId}
+               ,GETDATE()
+               )
+    </insert>
+
+    <update id="updateDailyReportM2">
+        UPDATE tb_daily_M2
+        SET    order_dist      = #{orderDist}
+              ,qty             = #{qty}
+              ,bad_qty         = #{badQty}
+              ,work_bad_qty    = #{workBadQty}
+              ,in_price        = #{inPrice}
+              ,supply_price    = #{supplyPrice}
+              ,storage_name    = #{storageName}
+              ,etc             = #{etc}
+              ,upd_id          = #{userId}
+              ,upd_dt          = GETDATE()
+        WHERE daily_sub_item_id = #{dailySubItemId}
+    </update>
+
+
+    <insert id="insertDailyReportUse">
+        INSERT INTO tb_daily_sub_use (
+                   daily_id
+                  ,order_dist
+                  ,item_name
+                  ,prod_qty
+                  ,bom_name
+                  ,required_quantity
+                  ,in_price
+                  ,etc
+                  ,reg_id
+                  ,upd_id
+        )
+        VALUES ( #{dailyId}
+               , #{orderDist}
+               , #{itemName}
+               , #{prodQty}
+               , #{bomName}
+               , #{requiredQuantity}
+               , #{inPrice}
+               , #{etc}
+               , #{userId}
+               , #{userId})
+    </insert>
+
+    <update id="updateDailyReportUse">
+        UPDATE tb_daily_item_use
+        SET    order_dist     = #{orderDist}
+              ,required_quantity  = #{requiredQuantity}
+              ,in_price       = #{inPrice}
+              ,etc            = #{etc}
+              ,upd_id         = #{userId}
+              ,upd_dt         = GETDATE()
+        WHERE daily_item_use_id = #{dailyItemUseId}
+    </update>
+
+    <delete id="deleteDailyReport">
+        delete tb_daily_M2
+        where  daily_sub_item_id IN
+        <foreach collection="deleteInIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteDailyReportUse">
+        delete tb_daily_sub_use
+        where  daily_sub_use_id IN
+        <foreach collection="deleteUseIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+</mapper>
