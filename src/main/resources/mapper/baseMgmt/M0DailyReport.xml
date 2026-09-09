@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.M0DailyReportMapper">
+    <select id="getDailyReportList">
+        select    a.daily_date
+                 ,b.order_dist
+                 ,b.item_cd
+                 ,b.item_name
+                 ,b.customer_name
+                 ,b.qty
+                 ,b.lot_no
+                 ,b.in_price
+                 ,b.storage_name
+                 ,b.etc
+                 ,a.daily_id
+                 ,b.daily_packing_id
+        from    tb_daily_mst a
+                join tb_daily_M0 b
+                on a.daily_id = b.daily_id
+                and b.tran_type_cd = #{tranTypeCd}
+        where  a.daily_id = #{dailyId}
+    </select>
+
+    <insert id="insertDailyReportM0" parameterType="com.jct.mes_new.biz.base.vo.DailyReportVo" useGeneratedKeys="true" keyProperty="dailyId">
+        INSERT INTO tb_daily_M0 (
+                          daily_id
+                         ,tran_type_cd
+                         ,order_dist
+                         ,item_cd
+                         ,item_name
+                         ,customer_name
+                         ,lot_no
+                         ,qty
+                         ,in_price
+                         ,storage_name
+                         ,etc
+                         ,reg_id
+                         ,upd_id
+        )
+        VALUES (
+                #{dailyId}
+               ,#{tranTypeCd}
+               ,#{orderDist}
+               ,#{itemCd}
+               ,#{itemName}
+               ,#{customerName}
+               ,#{lotNo}
+               ,#{qty}
+               ,#{inPrice}
+               ,#{storageName}
+               ,#{etc}
+               ,#{userId}
+               ,#{userId}
+               )
+    </insert>
+
+    <update id="updateDailyReportM0">
+        UPDATE tb_daily_M0
+        SET    order_dist      = #{orderDist}
+              ,lot_no          = #{lotNo}
+              ,qty             = #{qty}
+              ,in_price        = #{inPrice}
+              ,storage_name    = #{storageName}
+              ,etc             = #{etc}
+        WHERE daily_packing_id = #{dailyPackingId}
+    </update>
+
+    <delete id="deleteDailyReport">
+        delete tb_daily_M0
+        where  daily_packing_id IN
+        <foreach collection="deleteIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+</mapper>
