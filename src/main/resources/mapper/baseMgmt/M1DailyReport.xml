@@ -4,7 +4,7 @@
 <mapper namespace="com.jct.mes_new.biz.base.mapper.M1DailyReportMapper">
 
 <!--    생산일보 원료 신규건 -->
-    <select id="getDailyRepostList">
+    <select id="getDailyReportList">
         select  a.daily_date
              ,b.order_dist
              ,b.item_cd
