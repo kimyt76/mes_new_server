@@ -38,5 +38,7 @@ public class BomVo {
     private String itemTypeCd;
     private String unit;
     private String spec;
+    private String poNo;
+    private String typeCd;
     private String userId;
 }

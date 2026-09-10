@@ -23,4 +23,6 @@ public interface BomService {
     List<BomRecipeVo> getItemBomList(String itemCd);
 
     List<BomVo> getBomMatList(BomVo bomVo);
+
+    List<BomProcVo> getBomProcInfo(String itemCd);
 }

@@ -39,9 +39,19 @@
         <if test="managerName != null and managerName != ''">
             AND  c.member_nm LIKE '%' + #{managerName} + '%'
         </if>
-        <if test="itemTypeCd != null and itemTypeCd != ''">
-            AND  b.item_type_cd =#{itemTypeCd}
-        </if>
+        <choose>
+            <when test="itemTypeCd == 'M3'">
+                AND b.item_type_cd = 'M3'
+            </when>
+            <when test="itemTypeCd == 'M2'">
+                AND b.item_type_cd IN ('M5', 'M6', 'M0')
+            </when>
+            <when test="itemTypeCd != null and itemTypeCd != ''">
+                AND b.item_type_cd = #{itemTypeCd}
+            </when>
+        </choose>
+
+
         order by a.item_cd , a.bom_ver desc
     </select>
 

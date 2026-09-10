@@ -89,7 +89,7 @@ public class BomController {
 
     /**
      * BOM VER저장
-     * @param request
+     * @param vo
      * @return
      */
     @PostMapping("/saveBomVerInfo")
@@ -101,5 +101,10 @@ public class BomController {
     }
 
 
+
+    @GetMapping("/getBomProcInfo/{id}")
+    public List<BomProcVo> getBomProcInfo(@PathVariable("id") String itemCd) {
+        return bomService.getBomProcInfo(itemCd);
+    }
 
 }

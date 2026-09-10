@@ -167,6 +167,9 @@ public class BomServiceImpl implements BomService {
         return "저장되었습니다.";
     }
 
+    public List<BomProcVo> getBomProcInfo(String itemCd){
+        return bomMapper.getBomProcInfo(itemCd);
+    }
 
 
 
