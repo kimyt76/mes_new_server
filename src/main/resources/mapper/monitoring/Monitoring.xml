@@ -102,13 +102,15 @@
 
     <select id="getContactTagValue">
         SELECT TAG_VALUE_ID
-             ,TAG_CD
-             ,MEASURE_VALUE
-             ,STRING_VALUE
-             ,MEASURE_TIME
-             ,REG_TIME
+             , TAG_CD
+             , MEASURE_VALUE
+             , STRING_VALUE
+             , MEASURE_TIME
+             , REG_TIME
         FROM tb_tag_value
-        WHERE (tag_cd = #{tagCd} AND measure_time <![CDATA[ >= ]]> #{strDate} AND measure_time <![CDATA[ < ]]> #{endDate})
+        WHERE tag_cd = #{tagCd}
+          AND measure_time <![CDATA[ >= ]]> #{strDate}
+          AND measure_time <![CDATA[ < ]]> #{endDate}
         ORDER BY measure_time ASC
     </select>
 

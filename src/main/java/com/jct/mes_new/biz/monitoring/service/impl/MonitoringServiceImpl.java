@@ -45,7 +45,7 @@ public class MonitoringServiceImpl implements MonitoringService {
         return monitoringMapper.getContactTagInfo(vo);
     }
 
-    public TagValueVo getContactTagValue(TagValueVo vo){
+    public List<TagValueVo> getContactTagValue(TagValueVo vo){
         return monitoringMapper.getContactTagValue(vo);
     }
     public MonitoringTagValueVo getChargeMonitoringInfo(TagInfoVo vo){

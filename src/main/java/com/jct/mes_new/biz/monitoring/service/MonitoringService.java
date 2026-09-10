@@ -13,7 +13,7 @@ public interface MonitoringService {
 
     List<TagInfoVo> getContactTagInfo(TagInfoVo vo);
 
-    TagValueVo getContactTagValue(TagValueVo vo);
+    List<TagValueVo> getContactTagValue(TagValueVo vo);
 
     MonitoringTagValueVo getChargeMonitoringInfo(TagInfoVo vo);
 }

@@ -19,7 +19,7 @@ public interface MonitoringMapper {
     List<ProdPerformaceStatusVo> getProdPerformaceStatus(ProdPerformaceStatusVo vo);
 
     List<TagInfoVo> getContactTagInfo(TagInfoVo vo);
-    TagValueVo getContactTagValue(TagValueVo vo);
+    List<TagValueVo> getContactTagValue(TagValueVo vo);
 
     List<TagValueVo> getChargeMonitoringInfo(TagInfoVo vo);
 }

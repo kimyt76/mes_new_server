@@ -37,7 +37,7 @@ public class MonitoringController {
     }
 
     @PostMapping("/getContactTagValue")
-    public TagValueVo getContactTagValue(@RequestBody TagValueVo vo) {
+    public List<TagValueVo> getContactTagValue(@RequestBody TagValueVo vo) {
         return monitoringService.getContactTagValue(vo);
     }
 
