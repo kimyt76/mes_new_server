@@ -44,6 +44,7 @@ public class OrderPlanVo {
 
     private String field;
     private String value;
+    private String itemType;
 
     private String userId;
 }
