@@ -35,6 +35,8 @@ public class PurchaseVo {
     private String vatType;
     private String endYn;
     private String remark;
+    private String testState;
+    private String passState;
 
     private String userId;
 
@@ -73,15 +75,28 @@ public class PurchaseVo {
     public static class searchPurchaseListVo {
         private Long purId;
         private String purDateSeq;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate purDate;
         private String itemTypeCd;
         private String itemCd;
         private String itemName;
         private BigDecimal totQty;
+        private BigDecimal qty;
+        private BigDecimal inPrice;
+        private BigDecimal supplyPrice;
+        private BigDecimal vatPrice;
         private BigDecimal totPrice;
+        private String testNo;
+        private String spec;
         private String storageName;
         private String orderType;
         private String managerName;
         private String customerName;
+        private String areaCd;
+        private String areaName;
+        private String testState;
+        private String testStateName;
+        private String passStateName;
     }
 
 

@@ -131,8 +131,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
      * @param userId
      * @return
      */
-    public void updateEndYn(Long purOrderId, String userId){
-        purchaseOrderMapper.updateEndYn(purOrderId, userId);
+    public void updatePurchaseOrderEndYn(Long purOrderId, String userId){
+        purchaseOrderMapper.updatePurchaseOrderEndYn(purOrderId, userId);
     }
     
     /**

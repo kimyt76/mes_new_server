@@ -56,7 +56,7 @@ public interface PurchaseOrderService {
      * @param userId
      * @return
      */
-    void updateEndYn(Long purOrderId, String userId);
+    void updatePurchaseOrderEndYn(Long purOrderId, String userId);
 
     int updateInYn(Long purOrderItemId, String userId);
 

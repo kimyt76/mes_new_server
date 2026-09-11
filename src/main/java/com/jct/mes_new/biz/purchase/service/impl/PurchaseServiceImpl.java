@@ -124,7 +124,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                         throw new BusinessException(ErrorCode.FAIL_UPDATED);
                     }
                     //8. 발주서 마스터 end 조건 업데이트
-                    purchaseOrderService.updateEndYn(item.getPurOrderItemId(), userId);
+                    purchaseOrderService.updatePurchaseOrderEndYn(item.getPurOrderId(), userId);
                 }
             }
         }

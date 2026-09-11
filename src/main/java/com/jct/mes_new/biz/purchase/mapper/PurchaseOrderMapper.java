@@ -80,6 +80,6 @@ public interface PurchaseOrderMapper {
      * @param userId
      * @return
      */
-    int updateEndYn(@Param("purOrderId")Long purOrderId, @Param("userId")String userId);
+    int updatePurchaseOrderEndYn(@Param("purOrderId")Long purOrderId, @Param("userId")String userId);
     int updateInYn(@Param("purOrderItemId") Long purOrderItemId, @Param("userId") String userId);
 }

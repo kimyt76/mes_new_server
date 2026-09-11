@@ -223,7 +223,7 @@
                  ,b.test_no
                  ,d.spec
                  ,b.qty
-                 ,d.in_price
+                 ,b.in_price
                  ,b.supply_price
                  ,b.vat_price
                  ,b.supply_price + b.vat_price as totPrice

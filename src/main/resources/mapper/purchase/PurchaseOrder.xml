@@ -12,7 +12,7 @@
                 ,dbo.getStorageName(a.storage_cd) as storageName
                 ,b.qty
                 ,b.spec
-                ,0 as inQty
+                ,case when b.in_yn ='Y' then b.qty else 0 end  as inQty
                 ,b.supply_price
                 ,b.in_price
                 ,b.vat_price
@@ -81,7 +81,7 @@
             and    b.area_cd = #{areaCd}
         </if>
         <if test="itemCd != null and itemCd != ''">
-            and    a.item_cd = #{itemCd}
+            and    b.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
             and    b.item_name like '%' + #{itemName} + '%'
@@ -341,6 +341,7 @@
                  ,isnull(b.in_Yn, 'N') as in_Yn
                  ,isnull(a.end_yn, 'N') as end_yn
                  ,dbo.getUserName(a.manager_id) as manager_name
+                 ,b.item_type_cd
                  ,a.pur_order_id
                  ,b.pur_order_item_id
         from   tb_pur_order_mst a
@@ -383,11 +384,11 @@
         where pur_order_item_id = #{purOrderItemId}
     </update>
 
-    <update id="updateEndYn">
-        UPDATE m
-        SET    m.end_yn = 'Y'
-              ,m.upd_id = #{userId}
-              ,m.upd_dt = getDate()
+    <update id="updatePurchaseOrderEndYn">
+        UPDATE tb_pur_order_mst
+        SET    end_yn = 'Y'
+              ,upd_id = #{userId}
+              ,upd_dt = getDate()
         FROM tb_pur_order_mst m
             JOIN (
                 SELECT pur_order_id
