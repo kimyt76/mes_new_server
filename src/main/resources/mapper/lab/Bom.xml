@@ -201,6 +201,7 @@
               ,m 	        = #{m}
               ,p2 	        = #{p2}
               ,rt 	        = #{rt}
+              ,etc 	        = #{etc}
               ,upd_id       = #{userId}
               ,upd_dt       = getdate()
         where  bom_proc_id = #{bomProcId}
