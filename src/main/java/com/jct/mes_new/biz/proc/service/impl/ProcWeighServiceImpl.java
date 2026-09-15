@@ -9,19 +9,33 @@ import com.jct.mes_new.biz.purchase.mapper.TranMapper;
 import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
 import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
+import com.jct.mes_new.biz.stock.vo.TranLedgerVo;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
+import com.jct.mes_new.config.util.ExcelStyleUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -62,11 +76,8 @@ public class ProcWeighServiceImpl implements ProcWeighService {
     public String startProcWeigh(ProcWeighVo vo){
         String userId = UserUtil.getUserId();
         vo.setUserId(userId);
-        // 작업지시 상태 업데이트 (작업상태, 배치상태, 작업처, 작업일자, 작업시간
-        if (procWeighMapper.startProcWeigh(vo) <= 0 ) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
 
+        //배치 상태 업데이트
         ProcCommonVo comVo = new ProcCommonVo();
         comVo.setWorkBatchId(vo.getWorkBatchId());
         comVo.setBatchStatus(vo.getBatchStatus());
@@ -74,6 +85,13 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         if (procCommonMapper.updateBatchStatus(comVo) <= 0 ) {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
+
+        // 작업지시 상태 업데이트 (작업상태, 배치상태, 작업처, 작업일자, 작업시간
+        if (procWeighMapper.startProcWeigh(vo) <= 0 ) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+
 
         List<ProcWeighBomVo>  recipeList = procWeighMapper.getBomWeighList(vo.getWorkProcId(), vo.getItemCd());
 
@@ -258,4 +276,106 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         }
         return vo.getWorkProcId();
     }
+
+    public List<TranLedgerVo> getWeighCloseList(TranLedgerVo vo){
+        return procWeighMapper.getWeighCloseList(vo);
+    }
+
+    public List<TranLedgerVo> getItemCloseList(TranLedgerVo vo){
+        return procWeighMapper.getItemCloseList(vo);
+    }
+
+    public byte[] downloadWeighProc(ProcWeighVo vo){
+        WorkOrderInfoVo workOrderInfo = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(),  vo.getWorkProcId());
+
+        List<ProcWeighBomVo> weighList = procWeighMapper.getRealBomWeighList(vo.getWorkProcId(), vo.getItemCd());
+
+        try {
+            int size = weighList.size();
+            String templateName = "/excel/prod_weigh_record_page";
+            if(size > 56) {
+                templateName += "3.xlsx";
+            } else if (size > 25) {
+                templateName += "2.xlsx";
+            } else {
+                templateName += "1.xlsx";
+            }
+
+            InputStream excelStream = getClass().getResourceAsStream(templateName);
+            Workbook workbook = ExcelStyleUtil.createWorkbook(excelStream);
+            Sheet sheet = workbook.getSheet("Sheet1");
+
+            ExcelStyleUtil.getCellRef(sheet, "U1").setCellValue(workOrderInfo.getItemCd()); //품목코드
+            ExcelStyleUtil.getCellRef(sheet, "F2").setCellValue(workOrderInfo.getItemName()); //품목명
+            ExcelStyleUtil.getCellRef(sheet, "E5").setCellValue(workOrderInfo.getClientName()); //고객사
+            if(workOrderInfo.getProdDate() != null) {
+                String prodDateFormat = workOrderInfo.getProdDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                ExcelStyleUtil.getCellRef(sheet, "Q5").setCellValue(prodDateFormat); //제조일자
+            }
+            double prodQty = (workOrderInfo.getProdQty() != null )? workOrderInfo.getProdQty().doubleValue() : 0;
+            ExcelStyleUtil.getCellRef(sheet, "E6").setCellValue(prodQty); //제조량
+            ExcelStyleUtil.getCellRef(sheet, "Q6").setCellValue(workOrderInfo.getMakeNo()); //제조번호
+
+            int rowNo = 11;
+            List<String> weighMembers = new ArrayList<>();
+            List<String> weighConfirmMembers = new ArrayList<>();
+
+            for (ProcWeighBomVo item : weighList) {
+                //품목코드
+                ExcelStyleUtil.getCellRef(sheet, "B"+rowNo).setCellValue(item.getItemCd());
+                //품목명
+                ExcelStyleUtil.getCellRef(sheet, "E"+rowNo).setCellValue(item.getItemName());
+                //상 구분
+                ExcelStyleUtil.getCellRef(sheet, "K"+rowNo).setCellValue(item.getPhase());
+                //칭량지시량
+                double reqQty = (item.getOrderQty() != null )? item.getOrderQty().doubleValue() : 0;
+                ExcelStyleUtil.getCellRef(sheet, "N"+rowNo).setCellValue(reqQty);
+                //기준량(함량%)
+                double contentRatio = reqQty/prodQty * 100;
+                ExcelStyleUtil.getCellRef(sheet, "L"+rowNo).setCellValue(contentRatio);
+                //시험번호
+                ExcelStyleUtil.getCellRef(sheet, "Q"+rowNo).setCellValue(item.getTestNoJoin());
+                //실칭량량
+                double weighQty = (item.getWeighQty() != null )? item.getWeighQty().doubleValue() : 0;
+                ExcelStyleUtil.getCellRef(sheet, "T"+rowNo).setCellValue(weighQty);
+                //작업자
+                ExcelStyleUtil.getCellRef(sheet, "W"+rowNo).setCellValue(item.getWeigher());
+
+                if(item.getWeigher() != null) weighMembers.add(item.getWeigher());
+                if(item.getConfirmer() != null) weighConfirmMembers.add(item.getConfirmer());
+
+                rowNo++;
+            }
+
+            ExcelStyleUtil.getCellRef(sheet, "E7").setCellValue(distinctAndJoining(weighMembers)); //작업자
+            ExcelStyleUtil.getCellRef(sheet, "Q7").setCellValue(distinctAndJoining(weighConfirmMembers)); //확인자
+            //L36, N36, T36
+            if (templateName.equals("/excel/prod_weigh_record_page1.xlsx")) {
+                ExcelStyleUtil.getCellRef(sheet, "L36").setCellFormula("SUM(L11:M35)");
+                ExcelStyleUtil.getCellRef(sheet, "N36").setCellFormula("SUM(N11:P35)");
+                ExcelStyleUtil.getCellRef(sheet, "T36").setCellFormula("SUM(T11:V35)");
+
+            } else if (templateName.equals("/excel/prod_weigh_record_page2.xlsx")) {
+                ExcelStyleUtil.getCellRef(sheet, "L67").setCellFormula("SUM(L11:M66)");
+                ExcelStyleUtil.getCellRef(sheet, "N67").setCellFormula("SUM(N11:P66)");
+                ExcelStyleUtil.getCellRef(sheet, "T67").setCellFormula("SUM(T11:V66)");
+
+            } else {
+                ExcelStyleUtil.getCellRef(sheet, "L98").setCellFormula("SUM(L11:M97)");
+                ExcelStyleUtil.getCellRef(sheet, "N98").setCellFormula("SUM(N11:P97)");
+                ExcelStyleUtil.getCellRef(sheet, "T98").setCellFormula("SUM(T11:V97)");
+            }
+
+            return ExcelStyleUtil.toByteArray(workbook);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new BusinessException("엑셀파일 생성중 에러발생!");
+        }
+    }
+
+    public String distinctAndJoining (List<String> stringList) {
+        return stringList.stream().distinct().collect(Collectors.joining(", "));
+    }
+
 }

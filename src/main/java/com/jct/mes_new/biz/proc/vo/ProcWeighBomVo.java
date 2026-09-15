@@ -33,6 +33,7 @@ public class ProcWeighBomVo {
     private String maker;
     private String makeConfirmer;
     private String procCd;
+    private String testNoJoin;
     private BigDecimal makeQty;
 
     private BigInteger orderDist;

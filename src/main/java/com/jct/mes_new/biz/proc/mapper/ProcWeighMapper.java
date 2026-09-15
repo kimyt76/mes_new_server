@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.proc.mapper;
 import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
 import com.jct.mes_new.biz.proc.vo.ProcWeighVo;
 import com.jct.mes_new.biz.proc.vo.WeighInfoVo;
+import com.jct.mes_new.biz.stock.vo.TranLedgerVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -38,4 +39,8 @@ public interface ProcWeighMapper {
     int updateWeighProcComplete(ProcWeighVo vo);
 
     int countWeighInvItem(ProcWeighVo item);
+
+    List<TranLedgerVo> getWeighCloseList(TranLedgerVo vo);
+
+    List<TranLedgerVo> getItemCloseList(TranLedgerVo vo);
 }

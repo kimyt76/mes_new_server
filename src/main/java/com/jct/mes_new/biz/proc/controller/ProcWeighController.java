@@ -1,29 +1,32 @@
 package com.jct.mes_new.biz.proc.controller;
 
 
-import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.service.ProcWeighService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.stock.vo.TranLedgerVo;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
-import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.util.BarcodeUtil;
 import com.jct.mes_new.config.util.JasperUtil;
-import com.jct.mes_new.config.util.RestResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.awt.geom.Area;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,14 +35,13 @@ import java.util.*;
 public class ProcWeighController {
 
     private final ProcWeighService procWeighService;
-    private final ProcCommonService procCommonService;
     private final MessageUtil messageUtil;
     private final WorkOrderMapper workOrderMapper;
 
     /**
      * 칭량공정 리스트 조회
      * @param vo
-     * @return
+     * @return getWeighInfo
      */
     @PostMapping("/getWeighInfo")
     public WeighInfoVo getWeighInfo(@RequestBody ProcWeighVo vo){
@@ -103,6 +105,32 @@ public class ProcWeighController {
         result.put("msg", procWeighService.saveWeighList(vo));
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
+
+    @PostMapping("/getWeighCloseList")
+    public List<TranLedgerVo> getWeighCloseList(@RequestBody TranLedgerVo vo){
+        return procWeighService.getWeighCloseList(vo);
+    }
+    @PostMapping("/getItemCloseList")
+    public List<TranLedgerVo> getItemCloseList(@RequestBody TranLedgerVo vo){
+        return procWeighService.getItemCloseList(vo);
+    }
+
+
+    @PostMapping("/downloadWeighProc")
+    public ResponseEntity<byte[]> downloadWeighProc(@RequestBody ProcWeighVo vo){
+        byte[] fileBytes = procWeighService.downloadWeighProc(vo);
+        String fileName = "칭량지시및기록서" + vo.getProcCd() + ".xlsx";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(fileName, StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
+                .body(fileBytes);
+    }
+
 
     /**
      * QR코드 프린트
