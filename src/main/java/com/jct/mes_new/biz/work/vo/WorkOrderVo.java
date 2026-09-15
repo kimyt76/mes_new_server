@@ -29,9 +29,9 @@ public class WorkOrderVo {
         private String etc;
         private String workStatus;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate strDate;
-    @JsonFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate endDate;
         private String matOrderDate;
 
