@@ -54,6 +54,7 @@ public class ProcWeighVo {
     private String managerId;
     private String tranYn;
     private String endYn;
+    private String phase;
 
 
     private String userId;
