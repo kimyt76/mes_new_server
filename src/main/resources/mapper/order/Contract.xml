@@ -4,6 +4,14 @@
 <mapper namespace="com.jct.mes_new.biz.order.mapper.ContractMapper">
 
     <select id="getContractList">
+        WITH prod_result AS (
+            SELECT  po_no,
+                    SUM(prod_qty) AS prod_qty
+            FROM TB_WORK_ORDER_PROC
+            WHERE proc_cd = 'PRC005'
+            AND proc_status = '52'
+            GROUP BY po_no
+        )
         select   b.po_no
                 ,a.client_no
                 ,c.client_name
@@ -13,6 +21,7 @@
                 ,b.item_cd
                 ,i.item_name
                 ,b.qty
+                ,ISNULL(b.qty, 0) - ISNULL(re.prod_qty, 0)  as reQty
                 ,b.unit_price
                 ,b.supply_price
                 ,b.delivery_req_date
@@ -37,6 +46,8 @@
                 and  d2.com_type_cd = 'status_type'
                 left join tb_users e
                 on e.user_id = a.manager_id
+                left join prod_result re
+                on re.po_no = b.po_no
         where   1=1
         <if test="strDate != null ">
             and a.contract_date between #{strDate} and #{endDate}
