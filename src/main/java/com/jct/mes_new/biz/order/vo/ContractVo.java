@@ -39,6 +39,7 @@ public class ContractVo {
     private String contractDateSeq;  /**/
     private String orderType;   /*수주유형 신규, 재발주, 리뉴얼*/
     private BigDecimal qty;
+    private BigDecimal reQty;
     private BigDecimal unitPrice;
     private BigDecimal vatPrice;
     private BigDecimal supplyPrice;
