@@ -82,4 +82,9 @@ public class WorkOrderInfoVo {
 
     private String userId;
 
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate strDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
 }
