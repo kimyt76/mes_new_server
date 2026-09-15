@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.proc.controller;
 
 import com.jct.mes_new.biz.proc.service.ProcMakeService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +37,9 @@ public class ProcMakeController {
         return procMakeService.startProcMake(vo);
     }
 
-    @GetMapping("/getWeighQty/{id}")
-    public Long getWeighQty(@PathVariable("id") Long weighId ){
-        return procMakeService.getWeighQty(weighId);
+    @GetMapping("/applyMakeQr/{id}")
+    public ProcMakeVo applyMakeQr(@PathVariable("id") Long weighId ){
+        return procMakeService.applyMakeQr(weighId);
     }
 
     @PostMapping("/insertRowMake")
@@ -75,5 +76,14 @@ public class ProcMakeController {
                 .body(fileBytes);
     }
 
+
+    @PostMapping("/getMatProcCondList")
+    public List<WorkOrderInfoVo> getMatProcCondList (@RequestBody ProcSearchVo vo){
+        return procMakeService.getMatProcCondList(vo);
+    }
+    @GetMapping("/getConditionList/{id}")
+    public List<MatConditionVo> getConditionList (@PathVariable("id") Long workProcId){
+        return procMakeService.getConditionList(workProcId);
+    }
 
 }

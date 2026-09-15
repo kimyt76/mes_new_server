@@ -1,8 +1,6 @@
 package com.jct.mes_new.biz.proc.mapper;
 
-import com.jct.mes_new.biz.proc.vo.MakeEtcVo;
-import com.jct.mes_new.biz.proc.vo.ProcMakeVo;
-import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
+import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -33,4 +31,15 @@ public interface ProcMakeMapper {
     int updateProdQty(WorkOrderInfoVo mst);
 
     Long getWorkProcId(Long workBatchId, String procCd);
+
+    List<WorkOrderInfoVo> getMatProcCondList(ProcSearchVo vo);
+
+    int conditionCnt(Long workProcId);
+
+    List<MatConditionVo> getRecipeCondition(String itemCd);
+    List<MatConditionVo> getMatCondition(Long workProcId);
+
+    ProcMakeVo getMakeInfo(Long weighId);
+
+    void updateMakeYn(Long weighId);
 }

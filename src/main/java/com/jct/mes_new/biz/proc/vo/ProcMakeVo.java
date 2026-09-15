@@ -27,6 +27,7 @@ public class ProcMakeVo {
     private BigDecimal orderQty;
     private BigDecimal prodQty;
     private BigDecimal prodYield;
+    private BigDecimal makeQty;
     private String batchStatus;
     private String procStatus;
     private String areaCd;
@@ -49,6 +50,7 @@ public class ProcMakeVo {
     private String workEndTime;
     private String workEquipmentCd;
     private String managerId;
+    private String makeYn;
 
 
     private String userId;

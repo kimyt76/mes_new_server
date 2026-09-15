@@ -292,8 +292,19 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         return vo.getWorkProcId();
     }
 
-    public Long getWeighQty(Long weighId){
-        return procMakeMapper.getWeighQty(weighId);
+    public ProcMakeVo applyMakeQr(Long weighId){
+        ProcMakeVo makevo = procMakeMapper.getMakeInfo(weighId);
+
+        if (makevo == null) {
+            throw new BusinessException("칭량 정보를 찾을 수 없습니다.");
+        }
+
+        if ("Y".equals(makevo.getMakeYn())) {
+            throw new BusinessException("이미 투입 완료된 QR입니다.");
+        }
+
+        procMakeMapper.updateMakeYn(weighId);
+        return makevo;
     }
 
     @Transactional(rollbackFor = BusinessException.class)

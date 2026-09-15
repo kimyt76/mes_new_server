@@ -1,8 +1,7 @@
 package com.jct.mes_new.biz.proc.service;
 
-import com.jct.mes_new.biz.proc.vo.MakeInfoVo;
-import com.jct.mes_new.biz.proc.vo.ProcMakeVo;
-import com.jct.mes_new.biz.proc.vo.ProcWeighBomVo;
+import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 
 import java.util.List;
 
@@ -12,7 +11,7 @@ public interface ProcMakeService {
 
     String startProcMake(ProcMakeVo vo);
 
-    Long getWeighQty(Long weighId);
+    ProcMakeVo applyMakeQr(Long weighId);
 
     String saveMakeInfo(MakeInfoVo vo);
 
@@ -21,4 +20,8 @@ public interface ProcMakeService {
     byte[] downloadMatProc(ProcMakeVo vo);
 
     Long completeMake(ProcMakeVo vo);
+
+    List<WorkOrderInfoVo> getMatProcCondList(ProcSearchVo vo);
+
+    List<MatConditionVo> getConditionList(Long workProcId);
 }
