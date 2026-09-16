@@ -2,6 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jct.mes_new.biz.mat.mapper.MatCommonMapper">
+    <select id="getItemCdM3">
+        select a.item_cd
+        from   TB_WORK_ORDER_PROC a
+        where  a.proc_cd ='PRC002'
+          and  a.po_no = #{poNo}
+    </select>
+
     <select id="getItemsBomList">
         SELECT   a.bom_id as bomId
                 ,a.item_cd
@@ -55,8 +62,10 @@
                 ,isnull(f.qty, 0 )-isnull(a.reqQty, 0) as differenceQty
                 ,isnull( g.reserveStockQty, 0 ) as reserveStockQty
                 ,e.customer_name as customerName
+                ,e.customer_cd as customerCd
                 ,d.code_nm as orderType
                 ,isnull(b.in_price, 0) as inPrice
+                ,b.item_type_cd as itemTypeCd
         from    bom_qty a
                 inner join tb_item_mst b
                 on b.item_cd = a.item_cd
