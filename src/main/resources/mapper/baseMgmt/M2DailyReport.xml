@@ -4,7 +4,7 @@
 <mapper namespace="com.jct.mes_new.biz.base.mapper.M2DailyReportMapper">
 
 <!--    생산일보 부자재 입고, 반품, 불량 리스트 목록 -->
-    <select id="getDailyRepostList">
+    <select id="getDailyReportList">
         select    a.daily_date
                  ,b.order_dist
                  ,b.item_cd
@@ -14,6 +14,8 @@
                  ,b.in_price
                  ,b.supply_price
                  ,b.storage_name
+                 ,b.bad_qty
+                 ,b.work_bad_qty
                  ,b.etc
                  ,a.daily_id
                  ,b.daily_sub_item_id
@@ -116,14 +118,15 @@
     </insert>
 
     <update id="updateDailyReportUse">
-        UPDATE tb_daily_item_use
-        SET    order_dist     = #{orderDist}
+        UPDATE tb_daily_sub_use
+        SET    bom_name       = #{bomName}
+              ,order_dist     = #{orderDist}
               ,required_quantity  = #{requiredQuantity}
               ,in_price       = #{inPrice}
               ,etc            = #{etc}
               ,upd_id         = #{userId}
               ,upd_dt         = GETDATE()
-        WHERE daily_item_use_id = #{dailyItemUseId}
+        WHERE daily_sub_use_id = #{dailySubUseId}
     </update>
 
     <delete id="deleteDailyReport">
