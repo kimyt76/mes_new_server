@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.DailyReportMapper">
+    <update id="updateDailyReportEndYn">
+        update tb_daily_mst
+        set    end_yn ='Y'
+        where  daily_id = #{dailyId}
+    </update>
+
+<!--    생산일보 원료 리스트 목록 -->
+    <select id="getM1DailyReportList">
+        SELECT    a.daily_date
+                 ,ISNULL(b.inQty, 0) AS inQty
+                 ,ISNULL(b.returnQty, 0) AS returnQty
+                 ,ISNULL(b.disQty, 0) AS discardQty
+                 ,ISNULL(b.outQty, 0) AS ospQty
+                 ,ISNULL(c.prodQty, 0) AS prodQty
+                 ,ISNULL(d.usePrice, 0) AS useQty
+                 ,a.daily_id
+                 ,a.end_yn
+                 ,a.reg_id
+                 ,a.type_cd
+        FROM tb_daily_mst a
+             LEFT JOIN (
+                 SELECT  daily_id
+                        ,SUM(CASE WHEN tran_type_cd = 'A' THEN ISNULL(qty, 0) ELSE 0 END) AS inQty
+                        ,SUM(CASE WHEN tran_type_cd = 'P' THEN ISNULL(qty, 0) ELSE 0 END) AS returnQty
+                        ,SUM(CASE WHEN tran_type_cd = 'G' THEN ISNULL(qty, 0) ELSE 0 END) AS disQty
+                        ,SUM(CASE WHEN tran_type_cd = 'Z' THEN ISNULL(qty, 0) ELSE 0 END) AS outQty
+                FROM tb_daily_M1
+                GROUP BY daily_id
+            ) b
+            ON a.daily_id = b.daily_id
+            LEFT JOIN (
+                SELECT  daily_id
+                     ,SUM(ISNULL(qty, 0)) AS prodQty
+                FROM tb_daily_prod
+                GROUP BY daily_id
+            ) c
+            ON a.daily_id = c.daily_id
+            LEFT JOIN (
+                SELECT  daily_id
+                       ,SUM(ISNULL(required_quantity, 0) * ISNULL(in_price, 0)) AS usePrice
+                FROM tb_daily_item_use
+                GROUP BY daily_id
+            ) d
+            ON a.daily_id = d.daily_id
+        WHERE a.daily_date between #{strDate} and #{endDate}
+        and   a.type_cd    = 'M'
+    </select>
+
+    <select id="getDailyReportMst">
+        select *
+        from   tb_daily_mst
+        where  daily_id = #{dailyId}
+    </select>
+
+    <insert id="insertDailyReportMst"  parameterType="com.jct.mes_new.biz.base.vo.DailyReportVo" useGeneratedKeys="true" keyProperty="dailyId">
+        insert into tb_daily_mst
+        ( daily_date, type_cd, end_yn, reg_id, upd_id)
+        values
+        (convert(date, getdate(), 23), #{typeCd}, 'N', #{userId}, #{userId})
+    </insert>
+
+<!--   원료, 부자재  입고, 반품 -->
+    <select id="getInList">
+        select  CONVERT(date, getdate(), 23)  as daily_date
+              ,ROW_NUMBER() OVER (ORDER BY a.tran_id, b.item_cd) AS order_dist
+             ,b.item_cd
+             ,dbo.getCustomerName(a.customer_cd) as customer_Name
+             ,i.item_name
+             ,i.spec
+             ,b.qty
+             ,b.in_price
+             ,b.supply_price
+             ,i.expiry_date
+             ,'' as etc
+        from   tb_inv_tran_mst a
+               join tb_inv_tran_item b
+               on a.tran_id = b.tran_id
+                and  b.item_type_cd = #{itemTypeCd}
+               join tb_item_mst i
+               on i.item_cd = b.item_cd
+        where  a.tran_date = DATEADD(day, -1, GETDATE())
+          and  a.tran_type_cd = #{tranTypeCd}
+    </select>
+
+    <select id="getProdList">
+        SELECT CONVERT(date, getdate(), 23) as daily_date
+             ,ROW_NUMBER() OVER (ORDER BY a.work_proc_id, a.item_cd) AS order_dist
+             ,a.item_cd
+             ,cl.client_name   as customer_name
+             ,c.item_name
+             ,b.lot_no
+             ,a.order_qty
+             ,x.bom_price
+             ,a.order_qty * x.bom_price AS total_price
+             ,dbo.getStorageByAreaCd(a.storage_cd) as area_name
+             ,'' as etc
+        FROM TB_WORK_ORDER_PROC a
+                 JOIN TB_WORK_ORDER_BATCH b
+                      ON b.work_batch_id = a.work_batch_id
+                 join TB_WORK_ORDER_MST m
+                      on m.work_order_id = a.work_batch_id
+                 left join tb_client_mst cl
+                           on cl.client_id = m.client_id
+                 JOIN tb_item_mst c
+                      ON c.item_cd = a.item_cd
+                 LEFT JOIN tb_customer d
+                           ON d.customer_cd = c.customer_cd
+            CROSS APPLY (
+                SELECT a.order_qty * SUM(r.real_content * m.in_price) / 1000 AS bom_price
+                FROM tb_bom_mst bm
+                    JOIN tb_bom_recipe r
+                      ON bm.bom_id = r.bom_id
+                    JOIN tb_item_mst m
+                      ON m.item_cd = r.item_cd
+                WHERE bm.default_yn = 'Y'
+                  AND bm.item_cd = a.item_cd
+            ) x
+        WHERE a.proc_cd = 'PRC001'
+          AND a.proc_status = '12'
+          and convert(date, a.work_end_time, 23) = DATEADD(DAY, -1, GETDATE())
+    </select>
+
+    <select id="getUseList">
+        select  CONVERT(date, getdate(), 23) as daily_date
+             ,c.item_cd
+             ,dbo.getCustomerName(i.customer_cd) as customer_name
+             ,i.item_name
+             ,c.weigh_qty
+             ,i.in_price
+             ,c.weigh_qty*i.in_price as tot_price
+             ,'' as etc
+        from    TB_WORK_ORDER_PROC a
+                    join tb_weigh_info b
+                         on a.work_proc_id = b.work_proc_id
+                    join tb_weigh_inv c
+                         on b.weigh_id = c.weigh_id
+                    join tb_item_mst i
+                         on i.item_cd = c.item_cd
+        where   a.proc_cd = 'PRC001'
+          and   convert(date, a.work_end_time, 23) = DATEADD(DAY, -1, GETDATE())
+          and   a.proc_status = '52'
+    </select>
+
+    <!--    부자재 -->
+    <select id="getM2DailyReportList">
+        SELECT   a.daily_date
+                 ,ISNULL(b.inQty, 0) AS inQty
+                 ,ISNULL(b.returnQty, 0) AS returnQty
+                 ,ISNULL(b.disQty, 0) AS discardQty
+                 ,ISNULL(d.usePrice, 0) AS useQty
+                 ,a.daily_id
+                 ,a.end_yn
+                 ,a.reg_id
+                 ,a.type_cd
+        FROM    tb_daily_mst a
+                LEFT JOIN (
+                    SELECT  daily_id
+                         ,SUM(CASE WHEN tran_type_cd = 'A' THEN ISNULL(in_price, 0) * isnull(qty, 0) ELSE 0 END) AS inQty
+                         ,SUM(CASE WHEN tran_type_cd = 'P' THEN ISNULL(in_price, 0) * isnull(qty, 0) ELSE 0 END) AS returnQty
+                         ,SUM(CASE WHEN tran_type_cd = 'G' THEN ISNULL(in_price, 0) * isnull(qty, 0) ELSE 0 END) AS disQty
+                    FROM tb_daily_M2
+                    GROUP BY daily_id
+                ) b
+                ON a.daily_id = b.daily_id
+                LEFT JOIN (
+                    SELECT  daily_id
+                         ,SUM(ISNULL(required_quantity, 0) * ISNULL(in_price, 0)) AS usePrice
+                    FROM tb_daily_sub_use
+                    GROUP BY daily_id
+                ) d
+                ON a.daily_id = d.daily_id
+        WHERE   a.daily_date between #{strDate} and #{endDate}
+          and   a.type_cd    = 'S'
+    </select>
+
+    <select id="getUseM2List">
+        WITH BOM AS (
+            SELECT   a.item_cd AS bom_item_cd
+                    ,b.item_cd AS sub_item_cd
+                    ,b.qty
+                    ,i.in_price
+            FROM tb_bom_mst a
+                INNER JOIN tb_bom_recipe b
+                ON b.bom_id = a.bom_id
+                INNER JOIN tb_item_mst i
+                ON i.item_cd = b.item_cd
+            AND i.item_type_cd = 'M2'
+            WHERE a.default_yn = 'Y'
+        ),
+        WORK_ITEM AS (
+            SELECT DISTINCT
+                    po_no
+                    ,item_cd AS bom_item_cd
+            FROM TB_WORK_ORDER_PROC
+            WHERE proc_cd IN ('PRC004', 'PRC005')
+           -- AND  CONVERT(date, work_end_time) = CONVERT(date, DATEADD(DAY, -1, GETDATE()))
+        ),
+        PROD AS (
+            SELECT    po_no
+                    ,item_cd AS packing_item_cd
+                    ,SUM(prod_qty) AS prod_qty
+            FROM TB_WORK_ORDER_PROC
+            WHERE proc_status = '52'
+            GROUP BY po_no ,item_cd
+        )
+        SELECT   dbo.getItemName(p.packing_item_cd) AS item_name
+                ,p.prod_qty
+                ,dbo.getItemName(b.sub_item_cd) AS bom_name
+                ,CASE WHEN i.item_type_cd != 'M0' THEN 0 ELSE b.qty END AS requiredQuantity
+                ,b.in_price
+                ,p.packing_item_cd
+                ,b.sub_item_cd
+        FROM WORK_ITEM w
+            INNER JOIN PROD p
+            ON p.po_no = w.po_no
+            INNER JOIN tb_item_mst i
+            ON i.item_cd = w.bom_item_cd
+            INNER JOIN BOM b
+            ON b.bom_item_cd = w.bom_item_cd
+        ORDER BY p.packing_item_cd ,b.sub_item_cd
+    </select>
+
+    <select id="getProcList">
+        select    b.lot_no
+                 ,b.make_no
+                 ,cl.client_name
+                 ,i.item_name
+                 ,a.prod_qty
+                 ,CASE WHEN r.work_start_time IS NULL OR r.work_end_time IS NULL THEN ''
+                       ELSE CONCAT(
+                          RIGHT('00' + CAST(DATEDIFF(MINUTE, r.work_start_time, r.work_end_time) / 60 AS varchar(10)), 2),
+                              ':',
+                          RIGHT('00' + CAST(DATEDIFF(MINUTE, r.work_start_time, r.work_end_time) % 60 AS varchar(2)), 2)
+                    )END AS work_time
+                 ,isnull(r.worker_cnt, 0) as worker_cnt
+        from   TB_WORK_ORDER_PROC a
+               join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+               join TB_WORK_ORDER_MST c
+                on c.work_order_id = a.work_order_id
+               left join tb_work_record r
+                on r.work_proc_id = a.work_proc_id
+               join tb_item_mst i
+                on i.item_cd = a.item_cd
+               left join tb_client_mst cl
+                on cl.client_id = c.client_id
+        where    convert(date, a.work_end_time, 23) = DATEADD(DAY, -1, GETDATE())
+          and    a.proc_cd = #{procCd}
+          and    a.proc_status = #{procStatus}
+    </select>
+
+
+    <!--    생산일보 완제품 리스트 목록 -->
+    <select id="getM0DailyReportList">
+        SELECT   a.daily_date
+                 ,ISNULL(b.inQty, 0) AS inQty
+                 ,ISNULL(b.returnQty, 0) AS returnQty
+                 ,ISNULL(b.discardQty, 0) AS discardQty
+                 ,ISNULL(b.outQty, 0) AS outQty
+                 ,ISNULL(b.outExpense, 0) AS outExpense
+                 ,ISNULL(b.shipmentQty, 0) AS shipmentQty
+                 ,a.daily_id
+                 ,a.end_yn
+                 ,a.reg_id
+                 ,a.type_cd
+        FROM    tb_daily_mst a
+                LEFT JOIN (
+                    SELECT    daily_id
+                         ,SUM(CASE WHEN tran_type_cd = 'A' THEN isnull(in_price, 0)*ISNULL(qty, 0) ELSE 0 END) AS inQty
+                         ,SUM(CASE WHEN tran_type_cd = 'P' THEN isnull(in_price, 0)*ISNULL(qty, 0) ELSE 0 END) AS returnQty
+                         ,SUM(CASE WHEN tran_type_cd = 'G' THEN isnull(in_price, 0)*ISNULL(qty, 0) ELSE 0 END) AS discardQty
+                         ,SUM(CASE WHEN tran_type_cd = 'O' THEN isnull(in_price, 0)*ISNULL(qty, 0) ELSE 0 END) AS outQty
+                         ,SUM(CASE WHEN tran_type_cd = 'E' THEN isnull(in_price, 0)*ISNULL(qty, 0) ELSE 0 END) AS outExpense
+                         ,SUM(CASE WHEN tran_type_cd = 'F' THEN isnull(in_price, 0)*ISNULL(qty, 0) ELSE 0 END) AS shipmentQty
+                    FROM tb_daily_M0
+                    GROUP BY daily_id
+                ) b
+                ON a.daily_id = b.daily_id
+        WHERE a.daily_date between #{strDate} and #{endDate}
+          and a.type_cd  = 'P'
+    </select>
+
+    <!--    생산일보 인건비 리스트 목록 -->
+    <select id="getLaborCostList">
+
+    </select>
+
+
+
+
+
+
+
+</mapper>
