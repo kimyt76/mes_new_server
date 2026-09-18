@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.mat.mapper.MatPlanMapper">
+    <!-- =========================================================
+         1) 메인 리스트 조회
+         WorkOrderVo getWorkOrderList(WorkOrderVo vo);
+         - 기본: work_order_date, area_cd, client_id, manager_id 등 조건이 있으면 적용
+         ========================================================= -->
+    <select id="getMatPlanList">
+        WITH tmp_proc_mat AS (
+            SELECT  po_no,
+                    SUM(order_qty) AS mat_Comp_Qty
+            FROM    dbo.TB_WORK_ORDER_PROC
+            WHERE   proc_cd = 'PRC002'
+            GROUP BY po_no
+        )
+        SELECT   a.mat_reg_date
+                ,a.po_no
+                ,a.item_cd
+                ,b.item_name
+                ,a.qty
+                ,isnull(a.theory_Make_Qty, 0) as theoryMakeQty
+                ,isnull(a.mat_Instr_Qty, 0) as matInstrQty
+                ,isnull(a.mat_Instr_Qty, 0) - ISNULL(c.mat_Comp_Qty, 0) AS resMatQty
+                ,a.mat_plan_date
+                ,isnull(a.mat_Instr_Qty,0) - (isnull(a.mat_Instr_Qty,0) - ISNULL(c.mat_Comp_Qty, 0)) as minQty
+                ,ISNULL(c.mat_Comp_Qty, 0)    AS matCompQty
+                ,a.etc
+                ,a.mat_In_Yn
+                ,a.end_yn
+                ,a.mat_plan_id
+        FROM    tb_mat_plan a
+                JOIN tb_item_mst b
+                ON b.item_cd = a.item_cd
+                LEFT JOIN tmp_proc_mat c
+                ON c.po_no = a.po_no
+        WHERE 1=1
+        <if test="strDate != null and strDate != ''">
+            AND a.mat_reg_date between #{strDate} AND #{endDate}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  a.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  b.item_name LIKE '%' + #{itemName} + '%'
+        </if>
+        <if test="endYn == 'N'">
+            AND (ISNULL(a.mat_Instr_Qty,0) - ISNULL(c.mat_Comp_Qty, 0)) > 0
+        </if>
+        <if test="endYn == 'Y'">
+            AND <![CDATA[
+                (ISNULL(a.mat_Instr_Qty,0) - ISNULL(c.mat_Comp_Qty, 0)) <= 0
+            ]]>
+        </if>
+        ORDER BY a.mat_reg_date desc
+    </select>
+
+    <select id="getMatPlanDetailList">
+        SELECT   a.mat_reg_date
+                 ,a.po_no
+                 ,a.item_cd
+                 ,b.item_name
+                 ,a.qty
+                 ,isnull(a.theory_Make_Qty, 0) as theoryMakeQty
+                 ,isnull(a.mat_Instr_Qty, 0) as matInstrQty
+                 ,a.mat_plan_date
+                 ,a.etc
+                 ,a.mat_in_yn
+                 ,a.end_yn
+                 ,a.mat_plan_id
+        FROM    tb_mat_plan a
+                JOIN dbo.tb_item_mst b
+                ON b.item_cd = a.item_cd
+        WHERE a.mat_plan_id = #{matPlanId}
+    </select>
+
+    <insert id="saveMatPlanList">
+        INSERT INTO tb_mat_plan (
+                mat_reg_date,
+                po_no,
+                item_cd,
+                qty,
+                theory_make_qty,
+                mat_instr_qty,
+                mat_plan_date,
+                etc,
+                mat_in_yn,
+                end_yn,
+                reg_id,
+                upd_id
+                )
+        VALUES
+            (
+                #{matRegDate},
+                #{poNo},
+                #{itemCd},
+                #{qty},
+                #{theoryMakeQty},
+                #{matInstrQty},
+                #{matPlanDate},
+                #{etc},
+                'N',
+                'N',
+                #{userId},
+                #{userId}
+            )
+    </insert>
+
+    <update id="updateMatPlan">
+        UPDATE tb_mat_plan
+        SET mat_reg_date      = #{matRegDate},
+            item_cd           = #{itemCd},
+            qty               = #{qty},
+            theory_make_qty   = #{theoryMakeQty},
+            mat_instr_qty     = #{matInstrQty},
+            mat_plan_date     = #{matPlanDate},
+            etc               = #{etc},
+            upd_id            = #{userId},
+            upd_dt            = GETDATE()
+        WHERE mat_plan_id = #{matPlanId}
+    </update>
+
+    <update id="updateEndYn">
+        UPDATE tb_mat_plan
+        SET end_yn      = #{endYn},
+            upd_id      = #{userId},
+            upd_dt      = GETDATE()
+        WHERE mat_plan_id = #{matPlanId}
+    </update>
+    <update id="updateMatInYn">
+        UPDATE tb_mat_plan
+        SET mat_in_yn   = #{matInYn},
+            upd_id      = #{userId},
+            upd_dt      = GETDATE()
+        WHERE mat_plan_id = #{matPlanId}
+    </update>
+
+</mapper>
