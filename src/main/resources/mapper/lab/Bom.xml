@@ -109,7 +109,6 @@
                  ,a.t
                  ,a.m
                  ,a.p2
-                 ,a.rt
                  ,a.etc
                  ,a.bom_proc_id
                  ,a.bom_id
@@ -157,7 +156,7 @@
         insert into tb_bom_recipe
             (bom_item_id,bom_id, phase, item_cd,  real_content,  qty, etc, order_dist, reg_id, upd_id)
         values
-            (#{bomItemId}, #{bomId}, #{phase}, #{realItemCd},#{realContent} #{qty},#{etc},#{orderDist}, #{userId}, #{userId})
+            (#{bomItemId}, #{bomId}, #{phase}, #{realItemCd},#{realContent}, #{qty},#{etc},#{orderDist}, #{userId}, #{userId})
     </insert>
 
     <update id="updateBomRecipe">

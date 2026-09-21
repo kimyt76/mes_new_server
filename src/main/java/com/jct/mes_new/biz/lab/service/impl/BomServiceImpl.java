@@ -82,6 +82,7 @@ public class BomServiceImpl implements BomService {
 
         if (bomRecipeList != null && !bomRecipeList.isEmpty()) {
             for (BomRecipeVo recipe : bomRecipeList) {
+                recipe.setBomItemId(CommonUtil.generateUUID());
                 recipe.setBomId(bomId);
                 recipe.setUserId(userId);
 
@@ -129,41 +130,43 @@ public class BomServiceImpl implements BomService {
         BomVo bomMst = vo.getBomInfo();
         List<BomRecipeVo> bomRecipeList = vo.getBomRecipeList();
         List<BomProcVo> bomProcList = vo.getBomProcList();
-
-        String asBomId = bomMst.getAsBomId();
-        bomMst.setBomId(CommonUtil.generateUUID());
         String userId = UserUtil.getUserId();
+
+        String bomId = CommonUtil.generateUUID();
+        String asBomId = bomMst.getBomId();
 
         bomMapper.updateBomVer(asBomId);
 
+        bomMst.setBomId(bomId);
         // 1. BOM 저장
         if (bomMapper.insertBomMst(bomMst) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        // 2. 처방정보 저장
+
         if (bomRecipeList != null && !bomRecipeList.isEmpty()) {
             for (BomRecipeVo recipe : bomRecipeList) {
                 recipe.setBomItemId(CommonUtil.generateUUID());
-                recipe.setBomId(bomMst.getBomId());
+                recipe.setBomId(bomId);
                 recipe.setUserId(userId);
 
-                if (bomMapper.insertBomRecipe(recipe) <= 0) {
+                if ( bomMapper.insertBomRecipe(recipe) <= 0 ) {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
             }
         }
-        // 3. 제조공정 저장
+
         if (bomProcList != null && !bomProcList.isEmpty()) {
             for (BomProcVo proc : bomProcList) {
-                proc.setBomProcId(CommonUtil.generateUUID());
-                proc.setBomId(bomMst.getBomId());
+                proc.setBomId(bomId);
                 proc.setUserId(userId);
+                proc.setBomProcId(CommonUtil.generateUUID());
 
-                if (bomMapper.insertBomProc(proc) <= 0) {
+                if ( bomMapper.insertBomProc(proc) <= 0 ) {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
             }
         }
+
         return "저장되었습니다.";
     }
 
