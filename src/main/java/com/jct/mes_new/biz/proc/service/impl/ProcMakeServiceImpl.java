@@ -95,14 +95,13 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         String result2 = bomProcList.stream()
                 .map(v -> {
                     List<String> list = Stream.of(
-                                    v.getH() != null ? "H : " + v.getH() : null,
-                                    v.getP() != null ? "P : " + v.getP() : null,
-                                    v.getD1() != null ? "D1 : " + v.getD1() : null,
-                                    v.getD2() != null ? "D2 : " + v.getD2() : null,
-                                    v.getT() != null ? "T : " + v.getT() : null,
-                                    v.getM() != null ? "M : " + v.getM() : null,
-                                    v.getP2() != null ? "P2 : " + v.getP2() : null,
-                                    v.getRt() != null ? "RT : " + v.getRt() : null
+                                    v.getH() != null && !v.getH().isBlank() ? "H : " + v.getH() : null,
+                                    v.getP() != null && !v.getP().isBlank() ? "P : " + v.getP() : null,
+                                    v.getD1() != null && !v.getD1().isBlank() ? "D1 : " + v.getD1() : null,
+                                    v.getD2() != null && !v.getD2().isBlank() ? "D2 : " + v.getD2() : null,
+                                    v.getT() != null && !v.getT().isBlank() ? "T : " + v.getT() : null,
+                                    v.getM() != null && !v.getM().isBlank() ? "M : " + v.getM() : null,
+                                    v.getP2() != null && !v.getP2().isBlank() ? "P2 : " + v.getP2() : null
                             )
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
