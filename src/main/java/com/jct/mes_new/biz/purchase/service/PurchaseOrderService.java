@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.purchase.service;
 
 import com.jct.mes_new.biz.common.vo.MailVo;
+import com.jct.mes_new.biz.purchase.vo.PurchaseOrderItemVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
@@ -61,6 +62,7 @@ public interface PurchaseOrderService {
     int updateInYn(Long purOrderItemId, String userId);
 
 
-
+    String updatePurchaseOrderItemEndYn(PurchaseOrderItemVo vo);
+    String updatePurchaseOrderM2EndYn(PurchaseOrderVo vo);
 }
 

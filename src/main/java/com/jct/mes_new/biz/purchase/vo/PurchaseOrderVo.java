@@ -36,6 +36,7 @@ public class PurchaseOrderVo {
     private String mailYn;
     private String printYn;
     private String endYn;
+    private String itemEndYn;
     private String inYn;
     private String itemTypeCd;
     public String itemCd;
@@ -45,23 +46,6 @@ public class PurchaseOrderVo {
 
     List<PurchaseOrderItemVo> purchaseOrderItemList;
     List<PurchaseOrderListVo> purchaseOrderList;
-
-    @Data
-    public static class PurchaseOrderItemVo {
-        public Long purOrderItemId;
-        public Long purOrderId;
-        public String itemTypeCd;
-        public String itemCd;
-        public String itemName;
-        public String spec;
-        public BigDecimal qty;
-        public BigDecimal inPrice;
-        public BigDecimal supplyPrice;
-        public BigDecimal vatPrice;
-        public String inYn;
-        public String etc;
-        public String userId;
-    }
 
     @Data
     public static class PurchaseOrderListVo {
@@ -89,6 +73,10 @@ public class PurchaseOrderVo {
         public String orderState;
         public String endYn;
         private String mailYn;
+        private String printYn;
+        public String itemMailYn;
+        public String itemPrintYn;
+        public String itemEndYn;
         public String managerName;
     }
 }

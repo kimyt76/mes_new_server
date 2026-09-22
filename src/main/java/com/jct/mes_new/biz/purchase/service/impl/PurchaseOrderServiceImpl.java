@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.common.vo.MailVo;
 import com.jct.mes_new.biz.purchase.mapper.PurchaseMapper;
 import com.jct.mes_new.biz.purchase.mapper.PurchaseOrderMapper;
 import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
+import com.jct.mes_new.biz.purchase.vo.PurchaseOrderItemVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
 import com.jct.mes_new.config.common.UserUtil;
@@ -67,7 +68,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         if ( cnt <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        for (PurchaseOrderVo.PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
+        for (PurchaseOrderItemVo d : vo.getPurchaseOrderItemList()) {
             d.setPurOrderId(mst.getPurOrderId());
         }
         // 3. 품목리스트 저장
@@ -100,10 +101,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         //3. 발주 품목 처리
-        List<PurchaseOrderVo.PurchaseOrderItemVo> itemList = vo.getPurchaseOrderItemList();
+        List<PurchaseOrderItemVo> itemList = vo.getPurchaseOrderItemList();
 
         if (itemList != null && !itemList.isEmpty()) {
-            for (PurchaseOrderVo.PurchaseOrderItemVo item : itemList) {
+            for (PurchaseOrderItemVo item : itemList) {
                 item.setPurOrderId(purOrderId);
                 item.setUserId(userId);
                 if (item.getPurOrderItemId() == null) {
@@ -175,6 +176,22 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     public void updateMailYn(Map<String, Object> map){
         Long purOrderId = Long.valueOf(map.get("purOrderId").toString());
         purchaseOrderMapper.updateMailYn(purOrderId);
+    }
+
+    public String updatePurchaseOrderItemEndYn(PurchaseOrderItemVo vo){
+        String userId = UserUtil.getUserId();
+
+        vo.setUserId(userId);
+        purchaseOrderMapper.updatePurchaseOrderItemEndYn(vo);
+        return "수정되었습니다.";
+    }
+
+    public String updatePurchaseOrderM2EndYn(PurchaseOrderVo vo){
+        String userId = UserUtil.getUserId();
+
+        vo.setUserId(userId);
+        purchaseOrderMapper.updatePurchaseOrderM2EndYn(vo);
+        return "수정되었습니다.";
     }
 
     /**

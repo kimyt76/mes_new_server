@@ -1,5 +1,6 @@
 package com.jct.mes_new.biz.purchase.mapper;
 
+import com.jct.mes_new.biz.purchase.vo.PurchaseOrderItemVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
 import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
 import org.apache.ibatis.annotations.Mapper;
@@ -36,7 +37,7 @@ public interface PurchaseOrderMapper {
      * @param purchaseOrderItemList
      * @return
      */
-    int insertPurOrderItem(@Param("list") List<PurchaseOrderVo.PurchaseOrderItemVo> purchaseOrderItemList, @Param("userId") String userId);
+    int insertPurOrderItem(@Param("list") List<PurchaseOrderItemVo> purchaseOrderItemList, @Param("userId") String userId);
 
     /**
      *  발주 상세
@@ -44,7 +45,7 @@ public interface PurchaseOrderMapper {
      * @return
      */
     PurchaseOrderVo getPurchaseOrderInfo(@Param("purOrderId") Long purOrderId);
-    List<PurchaseOrderVo.PurchaseOrderItemVo> getPurchaseOrderItemList(@Param("purOrderId") Long purOrderId, @Param("itemTypeCd") String itemTypeCd);
+    List<PurchaseOrderItemVo> getPurchaseOrderItemList(@Param("purOrderId") Long purOrderId, @Param("itemTypeCd") String itemTypeCd);
 
     /**
      * 발주 업데이트
@@ -54,11 +55,11 @@ public interface PurchaseOrderMapper {
     void deleteItemList(@Param("purOrderId") Long purOrderId,
                         @Param("deletedItemIds") List<Long> deletedItemIds);
     /* 발주 item 리스트 신규*/
-    int insertPurchaseOrderItem(PurchaseOrderVo.PurchaseOrderItemVo vo);
+    int insertPurchaseOrderItem(PurchaseOrderItemVo vo);
     /* 발주 마스터 업데이트*/
     int updatePurOrderMst(PurchaseOrderVo purchaseOrderInfo);
     /* 발주 item 리스트 업데이트*/
-    int updatePurOrderItem(PurchaseOrderVo.PurchaseOrderItemVo item);
+    int updatePurOrderItem(PurchaseOrderItemVo item);
 
 
     /**
@@ -82,4 +83,8 @@ public interface PurchaseOrderMapper {
      */
     int updatePurchaseOrderEndYn(@Param("purOrderId")Long purOrderId, @Param("userId")String userId);
     int updateInYn(@Param("purOrderItemId") Long purOrderItemId, @Param("userId") String userId);
+
+    void updatePurchaseOrderItemEndYn(PurchaseOrderItemVo vo);
+
+    void updatePurchaseOrderM2EndYn(PurchaseOrderVo vo);
 }

@@ -8,6 +8,6 @@ import java.util.List;
 public class PurchaseOrderRequestVo {
 
     private PurchaseOrderVo purchaseOrderInfo;
-    private List<PurchaseOrderVo.PurchaseOrderItemVo> purchaseOrderItemList;
+    private List<PurchaseOrderItemVo> purchaseOrderItemList;
     private List<Long> deletePurchaseOrderItems;
 }

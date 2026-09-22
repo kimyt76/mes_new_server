@@ -8,10 +8,7 @@ import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.common.vo.MailVo;
 import com.jct.mes_new.biz.common.vo.PoSheetMailVo;
 import com.jct.mes_new.biz.purchase.service.PurchaseOrderService;
-import com.jct.mes_new.biz.purchase.vo.PurchaseOrderMailVo;
-import com.jct.mes_new.biz.purchase.vo.PurchaseOrderRequestVo;
-import com.jct.mes_new.biz.purchase.vo.PurchaseOrderSheet;
-import com.jct.mes_new.biz.purchase.vo.PurchaseOrderVo;
+import com.jct.mes_new.biz.purchase.vo.*;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
@@ -107,6 +104,28 @@ public class PurchaseOrderController {
     }
 
     /**
+     * 원료 종결 업데이트
+     * @param vo
+     * @return
+     */
+    @PostMapping("/updatePurchaseOrderItemEndYn")
+    public ResponseEntity<ApiResponse<Void>> updatePurchaseOrderItemEndYn(@RequestBody PurchaseOrderItemVo vo) {
+        String result = purchaseOrderService.updatePurchaseOrderItemEndYn(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+    /**
+     * 원료 종결 업데이트
+     * @param vo
+     * @return
+     */
+    @PostMapping("/updatePurchaseOrderM2EndYn")
+    public ResponseEntity<ApiResponse<Void>> updatePurchaseOrderM2EndYn(@RequestBody PurchaseOrderVo vo) {
+        String result = purchaseOrderService.updatePurchaseOrderM2EndYn(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+    /**
      *
      * @param purOrderIds
      * @return
@@ -177,7 +196,7 @@ public class PurchaseOrderController {
 
             int rowCount = 0;
             List<PurchaseOrderMailVo> poItemList = new ArrayList<>();
-            for (PurchaseOrderVo.PurchaseOrderItemVo moItem: reqVo.getPurchaseOrderItemList()) {
+            for (PurchaseOrderItemVo moItem: reqVo.getPurchaseOrderItemList()) {
                 rowCount++;
 
                 PurchaseOrderMailVo poItem = new PurchaseOrderMailVo();
@@ -284,7 +303,7 @@ public class PurchaseOrderController {
 
         int rowCount = 0;
         List<PurchaseOrderMailVo> poItemList = new ArrayList<>();
-        for (PurchaseOrderVo.PurchaseOrderItemVo moItem: reqVo.getPurchaseOrderItemList()) {
+        for (PurchaseOrderItemVo moItem: reqVo.getPurchaseOrderItemList()) {
             rowCount++;
 
             PurchaseOrderMailVo poItem = new PurchaseOrderMailVo();
@@ -311,7 +330,6 @@ public class PurchaseOrderController {
             Map<String, Object> parameters = new HashMap<>();
 
             InputStream logoStream = getClass().getResourceAsStream("/static/images/logo1.png");
-            //InputStream logoStream = getClass().getResourceAsStream("/static/images/jct_logo_new.png");
             parameters.put("logo", logoStream);
 
             InputStream subStream = getClass().getResourceAsStream("/report/purchase_order_sub.jrxml");
