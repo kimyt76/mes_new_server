@@ -76,7 +76,9 @@
                inner join tb_item_mst b
                on a.item_cd = b.item_cd
         where  a.bom_id = #{bomId}
+        <if test="defaultYn == 'Y' ">
           and  a.default_yn ='Y'
+        </if>
     </select>
 
     <select id="getBomRecipeList">
