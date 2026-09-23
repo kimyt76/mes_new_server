@@ -277,7 +277,7 @@
         where  1=1
         and  a.default_yn = 'Y'
         <if test="itemName != null and itemName != ''">
-            and  b.itemName like '%' + #{itemName} + '%'
+            and  b.item_name like '%' + #{itemName} + '%'
         </if>
         <if test="itemCd != null and itemCd != ''">
             and  a.item_cd like '%' + #{itemCd} + '%'
