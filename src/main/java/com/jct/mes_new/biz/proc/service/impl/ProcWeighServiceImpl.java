@@ -138,21 +138,31 @@ public class ProcWeighServiceImpl implements ProcWeighService {
                 item.setWeighId(mst.getWeighId());
                 item.setUserId(userId);
 
-                int existsCnt = procWeighMapper.countWeighInvItem(item);
-
-                if (existsCnt == 0) {
-                    // 신규 등록
-                    int insertCnt = procWeighMapper.insertWeighInvItem(item);
-                    if (insertCnt <= 0) {
+                if ( item.getWeighInvId() == null ){
+                    if (procWeighMapper.insertWeighInvItem(item) <= 0) {
                         throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
-                } else {
-                    // 기존 수정
-                    int updateCnt = procWeighMapper.updateWeighInvItem(item);
-                    if (updateCnt <= 0) {
-                        throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                }else{
+                    if (procWeighMapper.updateWeighInvItem(item) <= 0) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
                 }
+
+//                int existsCnt = procWeighMapper.countWeighInvItem(item);
+//
+//                if (existsCnt == 0) {
+//                    // 신규 등록
+//                    int insertCnt = procWeighMapper.insertWeighInvItem(item);
+//                    if (insertCnt <= 0) {
+//                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+//                    }
+//                } else {
+//                    // 기존 수정
+//                    int updateCnt = procWeighMapper.updateWeighInvItem(item);
+//                    if (updateCnt <= 0) {
+//                        throw new BusinessException(ErrorCode.FAIL_UPDATED);
+//                    }
+//                }
             }
         }
         //칭량 bom 정보 업데이트

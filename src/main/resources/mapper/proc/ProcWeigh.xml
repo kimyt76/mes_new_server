@@ -118,9 +118,9 @@
 
     <delete id="deleteWeighList">
         DELETE FROM tb_weigh_inv
-        WHERE weigh_id IN
-        <foreach collection="deleteWeighItems" item="weighId" open="(" separator="," close=")">
-            #{weighId}
+        WHERE weigh_inv_id IN
+        <foreach collection="deleteWeighItems" item="weighInvId" open="(" separator="," close=")">
+            #{weighInvId}
         </foreach>
     </delete>
 
@@ -140,13 +140,12 @@
 
     <update id="updateWeighInvItem">
         UPDATE tb_weigh_inv
-        SET     weigh_id   = #{weighId}
-              , storage_cd = #{storageCd}
+        SET     storage_cd = #{storageCd}
               , weigh_qty  = #{weighQty}
               , item_cd    = #{itemCd}
               , lot_no     = #{lotNo}
               , test_no    = #{testNo}
-              , upd_id     = #{updId}
+              , upd_id     = #{userId}
               , upd_dt     = GETDATE()
         WHERE weigh_inv_id = #{weighInvId}
     </update>
