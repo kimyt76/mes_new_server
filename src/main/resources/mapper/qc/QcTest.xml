@@ -42,7 +42,6 @@
                 AND a.test_state in ( 'ING','END')
             </otherwise>
         </choose>
-
         <if test="areaCd != null and areaCd != ''">
             AND a.area_cd =  #{areaCd}
         </if>
@@ -91,13 +90,13 @@
                  ,dbo.getUserName(a.sample_tester_id) as sample_tester_name
                  ,a.test_date
                  ,a.confirm_date
-                 ,a.sample_qty
-                 ,a.test_qty
+                 ,isnull(a.sample_qty, 0) as sample_qty
+                 ,isnull(a.test_qty, 0) as test_qty
                  ,a.test_state
                  ,a.pass_state
                  ,a.qc_test_id
                  ,a.area_cd
-                 ,isnull((select max(seq)+1 from  tb_qc_test_mst where retest_yn ='Y' and test_no = a.test_no ), 1) as seq
+                 ,a.seq
                  ,a.retest_yn
                  ,b.create_date
                  ,b.expiry_date
@@ -227,10 +226,64 @@
     </update>
 
     <insert id="insertRetestInfo">
-        insert into tb_qc_test_mst
-         ( req_date, req_tester_id, area_cd,  storage_cd,  TEST_NO, seq, RETEST_YN, req_qty, TEST_STATE,  PASS_STATE, reg_id, upd_id )
-        values
-          (#{reqDate}, #{reqTesterId}, #{areaCd}, #{storageCd}, #{testNo}, #{seq}, 'Y', #{reqQty},'REQ', 'REQ',  #{userId}, #{userId})
+        INSERT INTO tb_qc_test_mst
+        (
+          retest_yn
+        ,seq
+        ,req_date
+        ,test_date
+        ,test_no
+        ,area_cd
+        ,storage_cd
+        ,req_qty
+        ,test_qty
+        ,sample_qty
+        ,order_type
+        ,confirm_date
+        ,test_state
+        ,pass_state
+        ,req_tester_id
+        ,tester_id
+        ,order_tester_id
+        ,confirm_tester_id
+        ,sample_tester_id
+        ,etc
+        ,qc_cd
+        ,reg_id
+        ,reg_dt
+        ,upd_id
+        ,upd_dt
+        ,tran_yn
+        )
+        SELECT
+            'Y'
+             ,#{seq}
+             ,#{reqDate}
+             ,a.test_date
+             ,a.test_no
+             ,#{areaCd}
+             ,#{storageCd}
+             ,#{reqQty}
+             ,a.test_qty
+             ,a.sample_qty
+             ,a.order_type
+             ,a.confirm_date
+             ,a.test_state
+             ,a.pass_state
+             ,#{reqTesterId}
+             ,a.tester_id
+             ,a.order_tester_id
+             ,a.confirm_tester_id
+             ,a.sample_tester_id
+             ,a.etc
+             ,a.qc_cd
+             ,#{userId}
+             ,GETDATE()
+             ,#{userId}
+             ,GETDATE()
+             ,'N'
+        FROM tb_qc_test_mst a
+        WHERE a.qc_test_id = #{qcTestId}
     </insert>
 
 
@@ -311,5 +364,59 @@
         select isnull(tran_yn, 'N') as tranYn
         from   tb_qc_test_mst
         where  qc_test_id = #{qcTestId}
+    </select>
+
+
+    <select id="getQcTestNoInfo">
+        select    a.test_no
+                 ,a.req_date
+                 ,dbo.getUserName(a.req_tester_id) as req_tester_name
+                 ,a.req_tester_id
+                 ,dbo.getCommonName('item_type_cd', b.item_type_cd) as item_type_name
+                 ,b.item_type_cd
+                 ,b.item_cd
+                 ,C.item_name
+                 ,b.lot_no
+                 ,b.make_no
+                 ,a.req_qty
+                 ,dbo.getStorageName(a.storage_cd) as storage_name
+                 ,a.storage_cd
+                 ,a.tester_id
+                 ,dbo.getUserName(a.tester_id) as tester_name
+                 ,a.order_tester_id
+                 ,dbo.getUserName(a.order_tester_id) as order_tester_name
+                 ,a.confirm_tester_id
+                 ,dbo.getUserName(a.confirm_tester_id) as confirm_tester_name
+                 ,a.sample_tester_id
+                 ,dbo.getUserName(a.sample_tester_id) as sample_tester_name
+                 ,a.test_date
+                 ,a.confirm_date
+                 ,isnull(a.sample_qty, 0) as sample_qty
+                 ,isnull(a.test_qty, 0) as test_qty
+                 ,a.test_state
+                 ,a.pass_state
+                 ,a.qc_test_id
+                 ,a.area_cd
+                 ,isnull((select max(seq)+1 from  tb_qc_test_mst where retest_yn ='Y' and test_no = a.test_no ), 1) as seq
+                 ,a.retest_yn
+                 ,b.create_date
+                 ,b.expiry_date
+                 ,b.customer_cd
+                 ,dbo.getCustomerName(b.customer_cd) as customer_Name
+                 ,a.order_type
+                 ,a.etc
+                 ,a.qc_cd
+                 ,isnull(a.tran_yn, 'N') as tran_yn
+        from    tb_qc_test_mst a
+                    inner join tb_item_test_no b
+                               on a.test_no = b.test_no
+                    inner join tb_item_mst c
+                               on b.item_cd = c.item_cd
+        where  a.test_no = #{testNo}
+          and isnull(a.seq, 0) = isnull((
+                                        select max(x.seq)
+                                        from tb_qc_test_mst x
+                                        where x.test_no = a.test_no
+                                    ), 0)
     </select>
 </mapper>

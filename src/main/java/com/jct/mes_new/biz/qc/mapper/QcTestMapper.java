@@ -61,4 +61,6 @@ public interface QcTestMapper {
     QcTestVo getQcTestDetailByTestNo(String testNo);
 
     String getTranYn(Long qcTestId);
+
+    QcTestVo getQcTestNoInfo(String testNo);
 }

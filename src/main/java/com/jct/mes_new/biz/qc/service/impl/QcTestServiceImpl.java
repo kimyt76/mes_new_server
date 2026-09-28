@@ -89,6 +89,15 @@ public class QcTestServiceImpl implements QcTestService {
     }
 
     /**
+     * 품질검사 상세 조회
+     * @param testNo
+     * @return
+     */
+    public QcTestVo getQcTestNoInfo(String testNo){
+        return qcTestMapper.getQcTestNoInfo(testNo);
+    }
+
+    /**
      * 품질검사 상세 및 메소드 조회
      * @param qcTestId
      * @return
@@ -118,7 +127,7 @@ public class QcTestServiceImpl implements QcTestService {
     }
 
     /**
-     * 품질검사 재검사 요청
+     * 품질검사 재검사 요청 등록
      * @param vo
      * @return
      */
@@ -132,6 +141,8 @@ public class QcTestServiceImpl implements QcTestService {
 
         return "저장되었습니다.";
     }
+    
+    
 
     /**
      * 품질검사 등록 및 수정
@@ -145,7 +156,6 @@ public class QcTestServiceImpl implements QcTestService {
         qcTestMst.setUserId(userId);
 
         String tranYn = qcTestMapper.getTranYn(qcTestMst.getQcTestId());
-        log.info("tranYn===============================================:{}",tranYn);
 
         if ( qcTestMapper.updateQcTestAllInfo(qcTestMst) <=  0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);

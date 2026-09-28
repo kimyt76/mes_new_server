@@ -29,7 +29,7 @@ public class QcProcTestVo {
     private String lotNo2;
     private String batchStatus;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate chargingDate;
+    private LocalDate chargeDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate packingDate;
 

@@ -39,4 +39,5 @@ public interface QcTestService {
 
     byte[] getPrintPdf(List<Long> qcTestIds, PrintDocumentType printType) throws Exception;
 
+    QcTestVo getQcTestNoInfo(String testNo);
 }

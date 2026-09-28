@@ -12,7 +12,7 @@
                  ,b.batch_status
                  ,isnull(m.test_state, 'N') as test_state
                  ,m.qc_test_type
-                 ,c.proc_order_date as charging_date
+                 ,c.proc_order_date as charge_date
                  ,d.proc_order_date as packing_date
                  ,b.work_batch_id
                  ,b.work_batch_id

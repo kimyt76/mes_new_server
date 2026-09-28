@@ -54,6 +54,16 @@ public class QcTestController {
     }
 
     /**
+     * qc 품질검사요청 재검사요청 정보 조회
+     * @param testNo
+     * @return
+     */
+    @GetMapping("/getQcTestNoInfo/{id}")
+    public QcTestVo getQcTestNoInfo (@PathVariable("id") String testNo) {
+        return qcTestService.getQcTestNoInfo(testNo);
+    }
+
+    /**
      * qc 품질검사 상세 및 메소드
      * @param qcTestId
      * @return
