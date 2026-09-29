@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.system.controller;
 
 import com.jct.mes_new.auth.service.UserService;
 import com.jct.mes_new.auth.vo.UserVo;
+import com.jct.mes_new.biz.common.vo.MenuVo;
 import com.jct.mes_new.biz.system.service.SystemMgmtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,5 +69,11 @@ public class SytemMgmtController {
         }
         return msg;
     }
+
+    @GetMapping("/getMenuList")
+    public List<MenuVo> getMenuList() {
+        return systemMgmtService.getMenuList();
+    }
+
 
 }

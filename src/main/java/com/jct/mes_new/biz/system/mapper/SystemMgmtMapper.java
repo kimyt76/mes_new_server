@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.system.mapper;
 
 import com.jct.mes_new.auth.vo.UserVo;
+import com.jct.mes_new.biz.common.vo.MenuVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,4 +11,6 @@ import java.util.List;
 public interface SystemMgmtMapper {
 
     boolean updateUserInfo(UserVo userVo);
+
+    List<MenuVo> getMenuList(@Param("userId") String userId);
 }

@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.jct.mes_new.biz.system.mapper.SystemMapper">
+<mapper namespace="com.jct.mes_new.biz.system.mapper.SystemMgmtMapper">
 
     <update id="deleteUser">
         update tb_users
         set use_yn = 'N'
         where user_id = '${userId}'
     </update>
+
+    <select id="getMenuList">
+        SELECT    a.menu_id        AS menuId
+                 ,a.parent_id      AS parentId
+                 ,a.menu_name      AS menuName
+                 ,a.menu_path      AS menuPath
+                 ,a.icon           AS icon
+                 ,a.sort_order     AS sortOrder
+                 ,a.menu_level     AS menuLevel
+                 ,a.menu_type      AS menuType
+                 ,ISNULL(b.read_yn, 'N')  AS readYn
+                 ,ISNULL(b.write_yn, 'N') AS writeYn
+        FROM     tb_menu_mst a
+                 LEFT JOIN tb_menu_auth b
+                 ON b.menu_id = a.menu_id
+                 AND b.user_id = #{userId}
+        WHERE    a.use_yn = 'Y'
+        ORDER BY a.menu_level,a.parent_id,a.sort_order
+    </select>
 
 </mapper>

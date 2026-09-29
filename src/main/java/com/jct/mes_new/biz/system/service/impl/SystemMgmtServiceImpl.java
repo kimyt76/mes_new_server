@@ -1,8 +1,10 @@
 package com.jct.mes_new.biz.system.service.impl;
 
 import com.jct.mes_new.auth.vo.UserVo;
+import com.jct.mes_new.biz.common.vo.MenuVo;
 import com.jct.mes_new.biz.system.mapper.SystemMgmtMapper;
 import com.jct.mes_new.biz.system.service.SystemMgmtService;
+import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,5 +18,10 @@ public class SystemMgmtServiceImpl implements SystemMgmtService {
 
     public boolean updateUserInfo(UserVo userVo){
         return systemMgmtMapper.updateUserInfo(userVo);
+    }
+
+    public List<MenuVo> getMenuList() {
+        String userId = UserUtil.getUserId();
+        return systemMgmtMapper.getMenuList(userId);
     }
 }
