@@ -13,4 +13,6 @@ public interface SystemMgmtMapper {
     boolean updateUserInfo(UserVo userVo);
 
     List<MenuVo> getMenuList(@Param("userId") String userId);
+
+    int insertMenuAuth(String userId);
 }

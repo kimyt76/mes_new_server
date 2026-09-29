@@ -35,9 +35,7 @@ public class SytemMgmtController {
         }
 
         try{
-            if ( userService.updateUserInfo(userVo)  ){
-                msg = "사용자 정보가 저장되었습니다.";
-            }
+            msg = userService.updateUserInfo(userVo);
         } catch (Exception e) {
             throw new Exception("저장중 오류가 발생했습니다.");
         }

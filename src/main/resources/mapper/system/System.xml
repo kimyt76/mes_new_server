@@ -28,4 +28,23 @@
         ORDER BY a.menu_level,a.parent_id,a.sort_order
     </select>
 
+    <insert id="insertMenuAuth">
+        INSERT INTO tb_menu_auth
+        (user_id,menu_id,read_yn,write_yn,reg_id,reg_dt)
+        SELECT    #{userId}
+                 ,m.menu_id
+                 ,'Y'
+                 ,'N'
+                 ,'SYSTEM'
+                 ,GETDATE()
+        FROM tb_menu_mst m
+        WHERE m.use_yn = 'Y'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tb_menu_auth a
+            WHERE a.user_id =  #{userId}
+              AND a.menu_id = m.menu_id
+        )
+    </insert>
+
 </mapper>
