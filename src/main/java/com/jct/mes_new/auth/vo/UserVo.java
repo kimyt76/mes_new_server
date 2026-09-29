@@ -10,6 +10,9 @@ import java.util.List;
 
 @Data
 public class UserVo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * Userid : 이메일 ID
      */
@@ -54,6 +57,8 @@ public class UserVo implements Serializable {
      * 사용여부 (퇴직여부)
      */
     private String useYn;
+
+    private String regId;
 
     private int id;
 }

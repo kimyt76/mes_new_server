@@ -13,7 +13,7 @@ public interface UserMapper {
 
      List<UserVo> getUserList(UserVo userVo);
 
-     boolean updateUserInfo(UserVo userVo);
+     int updateUserInfo(UserVo userVo);
 
      int userCheck(@Param("userId") String id);
 

@@ -52,13 +52,13 @@
                         ,phone = #{phone}
                         ,use_yn = #{useYn}
                         ,etc = #{etc}
-                        ,upd_Id = ''
+                        ,upd_Id = 'SYSTEM'
                         ,upd_Dt = getdate()
             when not matched then
                 insert (user_id, password, member_nm, dept_nm, job_position, email, phone, use_yn, etc, reg_id, reg_dt,
                         upd_id, upd_dt)
-                    values (#{userId}, #{password}, #{memberNm}, #{deptNm}, #{jobPosition}, #{email},
-                            #{phone}, 'Y', #{etc}, 'reg_Id', getdate(), 'upd_id', getdate())
+                    values (#{userId}, #{password}, #{memberNm}, #{deptNm}, #{jobPosition}, #{email},#{phone}, 'Y', #{etc}, 'SYSTEM', getdate()
+                        , 'SYSTEM', getdate())
         ;
     </update>
 
@@ -72,6 +72,5 @@
         update tb_users
         set    password = #{password}
         where  user_id = #{userId}
-
     </update>
 </mapper>
