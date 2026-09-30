@@ -1,9 +1,8 @@
 package com.jct.mes_new.biz.common.service;
 
-import com.jct.mes_new.biz.common.vo.MenuVo;
+import com.jct.mes_new.biz.system.vo.MenuVo;
 
 import java.util.List;
-import java.util.Map;
 
 public interface MenuService {
 

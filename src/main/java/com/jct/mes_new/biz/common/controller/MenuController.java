@@ -1,9 +1,7 @@
 package com.jct.mes_new.biz.common.controller;
 
-import com.jct.mes_new.biz.common.service.CommonService;
 import com.jct.mes_new.biz.common.service.MenuService;
-import com.jct.mes_new.biz.common.vo.MenuVo;
-import jakarta.servlet.http.HttpSession;
+import com.jct.mes_new.biz.system.vo.MenuVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController

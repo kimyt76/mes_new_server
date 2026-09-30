@@ -1,6 +1,5 @@
-package com.jct.mes_new.biz.common.vo;
+package com.jct.mes_new.biz.system.vo;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 @Data
@@ -9,8 +8,16 @@ public class MenuVo {
     private Integer parentId;
     private String menuName;
     private String menuPath;
-    private String routeName;
     private String icon;
+    private Integer sortOrder;
+    private Integer menuLevel;
+    private String menuType;
+    private String useYn;
+
     private String readYn;
     private String writeYn;
+
+    private String userId;
+
+
 }
