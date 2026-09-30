@@ -165,4 +165,85 @@
                   AND a.menu_id = #{menuId}
         )
     </insert>
+
+    <select id="getGrpMenuList">
+        SELECT    menu_id
+                 ,menu_name as grp_menu_name
+                 ,sort_order
+            FROM tb_menu_mst
+            WHERE menu_level = 2
+              AND use_yn = 'Y'
+            ORDER BY menu_id, sort_order
+    </select>
+
+    <select id="getMenuAuthList">
+        SELECT    c.menu_id     AS grp_menu_id
+                 ,c.menu_name   AS grp_menu_name
+                 ,b.menu_id
+                 ,b.menu_name
+                 ,ISNULL(a.read_yn, 'N')  AS read_yn
+                 ,ISNULL(a.write_yn, 'N') AS write_yn
+                 ,b.sort_order
+        FROM     tb_menu_mst b
+                JOIN tb_menu_mst c
+                ON b.parent_id = c.menu_id
+                LEFT JOIN tb_menu_auth a
+                ON a.menu_id = b.menu_id
+                AND a.user_id = #{userId}
+        WHERE b.menu_level = 3
+          AND b.use_yn = 'Y'
+          AND c.menu_level = 2
+          AND c.use_yn = 'Y'
+        ORDER BY  c.menu_id , c.sort_order,b.sort_order
+    </select>
+
+    <select id="getUserMenuAuthList">
+        SELECT    c.menu_id                  AS grpMenuId
+                ,c.menu_name                AS grpMenuName
+                ,b.menu_id                  AS menuId
+                ,b.menu_name                AS menuName
+                ,ISNULL(a.read_yn, 'N')     AS readYn
+                ,ISNULL(a.write_yn, 'N')    AS writeYn
+        FROM tb_menu_mst b
+                JOIN tb_menu_mst c
+                ON b.parent_id = c.menu_id
+                LEFT JOIN tb_menu_auth a
+                ON a.menu_id = b.menu_id
+                AND a.user_id = #{userId}
+        WHERE b.menu_level = 3
+        AND b.use_yn = 'Y'
+        AND c.menu_level = 2
+        AND c.use_yn = 'Y'
+        <if test="grpMenuId != null and grpMenuId != ''">
+            AND c.menu_id = #{grpMenuId}
+        </if>
+        ORDER BY c.sort_order ,c.menu_id ,b.sort_order
+    </select>
+
+    <update id="updateMenuAuth">
+        <foreach collection="menuList" item="item" separator=";">
+            UPDATE tb_menu_auth
+            SET      read_yn = #{item.readYn}
+                    ,write_yn = #{item.writeYn}
+                    ,upd_id = 'SYSTEM'
+                    ,upd_dt = GETDATE()
+            WHERE  user_id = #{userId}
+            AND    menu_id = #{item.menuId}
+        </foreach>
+    </update>
+
+
+    <update id="copyMenuAuthInfo">
+        UPDATE T
+        SET    T.read_yn  = S.read_yn
+              ,T.write_yn = S.write_yn
+              ,T.upd_id   = 'SYSTEM'
+              ,T.upd_dt   = GETDATE()
+        FROM tb_menu_auth T
+            JOIN tb_menu_auth S
+            ON T.menu_id = S.menu_id
+        WHERE T.user_id = #{tarUserId}
+          AND S.user_id = #{srcUserId}
+    </update>
+
 </mapper>

@@ -1,7 +1,9 @@
 package com.jct.mes_new.biz.system.service;
 
 import com.jct.mes_new.auth.vo.UserVo;
+import com.jct.mes_new.biz.system.vo.MenuRequestVo;
 import com.jct.mes_new.biz.system.vo.MenuVo;
+import com.jct.mes_new.biz.system.vo.SystemUserVo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,4 +22,12 @@ public interface SystemMgmtService {
     String saveMenu(MenuVo vo);
 
     String updateMenuUseYn(MenuVo vo);
+
+    MenuRequestVo getAuthMenuInfo(UserVo vo);
+
+    List<MenuVo> getUserMenuAuthList(MenuVo vo);
+
+    String saveMenuAuth(MenuVo vo);
+
+    String copyMenuAuthInfo(MenuVo vo);
 }

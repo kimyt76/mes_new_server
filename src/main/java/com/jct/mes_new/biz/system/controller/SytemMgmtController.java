@@ -2,9 +2,11 @@ package com.jct.mes_new.biz.system.controller;
 
 import com.jct.mes_new.auth.service.UserService;
 import com.jct.mes_new.auth.vo.UserVo;
+import com.jct.mes_new.biz.system.vo.MenuRequestVo;
 import com.jct.mes_new.biz.system.vo.MenuVo;
 import com.jct.mes_new.biz.system.service.SystemMgmtService;
 import com.jct.mes_new.biz.system.vo.StorageVo;
+import com.jct.mes_new.biz.system.vo.SystemUserVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -97,8 +99,27 @@ public class SytemMgmtController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
+    @PostMapping("/getAuthMenuInfo")
+    public MenuRequestVo getAuthMenuInfo(@RequestBody UserVo vo) {
+        return systemMgmtService.getAuthMenuInfo(vo);
+    }
 
+    @PostMapping("/getUserMenuAuthList")
+    public List<MenuVo> getUserMenuAuthList(@RequestBody MenuVo vo) {
+        return systemMgmtService.getUserMenuAuthList(vo);
+    }
 
+    @PostMapping("/saveMenuAuth")
+    public ResponseEntity<ApiResponse<Void>> saveMenuAuth (@RequestBody MenuVo vo) {
+        String result = systemMgmtService.saveMenuAuth(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+    @PostMapping("/copyMenuAuthInfo")
+    public ResponseEntity<ApiResponse<Void>> copyMenuAuthInfo (@RequestBody MenuVo vo) {
+        String result = systemMgmtService.copyMenuAuthInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
 
 
 }

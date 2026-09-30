@@ -26,4 +26,13 @@ public interface SystemMgmtMapper {
     boolean insertMenuAuthAllUser(@Param("menuId") int menuId);
 
     void updateMenuUseYn(MenuVo vo);
+
+    List<MenuVo> getGrpMenuList();
+    List<MenuVo> getMenuAuthList(@Param("userId") String memberNm);
+
+    List<MenuVo> getUserMenuAuthList(MenuVo vo);
+
+    void updateMenuAuth(MenuVo vo);
+
+    void copyMenuAuthInfo(@Param("srcUserId") String srcUserId, @Param("tarUserId") String tarUserId);
 }
