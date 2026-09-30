@@ -2,14 +2,17 @@ package com.jct.mes_new.biz.system.controller;
 
 import com.jct.mes_new.auth.service.UserService;
 import com.jct.mes_new.auth.vo.UserVo;
-import com.jct.mes_new.biz.common.vo.MenuVo;
+import com.jct.mes_new.biz.system.vo.MenuVo;
 import com.jct.mes_new.biz.system.service.SystemMgmtService;
+import com.jct.mes_new.biz.system.vo.StorageVo;
+import com.jct.mes_new.config.common.ApiResponse;
+import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
@@ -21,6 +24,7 @@ public class SytemMgmtController {
     final SystemMgmtService systemMgmtService;
     final UserService userService;
     final PasswordEncoder passwordEncoder;
+    private final MessageUtil messageUtil;
 
     @PostMapping("/getUserList")
     public List<UserVo> getUserList(@RequestBody UserVo userVo) {
@@ -72,6 +76,29 @@ public class SytemMgmtController {
     public List<MenuVo> getMenuList() {
         return systemMgmtService.getMenuList();
     }
+
+    @PostMapping("/getMenuMgmtList")
+    public List<MenuVo> getMenuMgmtList(@RequestBody MenuVo vo) {
+        return systemMgmtService.getMenuMgmtList(vo);
+    }
+    @GetMapping("/getMenuDetail/{id}")
+    public MenuVo getMenuDetail(@PathVariable("id") int menuId) {
+        return systemMgmtService.getMenuDetail(menuId);
+    }
+
+    @PostMapping("/saveMenu")
+    public ResponseEntity<ApiResponse<Void>> saveMenu (@RequestBody MenuVo vo) {
+        String result = systemMgmtService.saveMenu(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+    @PostMapping("/updateMenuUseYn")
+    public ResponseEntity<ApiResponse<Void>> updateMenuUseYn (@RequestBody MenuVo vo) {
+        String result = systemMgmtService.updateMenuUseYn(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+
+
 
 
 }

@@ -9,6 +9,31 @@
         where user_id = '${userId}'
     </update>
 
+
+    <select id="getMenuMgmtList" >
+        SELECT   a.menu_id      AS menuId
+                ,a.parent_id    AS parentId
+                ,a.menu_name    AS menuName
+                ,a.menu_path    AS menuPath
+                ,a.icon         AS icon
+                ,a.sort_order   AS sortOrder
+                ,a.menu_level   AS menuLevel
+                ,a.menu_type    AS menuType
+                ,a.use_yn       AS useYn
+        FROM tb_menu_mst a
+        WHERE 1 = 1
+        <if test="menuName != null and menuName != ''">
+            AND a.menu_name LIKE '%' + #{menuName} + '%'
+        </if>
+        <if test="menuType != null and menuType != ''">
+            AND a.menu_type = #{menuType}
+        </if>
+        <if test="useYn != null and useYn != ''">
+            AND a.use_yn = #{useYn}
+        </if>
+        ORDER BY a.menu_level ,a.parent_id ,a.sort_order
+    </select>
+
     <select id="getMenuList">
         SELECT    a.menu_id        AS menuId
                  ,a.parent_id      AS parentId
@@ -28,6 +53,72 @@
         ORDER BY a.menu_level,a.parent_id,a.sort_order
     </select>
 
+    <select id="getMenuDetail">
+        SELECT    a.menu_id        AS menuId
+                 ,a.parent_id      AS parentId
+                 ,a.menu_name      AS menuName
+                 ,a.menu_path      AS menuPath
+                 ,a.icon           AS icon
+                 ,a.sort_order     AS sortOrder
+                 ,a.menu_level     AS menuLevel
+                 ,a.menu_type      AS menuType
+        FROM     tb_menu_mst a
+        WHERE    a.menu_id = #{menuId}
+    </select>
+
+    <insert id="insertMenuMst"  parameterType="com.jct.mes_new.biz.system.vo.MenuVo" useGeneratedKeys="true"  keyProperty="menuId">
+        INSERT INTO tb_menu_mst
+        (
+             parent_id
+            ,menu_name
+            ,menu_path
+            ,icon
+            ,sort_order
+            ,menu_level
+            ,menu_type
+            ,use_yn
+            ,reg_id
+            ,upd_id
+        )
+        VALUES
+        (
+             #{parentId}
+            ,#{menuName}
+            ,#{menuPath}
+            ,#{icon}
+            ,#{sortOrder}
+            ,#{menuLevel}
+            ,#{menuType}
+            ,#{useYn}
+            ,'SYSTEM'
+            ,'SYSTEM'
+            )
+    </insert>
+
+    <update id="updateMenuMst">
+        UPDATE tb_menu_mst
+        SET    parent_id  = #{parentId}
+              ,menu_name  = #{menuName}
+              ,menu_path  = #{menuPath}
+              ,icon       = #{icon}
+              ,sort_order = #{sortOrder}
+              ,menu_level = #{menuLevel}
+              ,menu_type  = #{menuType}
+              ,use_yn     = #{useYn}
+              ,upd_id     = 'SYSTEM'
+              ,upd_dt     = GETDATE()
+        WHERE menu_id = #{menuId}
+    </update>
+
+    <update id="updateMenuUseYn">
+        UPDATE tb_menu_mst
+        SET    use_yn   = #{useYn}
+              ,upd_id   = 'SYSTEM'
+              ,upd_dt   = GETDATE()
+        WHERE menu_id   = #{menuId}
+    </update>
+
+<!--  신규인원 등록시 메뉴 권한 등록  -->
     <insert id="insertMenuAuth">
         INSERT INTO tb_menu_auth
         (user_id,menu_id,read_yn,write_yn,reg_id,reg_dt)
@@ -47,4 +138,31 @@
         )
     </insert>
 
+    <!--  신규메뉴 등록시 사용자 전체 등록  -->
+    <insert id="insertMenuAuthAllUser">
+        INSERT INTO tb_menu_auth
+        (
+             user_id
+            ,menu_id
+            ,read_yn
+            ,write_yn
+            ,reg_id
+            ,reg_dt
+        )
+        SELECT
+             u.user_id
+             ,#{menuId}
+             ,'N'
+             ,'N'
+             ,'SYSTEM'
+             ,GETDATE()
+        FROM tb_users u
+        WHERE u.use_yn = 'Y'
+        AND NOT EXISTS (
+                SELECT 1
+                FROM tb_menu_auth a
+                WHERE a.user_id = u.user_id
+                  AND a.menu_id = #{menuId}
+        )
+    </insert>
 </mapper>
