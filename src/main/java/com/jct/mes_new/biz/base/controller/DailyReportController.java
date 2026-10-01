@@ -107,9 +107,20 @@ public class DailyReportController {
         return dailyReportService.getDailyLaborCostList(vo);
     }
 
+    @GetMapping("/getLaborCostList")
+    public List<DailyLaborCostVo> getLaborCostList () {
+        return dailyReportService.getLaborCostList();
+    }
+
     @GetMapping("/getLaborCostInfo")
     public LaborCostRequestVo getLaborCostInfo(@RequestParam(required = false) Long dailyId) {
         return dailyReportService.getLaborCostInfo(dailyId);
+    }
+
+    @PostMapping("/saveLaborCostInfo")
+    public ResponseEntity<ApiResponse<Long>> saveLaborCostInfo(@RequestBody LaborCostRequestVo vo) {
+        String result = dailyReportService.saveLaborCostInfo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
 }

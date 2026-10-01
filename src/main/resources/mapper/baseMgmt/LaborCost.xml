@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.base.mapper.LaborCostsMapper">
+
+<!--    인건비용 데이터 -->
+    <select id="getLaborCostList">
+        select *
+        from   tb_daily_labor_cost
+    </select>
+
+
+    <select id="getDailyLaborCostList">
+        select *
+        from   tb_daily_labor_cost
+    </select>
+
+    <select id="getLaborCostProcList">
+        select    daily_cost_id
+                 ,daily_id
+                 ,proc_cd
+                 ,lot_no
+                 ,customer_name
+                 ,item_name
+                 ,prod_type
+                 ,prod_qty
+                 ,work_time
+                 ,man_f_cnt
+                 ,man_d_cnt
+                 ,wom_f_cnt
+                 ,wom_d_cnt
+                 ,man_f_cost
+                 ,man_d_cost
+                 ,wom_f_cost
+                 ,wom_d_cost
+                 ,order_dist
+                 ,etc
+        from     tb_daily_cost
+        where    daily_id = #{dailyId}
+        and      proc_cd = #{procCd}
+
+    </select>
+
+    <insert id="insertLaborCost">
+        INSERT INTO tb_daily_cost
+        (
+         daily_id
+        ,proc_cd
+        ,lot_no
+        ,customer_name
+        ,order_dist
+        ,item_name
+        ,prod_type
+        ,prod_qty
+        ,work_time
+        ,man_f_cnt
+        ,man_d_cnt
+        ,wom_f_cnt
+        ,wom_d_cnt
+        ,man_f_cost
+        ,man_d_cost
+        ,wom_f_cost
+        ,wom_d_cost
+        ,order_dist
+        ,etc
+        ,reg_id
+        ,upd_id
+        )
+        VALUES
+            (
+             #{dailyId}
+            ,#{procCd}
+            ,#{lotNo}
+            ,#{customerName}
+            ,#{orderDist}
+            ,#{itemName}
+            ,#{prodType}
+            ,#{prodQty}
+            ,#{workTime}
+            ,#{manFCnt}
+            ,#{manDCnt}
+            ,#{womFCnt}
+            ,#{womDCnt}
+            ,#{manFCost}
+            ,#{manDCost}
+            ,#{womFCost}
+            ,#{womDCost}
+            ,#{orderDist}
+            ,#{etc}
+            ,#{userId}
+            ,#{userId}
+            )
+    </insert>
+
+    <update id="updateLaborCost">
+        UPDATE tb_daily_cost
+        SET order_dist   = #{orderDist}
+           ,lot_no        = #{lotNo}
+           ,customer_name = #{customerName}
+           ,item_name     = #{itemName}
+           ,prod_type     = #{prodType}
+           ,prod_qty      = #{prodQty}
+           ,work_time     = #{workTime}
+           ,man_f_cnt     = #{manFCnt}
+           ,man_d_cnt     = #{manDCnt}
+           ,wom_f_cnt     = #{womFCnt}
+           ,wom_d_cnt     = #{womDCnt}
+           ,man_f_cost    = #{manFCost}
+           ,man_d_cost    = #{manDCost}
+           ,wom_f_cost    = #{womFCost}
+           ,wom_d_cost    = #{womDCost}
+           ,etc           = #{etc}
+           ,upd_id        = #{userId}
+           ,upd_dt        = GETDATE()
+        WHERE daily_cost_id = #{dailyCostId}
+    </update>
+
+
+
+
+
+
+
+
+</mapper>

@@ -58,10 +58,19 @@
 
     <insert id="insertDailyReportMst"  parameterType="com.jct.mes_new.biz.base.vo.DailyReportVo" useGeneratedKeys="true" keyProperty="dailyId">
         insert into tb_daily_mst
-        ( daily_date, type_cd, end_yn, reg_id, upd_id)
+        ( daily_date, type_cd, area_cd, work_type_cd,  end_yn, reg_id, upd_id)
         values
-        (convert(date, getdate(), 23), #{typeCd}, 'N', #{userId}, #{userId})
+        (convert(date, getdate(), 23), #{typeCd}, #{areaCd}, #{workTypeCd}, 'n', #{userId}, #{userId})
     </insert>
+
+    <update id="updateDailyReportMst">
+        update tb_daily_mst
+        set    area_cd      = #{areaCd}
+              ,work_type_cd = #{workTypeCd}
+              ,upd_id       = #{userId}
+              ,upd_dt       = getDate()
+        where  daily_id     = #{dailyId}
+    </update>
 
 <!--   원료, 부자재  입고, 반품 -->
     <select id="getInList">
@@ -225,8 +234,8 @@
     </select>
 
     <select id="getProcList">
-        select    b.lot_no
-                 ,b.make_no
+        select    case when a.proc_cd in ('PRC001', 'PRC002', 'PRC003') then b.make_no
+                       else b.lot_no end as lot_no
                  ,cl.client_name
                  ,i.item_name
                  ,a.prod_qty
@@ -237,6 +246,7 @@
                           RIGHT('00' + CAST(DATEDIFF(MINUTE, r.work_start_time, r.work_end_time) % 60 AS varchar(2)), 2)
                     )END AS work_time
                  ,isnull(r.worker_cnt, 0) as worker_cnt
+                 ,a.proc_cd
         from   TB_WORK_ORDER_PROC a
                join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id

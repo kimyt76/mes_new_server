@@ -27,6 +27,7 @@ public class DailyReportServiceImpl implements DailyReportService {
     private final M1DailyReportMapper m1DailyReportMapper;
     private final M2DailyReportMapper m2DailyReportMapper;
     private final LaborCostsMapper laborCostsMapper;
+    private final DailyMgmtMapper dailyMgmtMapper;
 
     private final M1DailyReportExcel m1DailyReportExcel;
     private final M2DailyReportExcel m2DailyReportExcel;
@@ -561,9 +562,6 @@ public class DailyReportServiceImpl implements DailyReportService {
 
     public LaborCostRequestVo getLaborCostInfo(Long dailyId) {
         LaborCostRequestVo vo = new LaborCostRequestVo();
-        String procCd = "";
-        String procStatus = "";
-        ;
 
         if (dailyId == null) {
             vo.setWeighList(dailyReportMapper.getProcList("PRC001", "12"));    // 칭량
@@ -575,18 +573,75 @@ public class DailyReportServiceImpl implements DailyReportService {
         } else {
             vo.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
 
-            vo.setWeighList(laborCostsMapper.getProcList("PRC001", "12"));    // 칭량
-            vo.setMatList(laborCostsMapper.getProcList("PRC002", "22"));     // 제조
-            vo.setCoatingList(laborCostsMapper.getProcList("PRC003", "32"));  // 코팅
-            vo.setChargeList(laborCostsMapper.getProcList("PRC004", "42"));  // 충전
-            vo.setPackingList(laborCostsMapper.getProcList("PRC005", "52"));  // 포장
+            vo.setWeighList(laborCostsMapper.getLaborCostProcList("PRC001", dailyId));    // 칭량
+            vo.setMatList(laborCostsMapper.getLaborCostProcList("PRC002", dailyId));     // 제조
+            vo.setCoatingList(laborCostsMapper.getLaborCostProcList("PRC003", dailyId));  // 코팅
+            vo.setChargeList(laborCostsMapper.getLaborCostProcList("PRC004", dailyId));  // 충전
+            vo.setPackingList(laborCostsMapper.getLaborCostProcList("PRC005", dailyId));  // 포장
         }
 
         return vo;
     }
 
+    public List<DailyLaborCostVo> getLaborCostList() {
+        return laborCostsMapper.getLaborCostList();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public String saveLaborCostInfo(LaborCostRequestVo vo) {
+        String userId = UserUtil.getUserId();
+
+        DailyReportVo mst = vo.getDailyReportInfo();
+        mst.setUserId(userId);
+
+        if (mst.getDailyId() == null  ) {
+            dailyReportMapper.insertDailyReportMst(mst);
+        }else{
+            dailyReportMapper.updateDailyReportMst(mst);
+        }
+
+        // 공정별 인건비 저장
+        saveLaborCostList(vo.getWeighList(), mst.getDailyId(),  "PRC001", userId);  // 칭량
+        saveLaborCostList(vo.getMatList(),   mst.getDailyId(),   "PRC002", userId);  // 제조
+        saveLaborCostList(vo.getCoatingList(), mst.getDailyId(), "PRC003", userId);  // 코팅
+        saveLaborCostList(vo.getChargeList(), mst.getDailyId(), "PRC004", userId);  // 충전
+        saveLaborCostList(vo.getPackingList(), mst.getDailyId(), "PRC005", userId);  // 포장
+
+        return "저장되었습니다.";
+    }
+
+    /**
+     * 공정별 인건비 저장
+     */
+    private void saveLaborCostList(List<DailyLaborCostVo> list, Long dailyId, String procCd, String userId) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+
+        for (DailyLaborCostVo item : list) {
+            item.setDailyId(dailyId);
+            item.setProcCd(procCd);
+            item.setUserId(userId);
+
+            int result;
+
+            if (item.getDailyCostId() == null) {
+                result = laborCostsMapper.insertLaborCost(item);
+            } else {
+                result = laborCostsMapper.updateLaborCost(item);
+            }
+
+            if (result <= 0) {
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }
+    }
+
 
     /********************************** 통합관리대장 ******************************************************************/
+
+
+
 
     /********************************** 엑셀파일 출력 ******************************************************************/
     public byte[] downloadDailyReport(DailyReportVo vo) {
@@ -602,12 +657,11 @@ public class DailyReportServiceImpl implements DailyReportService {
             return m0DailyReportExcel.download(vo);
         }
 
-//        if ("C".equals(vo.getTypeCd())) {
-//            return laborCostExcel.download(vo);
-//        }
-//
- //        return totalDailyReportExcel.download(vo);
-        return m0DailyReportExcel.download(vo);
+        if ("C".equals(vo.getTypeCd())) {
+            return laborCostExcel.download(vo);
+        }
+
+         return dailyReportMgmtExcel.download(vo);
     }
 
 

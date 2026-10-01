@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.base.mapper;
 
 import com.jct.mes_new.biz.base.vo.DailyLaborCostVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -9,5 +10,10 @@ import java.util.List;
 public interface LaborCostsMapper {
     List<DailyLaborCostVo> getDailyLaborCostList(DailyLaborCostVo vo);
 
-    List<DailyLaborCostVo> getProcList(String prc002, String number);
+    List<DailyLaborCostVo> getLaborCostProcList(@Param("procCd") String procCd, @Param("dailyId") Long dailyId);
+
+    int insertLaborCost(DailyLaborCostVo item);
+    int updateLaborCost(DailyLaborCostVo item);
+
+    List<DailyLaborCostVo> getLaborCostList();
 }

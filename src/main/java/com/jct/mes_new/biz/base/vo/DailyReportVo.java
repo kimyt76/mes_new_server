@@ -13,11 +13,13 @@ public class DailyReportVo {
     private Long dailyItemId;     /* 입고, 반출, 불량, 외부출고 id*/
     private Long dailyProdId;     /* 제품 소요량 id*/
     private Long dailyItemUseId;     /* 원료 사용량 id*/
-
     private Long dailySubItemId;     /* 부자재 입고,반출, 불량 id*/
     private Long dailySubUseId;     /* 부자재 사용량 id*/
 
     private Long dailyPackingId;     /* 부자재 사용량 id*/
+
+    private String workTypeCd;
+    private String areaCd;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate strDate;

@@ -31,4 +31,8 @@ public interface DailyReportService {
     LaborCostRequestVo getLaborCostInfo(Long dailyId);
 
     byte[] downloadDailyReport(DailyReportVo vo);
+
+    String saveLaborCostInfo(LaborCostRequestVo vo);
+
+    List<DailyLaborCostVo> getLaborCostList();
 }

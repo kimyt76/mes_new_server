@@ -10,12 +10,16 @@ public class DailyLaborCostVo {
     private Long dailyId;
     private String procCd;
     private String workTypeCd;
+    private String areaCd;
+    private String areaName;
     private String orderDist;
     private String itemCd;
+    private String lotNo;
+    private String customerName;
     private String itemName;
     private String prodType;
     private BigDecimal prodQty;
-    private String workTime;
+    private BigDecimal workTime;
     private Integer manFCnt;
     private Integer manDCnt;
     private Integer womFCnt;
@@ -29,6 +33,7 @@ public class DailyLaborCostVo {
     private Integer womFCost;
     private Integer womDCost;
     private String defaultYn;
+    private String etc;
     private String userId;
 
 }
