@@ -27,7 +27,7 @@ public interface DailyReportService {
     String saveDailyReportM0(DailyReportRequestVo vo);
 
     /* 생산일보 인건비*/
-    List<DailyLaborCostVo> getDailyLaborCostList(DailyLaborCostVo vo);
+    List<DailyLaborCostVo> getDailyLaborCostList(DailyReportVo vo);
     LaborCostRequestVo getLaborCostInfo(Long dailyId);
 
     byte[] downloadDailyReport(DailyReportVo vo);

@@ -9,10 +9,48 @@
         from   tb_daily_labor_cost
     </select>
 
-
     <select id="getDailyLaborCostList">
-        select *
-        from   tb_daily_labor_cost
+        SELECT  a.daily_date
+             ,c.area_name
+             ,a.work_type_cd
+             -- 남자 정직원 총 비용
+             ,SUM(ISNULL(b.man_f_cnt, 0) * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0) * ISNULL(b.man_f_cost, 0)) AS man_f_total_cost
+             -- 남자 일용직 총 비용
+             ,SUM(ISNULL(b.man_d_cnt, 0) * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0) * ISNULL(b.man_d_cost, 0)) AS man_d_total_cost
+             -- 여자 정직원 총 비용
+             ,SUM(ISNULL(b.wom_f_cnt, 0) * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0) * ISNULL(b.wom_f_cost, 0)) AS wom_f_total_cost
+             -- 여자 일용직 총 비용 ,SUM( ISNULL(b.wom_d_cnt, 0) * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0) * ISNULL(b.wom_d_cost, 0) ) AS wom_d_total_cost
+             -- 총 비용
+             ,SUM(
+                    ISNULL(b.man_f_cnt, 0)
+                    * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0)
+                    * ISNULL(b.man_f_cost, 0)
+                    + ISNULL(b.man_d_cnt, 0)
+                    * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0)
+                    * ISNULL(b.man_d_cost, 0)
+                    + ISNULL(b.wom_f_cnt, 0)
+                    * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0)
+                    * ISNULL(b.wom_f_cost, 0)
+                    + ISNULL(b.wom_d_cnt, 0)
+                    * ISNULL(TRY_CONVERT(decimal(18,2), b.work_time), 0)
+                    * ISNULL(b.wom_d_cost, 0)
+              ) AS total_cost
+             ,a.reg_id
+             ,a.end_yn
+             ,a.daily_id
+        FROM tb_daily_mst a
+             JOIN tb_daily_cost b
+             ON b.daily_id = a.daily_id
+             join tb_area_mst c
+             on c.area_cd = a.area_cd
+        WHERE a.daily_date between #{strDate} and #{endDate}
+        <if test="areaCd != null and areaCd != ''">
+        and   a.area_cd = #{areaCd}
+        </if>
+        <if test="workTypeCd != null and workTypeCd != ''">
+        and   a.work_type_cd = #{workTypeCd}
+        </if>
+        GROUP BY a.daily_date,c.area_name,a.work_type_cd, a.end_yn,a.reg_id ,a.daily_id
     </select>
 
     <select id="getLaborCostProcList">

@@ -556,7 +556,7 @@ public class DailyReportServiceImpl implements DailyReportService {
 
 
     /********************************** 인건비 ******************************************************************/
-    public List<DailyLaborCostVo> getDailyLaborCostList(DailyLaborCostVo vo) {
+    public List<DailyLaborCostVo> getDailyLaborCostList(DailyReportVo vo) {
         return laborCostsMapper.getDailyLaborCostList(vo);
     }
 

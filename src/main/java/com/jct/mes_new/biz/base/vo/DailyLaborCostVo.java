@@ -1,8 +1,10 @@
 package com.jct.mes_new.biz.base.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class DailyLaborCostVo {
@@ -35,5 +37,15 @@ public class DailyLaborCostVo {
     private String defaultYn;
     private String etc;
     private String userId;
+    private BigDecimal manFTotalCost;
+    private BigDecimal manDTotalCost;
+    private BigDecimal womFTotalCost;
+    private BigDecimal womDTotalCost;
+    private BigDecimal totalCost;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dailyDate;
+    private String endYn;
+    private String regId;
 
 }

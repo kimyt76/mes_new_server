@@ -103,7 +103,7 @@ public class DailyReportController {
 
     /**************************************** 생산일보 인건비 ************************************************/
     @PostMapping("/getDailyLaborCostList")
-    public List<DailyLaborCostVo> getDailyLaborCostList (@RequestBody DailyLaborCostVo vo) {
+    public List<DailyLaborCostVo> getDailyLaborCostList (@RequestBody DailyReportVo vo) {
         return dailyReportService.getDailyLaborCostList(vo);
     }
 
