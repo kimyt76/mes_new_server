@@ -322,8 +322,8 @@ public class ProcWeighServiceImpl implements ProcWeighService {
                 String prodDateFormat = workOrderInfo.getProdDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 ExcelStyleUtil.getCellRef(sheet, "Q5").setCellValue(prodDateFormat); //제조일자
             }
-            double prodQty = (workOrderInfo.getProdQty() != null )? workOrderInfo.getProdQty().doubleValue() : 0;
-            ExcelStyleUtil.getCellRef(sheet, "E6").setCellValue(prodQty); //제조량
+            double orderQty = (workOrderInfo.getOrderQty() != null )? workOrderInfo.getOrderQty().doubleValue() : 0;
+            ExcelStyleUtil.getCellRef(sheet, "E6").setCellValue(orderQty); //제조량
             ExcelStyleUtil.getCellRef(sheet, "Q6").setCellValue(workOrderInfo.getMakeNo()); //제조번호
 
             int rowNo = 11;
@@ -341,7 +341,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
                 double reqQty = (item.getOrderQty() != null )? item.getOrderQty().doubleValue() : 0;
                 ExcelStyleUtil.getCellRef(sheet, "N"+rowNo).setCellValue(reqQty);
                 //기준량(함량%)
-                double contentRatio = reqQty/prodQty * 100;
+                double contentRatio = reqQty/orderQty * 100;
                 ExcelStyleUtil.getCellRef(sheet, "L"+rowNo).setCellValue(contentRatio);
                 //시험번호
                 ExcelStyleUtil.getCellRef(sheet, "Q"+rowNo).setCellValue(item.getTestNoJoin());
