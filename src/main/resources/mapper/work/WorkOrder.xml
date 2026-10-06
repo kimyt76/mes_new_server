@@ -12,7 +12,12 @@
         SELECT   CONCAT(CONVERT(varchar(10),a.work_order_date,23),' - ',a.seq) AS workOrderDateSeq
                 ,dbo.getCommonName('area', a.area_cd) as areaName
                 ,a.po_no             AS poNo
-                ,(select distinct  proc_order_date from  TB_WORK_ORDER_PROC where  proc_cd = 'PRC002'  and work_order_id = a.work_order_id) as matOrderDate
+                ,(SELECT TOP 1 proc_order_date
+                    FROM TB_WORK_ORDER_PROC
+                    WHERE proc_cd = 'PRC002'
+                    AND work_order_id = a.work_order_id
+                    ORDER BY proc_order_date ASC
+                    ) AS matOrderDate
                 ,c.item_name         AS itemName
                 ,a.delivery_qty      AS deliveryQty
                 ,(select count(*) from tb_work_order_batch where work_order_id = a.work_order_id) AS batchCnt
