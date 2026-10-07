@@ -40,4 +40,8 @@ public interface ItemMapper {
     void updateItemPrice(String itemCd, BigDecimal inPrice, BigDecimal outPrice, String userId);
 
     List<PriceHistoryVo> getItemPriceHistory(String itemCd);
+
+    void deleteItemDetail(String itemCd);
+
+    void deleteItemMst(String itemCd);
 }

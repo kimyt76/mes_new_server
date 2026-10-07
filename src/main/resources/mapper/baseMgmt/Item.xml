@@ -20,11 +20,15 @@
                     ,c.customer_name as customerName
                     ,(select LCode_name from tb_prodL where lcode = a.item_category1) as item_category1Name
                     ,(select MCode_name from tb_prodM where lcode = a.item_category1 and MCode = a.item_category2) as item_category2Name
+                    ,d.code_nm as itemGrp2Name
             from tb_item_mst a
                 inner join tb_item_detail b
                 on b.item_cd = a.item_cd
                 left outer join tb_customer c
                 on c.customer_cd = a.customer_cd
+                left join tb_common_code d
+                on d.code = a.item_grp2
+                and d.com_type_cd = 'ITEM_GRP2'
             where 1=1
             <if test="itemTypeCd != null and itemTypeCd != ''">
               and  a. item_type_cd = #{itemTypeCd}
@@ -370,4 +374,12 @@
     <select id="getItemCdCheckList">
 
     </select>
+
+    <update id="deleteItemDetail">
+        delete from tb_item_Detail where item_cd = #{itemCd}
+    </update>
+
+    <update id="deleteItemMst">
+        delete from tb_item_mst where item_cd = #{itemCd}
+    </update>
 </mapper>

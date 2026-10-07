@@ -83,6 +83,12 @@ public class ItemController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
+    @GetMapping("/deleteItem/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable("id") String itemCd ) {
+        // Service로 Map 그대로 전달
+        itemService.deleteItem(itemCd);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.deleted")));
+    }
 
 
 }

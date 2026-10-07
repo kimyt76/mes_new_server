@@ -180,4 +180,10 @@ public class ItemServiceImpl implements ItemService {
         // tb_item 단가 업데이트
         itemMapper.updateItemPrice(itemCd, inPrice, outPrice, userId);
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteItem(String itemCd){
+        itemMapper.deleteItemDetail(itemCd);
+        itemMapper.deleteItemMst(itemCd);
+    }
 }
