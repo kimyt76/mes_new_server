@@ -33,7 +33,7 @@ public interface ItemMapper {
 
     int saveItemDetailInfo(ItemVo itemVo);
 
-    int insertItemDetial(String itemCd, String userId);
+    int insertItemDetail(String itemCd, String userId);
 
     void insertPriceHistory(String itemCd, String priceType, BigDecimal price, String userId);
 

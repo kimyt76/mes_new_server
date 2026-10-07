@@ -82,7 +82,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemMapper.insertItemMst(vo) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        if (itemMapper.insertItemDetial(vo.getItemCd(), userId) <= 0) {
+        if (itemMapper.insertItemDetail(vo.getItemCd(), userId) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
     }

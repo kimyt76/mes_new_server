@@ -340,7 +340,7 @@
                 );
     </update>
 
-    <insert id="insertItemDetial">
+    <insert id="insertItemDetail">
         insert into tb_item_detail (item_cd, reg_id, upd_id) values (#{itemCd}, #{userId},#{userId})
     </insert>
 
