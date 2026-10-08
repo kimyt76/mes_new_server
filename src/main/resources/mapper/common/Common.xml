@@ -13,6 +13,7 @@
               ,code_nm
         from  tb_common_code
         where com_type_cd = #{comTypeCd}
+        order by disp_order
     </select>
 
     <select id="getCommonList">
