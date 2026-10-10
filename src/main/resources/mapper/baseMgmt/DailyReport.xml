@@ -294,11 +294,362 @@
           and a.type_cd  = 'P'
     </select>
 
-    <!--    생산일보 인건비 리스트 목록 -->
-    <select id="getLaborCostList">
 
+
+
+
+    <select id="getDailyMgmtList">
+        SELECT   a.daily_id             AS dailyId
+                ,a.daily_date           AS dailyDate
+
+                /* 입고량 총액 - 원료 입고금액 */
+                ,ISNULL(b.raw_receipt_amt, 0) AS inQty
+
+                /* 부자재 총액 - 부자재 사용금액 */
+                ,ISNULL(b.sub_usage_amt, 0) AS outQty
+
+                /* 완제품 총액 - 완제품 생산금액 */
+                ,ISNULL(b.product_prod_amt, 0)
+                + ISNULL(b.product_outsource_prod_amt, 0) AS prodAmt
+
+                /* 인건비 총액 - 상세 인건비 금액 합산 */
+                ,(
+                ISNULL(b.mgmt_day_female_cnt, 0)
+                * ISNULL(b.mgmt_day_work_hour, 0)
+                * ISNULL(b.mgmt_day_hourly_cost, 0)
+
+                + ISNULL(b.regular_day_male_cnt, 0)
+                * ISNULL(b.regular_day_work_hour, 0)
+                * ISNULL(b.regular_day_hourly_cost, 0)
+
+                + ISNULL(b.regular_day_female_cnt, 0)
+                * ISNULL(b.regular_day_work_hour, 0)
+                * ISNULL(b.regular_day_hourly_cost, 0)
+                ) AS laborAmt
+
+                /* 총비용 - 원료 + 부자재 + 인건비 + 경비 */
+                ,(
+                ISNULL(b.raw_usage_amt, 0)
+                + ISNULL(b.sub_usage_amt, 0)
+                + ISNULL(b.indirect_labor_cost, 0)
+                + ISNULL(b.supplies_direct_cost, 0)
+                + ISNULL(b.meal_direct_cost, 0)
+                + ISNULL(b.etc_direct_cost, 0)
+                + ISNULL(b.admin_etc_indirect_cost, 0)
+                + ISNULL(b.depreciation_indirect_cost, 0)
+                + ISNULL(b.finance_indirect_cost, 0)
+                ) AS totalAmt
+        ,a.reg_id               AS regId
+        ,a.end_yn               AS endYn
+        FROM tb_daily_mst a
+        LEFT JOIN tb_daily_mgmt b
+        ON a.daily_id = b.daily_id
+        WHERE  a.daily_date between #{strDate} and #{endDate}
+        and    a.type_cd = 'M'
+        ORDER BY a.daily_date DESC, a.daily_id DESC
     </select>
 
+    <select id="getDailyMgmtInfo">
+        SELECT   a.*
+                ,b.daily_date AS dailyDate
+        FROM  tb_daily_mgmt a
+        JOIN  tb_daily_mst b
+        ON    a.daily_id = b.daily_id
+        WHERE b.type_cd = 'M'
+        AND a.daily_id = #{dailyId}
+    </select>
+
+
+    <insert id="insertDailyMgmt">
+        INSERT INTO tb_daily_mgmt (
+                                   daily_id
+                                  ,raw_prev_stock_qty
+                                  ,raw_prev_stock_amt
+                                  ,raw_receipt_qty
+                                  ,raw_receipt_amt
+                                  ,raw_return_qty
+                                  ,raw_return_amt
+                                  ,raw_defect_qty
+                                  ,raw_defect_amt
+                                  ,raw_outsource_qty
+                                  ,raw_outsource_amt
+                                  ,raw_usage_qty
+                                  ,raw_usage_amt
+                                  ,raw_outbound_qty
+                                  ,raw_outbound_amt
+                                  ,sub_prev_stock_qty
+                                  ,sub_prev_stock_amt
+                                  ,sub_receipt_qty
+                                  ,sub_receipt_amt
+                                  ,sub_return_qty
+                                  ,sub_return_amt
+                                  ,sub_defect_qty
+                                  ,sub_defect_amt
+                                  ,sub_outsource_qty
+                                  ,sub_outsource_amt
+                                  ,sub_usage_qty
+                                  ,sub_usage_amt
+                                  ,sub_outbound_qty
+                                  ,sub_outbound_amt
+                                  ,product_prev_stock_qty
+                                  ,product_prev_stock_amt
+                                  ,product_prod_qty
+                                  ,product_prod_amt
+                                  ,product_outsource_prod_qty
+                                  ,product_outsource_prod_amt
+                                  ,product_defect_qty
+                                  ,product_defect_amt
+                                  ,product_outsource_qty
+                                  ,product_outsource_amt
+                                  ,product_shipment_qty
+                                  ,product_shipment_amt
+                                  ,product_return_qty
+                                  ,product_return_amt
+                                  ,mgmt_day_male_cnt
+                                  ,mgmt_day_female_cnt
+                                  ,mgmt_day_work_hour
+                                  ,mgmt_day_hourly_cost
+                                  ,regular_day_male_cnt
+                                  ,regular_day_female_cnt
+                                  ,regular_day_work_hour
+                                  ,regular_day_hourly_cost
+                                  ,daily_male_day_male_cnt
+                                  ,daily_male_day_female_cnt
+                                  ,daily_male_day_work_hour
+                                  ,daily_male_day_hourly_cost
+                                  ,daily_female_day_male_cnt
+                                  ,daily_female_day_female_cnt
+                                  ,daily_female_day_work_hour
+                                  ,daily_female_day_hourly_cost
+                                  ,mgmt_overtime_male_cnt
+                                  ,mgmt_overtime_female_cnt
+                                  ,mgmt_overtime_work_hour
+                                  ,regular_overtime_male_cnt
+                                  ,regular_overtime_female_cnt
+                                  ,regular_overtime_work_hour
+                                  ,daily_male_overtime_male_cnt
+                                  ,daily_male_overtime_female_cnt
+                                  ,daily_male_overtime_work_hour
+                                  ,daily_female_overtime_male_cnt
+                                  ,daily_female_overtime_female_cnt
+                                  ,daily_female_overtime_work_hour
+                                  ,mgmt_night_male_cnt
+                                  ,mgmt_night_female_cnt
+                                  ,mgmt_night_work_hour
+                                  ,regular_night_male_cnt
+                                  ,regular_night_female_cnt
+                                  ,regular_night_work_hour
+                                  ,daily_male_night_male_cnt
+                                  ,daily_male_night_female_cnt
+                                  ,daily_male_night_work_hour
+                                  ,daily_male_night_hourly_cost
+                                  ,daily_female_night_male_cnt
+                                  ,daily_female_night_female_cnt
+                                  ,daily_female_night_work_hour
+                                  ,daily_female_night_hourly_cost
+                                  ,supplies_direct_cost
+                                  ,meal_direct_cost
+                                  ,etc_direct_cost
+                                  ,admin_etc_indirect_cost
+                                  ,depreciation_indirect_cost
+                                  ,finance_indirect_cost
+                                  ,indirect_labor_cost
+                                  ,reg_id
+                                  ,upd_id
+        )
+        VALUES ( #{dailyId}
+               , #{rawPrevStockQty}
+               , #{rawPrevStockAmt}
+               , #{rawReceiptQty}
+               , #{rawReceiptAmt}
+               , #{rawReturnQty}
+               , #{rawReturnAmt}
+               , #{rawDefectQty}
+               , #{rawDefectAmt}
+               , #{rawOutsourceQty}
+               , #{rawOutsourceAmt}
+               , #{rawUsageQty}
+               , #{rawUsageAmt}
+               , #{rawOutboundQty}
+               , #{rawOutboundAmt}
+               , #{subPrevStockQty}
+               , #{subPrevStockAmt}
+               , #{subReceiptQty}
+               , #{subReceiptAmt}
+               , #{subReturnQty}
+               , #{subReturnAmt}
+               , #{subDefectQty}
+               , #{subDefectAmt}
+               , #{subOutsourceQty}
+               , #{subOutsourceAmt}
+               , #{subUsageQty}
+               , #{subUsageAmt}
+               , #{subOutboundQty}
+               , #{subOutboundAmt}
+               , #{productPrevStockQty}
+               , #{productPrevStockAmt}
+               , #{productProdQty}
+               , #{productProdAmt}
+               , #{productOutsourceProdQty}
+               , #{productOutsourceProdAmt}
+               , #{productDefectQty}
+               , #{productDefectAmt}
+               , #{productOutsourceQty}
+               , #{productOutsourceAmt}
+               , #{productShipmentQty}
+               , #{productShipmentAmt}
+               , #{productReturnQty}
+               , #{productReturnAmt}
+               , #{mgmtDayMaleCnt}
+               , #{mgmtDayFemaleCnt}
+               , #{mgmtDayWorkHour}
+               , #{mgmtDayHourlyCost}
+               , #{regularDayMaleCnt}
+               , #{regularDayFemaleCnt}
+               , #{regularDayWorkHour}
+               , #{regularDayHourlyCost}
+               , #{dailyMaleDayMaleCnt}
+               , #{dailyMaleDayFemaleCnt}
+               , #{dailyMaleDayWorkHour}
+               , #{dailyMaleDayHourlyCost}
+               , #{dailyFemaleDayMaleCnt}
+               , #{dailyFemaleDayFemaleCnt}
+               , #{dailyFemaleDayWorkHour}
+               , #{dailyFemaleDayHourlyCost}
+               , #{mgmtOvertimeMaleCnt}
+               , #{mgmtOvertimeFemaleCnt}
+               , #{mgmtOvertimeWorkHour}
+               , #{regularOvertimeMaleCnt}
+               , #{regularOvertimeFemaleCnt}
+               , #{regularOvertimeWorkHour}
+               , #{dailyMaleOvertimeMaleCnt}
+               , #{dailyMaleOvertimeFemaleCnt}
+               , #{dailyMaleOvertimeWorkHour}
+               , #{dailyFemaleOvertimeMaleCnt}
+               , #{dailyFemaleOvertimeFemaleCnt}
+               , #{dailyFemaleOvertimeWorkHour}
+               , #{mgmtNightMaleCnt}
+               , #{mgmtNightFemaleCnt}
+               , #{mgmtNightWorkHour}
+               , #{regularNightMaleCnt}
+               , #{regularNightFemaleCnt}
+               , #{regularNightWorkHour}
+               , #{dailyMaleNightMaleCnt}
+               , #{dailyMaleNightFemaleCnt}
+               , #{dailyMaleNightWorkHour}
+               , #{dailyMaleNightHourlyCost}
+               , #{dailyFemaleNightMaleCnt}
+               , #{dailyFemaleNightFemaleCnt}
+               , #{dailyFemaleNightWorkHour}
+               , #{dailyFemaleNightHourlyCost}
+               , #{suppliesDirectCost}
+               , #{mealDirectCost}
+               , #{etcDirectCost}
+               , #{adminEtcIndirectCost}
+               , #{depreciationIndirectCost}
+               , #{financeIndirectCost}
+               , #{indirectLaborCost}
+               , #{userId}
+               , #{userId})
+    </insert>
+    <update id="updateDailyMgmt">
+        UPDATE tb_daily_mgmt
+        SET
+            raw_prev_stock_qty = #{rawPrevStockQty}
+          ,raw_prev_stock_amt = #{rawPrevStockAmt}
+          ,raw_receipt_qty = #{rawReceiptQty}
+          ,raw_receipt_amt = #{rawReceiptAmt}
+          ,raw_return_qty = #{rawReturnQty}
+          ,raw_return_amt = #{rawReturnAmt}
+          ,raw_defect_qty = #{rawDefectQty}
+          ,raw_defect_amt = #{rawDefectAmt}
+          ,raw_outsource_qty = #{rawOutsourceQty}
+          ,raw_outsource_amt = #{rawOutsourceAmt}
+          ,raw_usage_qty = #{rawUsageQty}
+          ,raw_usage_amt = #{rawUsageAmt}
+          ,raw_outbound_qty = #{rawOutboundQty}
+          ,raw_outbound_amt = #{rawOutboundAmt}
+          ,sub_prev_stock_qty = #{subPrevStockQty}
+          ,sub_prev_stock_amt = #{subPrevStockAmt}
+          ,sub_receipt_qty = #{subReceiptQty}
+          ,sub_receipt_amt = #{subReceiptAmt}
+          ,sub_return_qty = #{subReturnQty}
+          ,sub_return_amt = #{subReturnAmt}
+          ,sub_defect_qty = #{subDefectQty}
+          ,sub_defect_amt = #{subDefectAmt}
+          ,sub_outsource_qty = #{subOutsourceQty}
+          ,sub_outsource_amt = #{subOutsourceAmt}
+          ,sub_usage_qty = #{subUsageQty}
+          ,sub_usage_amt = #{subUsageAmt}
+          ,sub_outbound_qty = #{subOutboundQty}
+          ,sub_outbound_amt = #{subOutboundAmt}
+          ,product_prev_stock_qty = #{productPrevStockQty}
+          ,product_prev_stock_amt = #{productPrevStockAmt}
+          ,product_prod_qty = #{productProdQty}
+          ,product_prod_amt = #{productProdAmt}
+          ,product_outsource_prod_qty = #{productOutsourceProdQty}
+          ,product_outsource_prod_amt = #{productOutsourceProdAmt}
+          ,product_defect_qty = #{productDefectQty}
+          ,product_defect_amt = #{productDefectAmt}
+          ,product_outsource_qty = #{productOutsourceQty}
+          ,product_outsource_amt = #{productOutsourceAmt}
+          ,product_shipment_qty = #{productShipmentQty}
+          ,product_shipment_amt = #{productShipmentAmt}
+          ,product_return_qty = #{productReturnQty}
+          ,product_return_amt = #{productReturnAmt}
+          ,mgmt_day_male_cnt = #{mgmtDayMaleCnt}
+          ,mgmt_day_female_cnt = #{mgmtDayFemaleCnt}
+          ,mgmt_day_work_hour = #{mgmtDayWorkHour}
+          ,mgmt_day_hourly_cost = #{mgmtDayHourlyCost}
+          ,regular_day_male_cnt = #{regularDayMaleCnt}
+          ,regular_day_female_cnt = #{regularDayFemaleCnt}
+          ,regular_day_work_hour = #{regularDayWorkHour}
+          ,regular_day_hourly_cost = #{regularDayHourlyCost}
+          ,daily_male_day_male_cnt = #{dailyMaleDayMaleCnt}
+          ,daily_male_day_female_cnt = #{dailyMaleDayFemaleCnt}
+          ,daily_male_day_work_hour = #{dailyMaleDayWorkHour}
+          ,daily_male_day_hourly_cost = #{dailyMaleDayHourlyCost}
+          ,daily_female_day_male_cnt = #{dailyFemaleDayMaleCnt}
+          ,daily_female_day_female_cnt = #{dailyFemaleDayFemaleCnt}
+          ,daily_female_day_work_hour = #{dailyFemaleDayWorkHour}
+          ,daily_female_day_hourly_cost = #{dailyFemaleDayHourlyCost}
+          ,mgmt_overtime_male_cnt = #{mgmtOvertimeMaleCnt}
+          ,mgmt_overtime_female_cnt = #{mgmtOvertimeFemaleCnt}
+          ,mgmt_overtime_work_hour = #{mgmtOvertimeWorkHour}
+          ,regular_overtime_male_cnt = #{regularOvertimeMaleCnt}
+          ,regular_overtime_female_cnt = #{regularOvertimeFemaleCnt}
+          ,regular_overtime_work_hour = #{regularOvertimeWorkHour}
+          ,daily_male_overtime_male_cnt = #{dailyMaleOvertimeMaleCnt}
+          ,daily_male_overtime_female_cnt = #{dailyMaleOvertimeFemaleCnt}
+          ,daily_male_overtime_work_hour = #{dailyMaleOvertimeWorkHour}
+          ,daily_female_overtime_male_cnt = #{dailyFemaleOvertimeMaleCnt}
+          ,daily_female_overtime_female_cnt = #{dailyFemaleOvertimeFemaleCnt}
+          ,daily_female_overtime_work_hour = #{dailyFemaleOvertimeWorkHour}
+          ,mgmt_night_male_cnt = #{mgmtNightMaleCnt}
+          ,mgmt_night_female_cnt = #{mgmtNightFemaleCnt}
+          ,mgmt_night_work_hour = #{mgmtNightWorkHour}
+          ,regular_night_male_cnt = #{regularNightMaleCnt}
+          ,regular_night_female_cnt = #{regularNightFemaleCnt}
+          ,regular_night_work_hour = #{regularNightWorkHour}
+          ,daily_male_night_male_cnt = #{dailyMaleNightMaleCnt}
+          ,daily_male_night_female_cnt = #{dailyMaleNightFemaleCnt}
+          ,daily_male_night_work_hour = #{dailyMaleNightWorkHour}
+          ,daily_male_night_hourly_cost = #{dailyMaleNightHourlyCost}
+          ,daily_female_night_male_cnt = #{dailyFemaleNightMaleCnt}
+          ,daily_female_night_female_cnt = #{dailyFemaleNightFemaleCnt}
+          ,daily_female_night_work_hour = #{dailyFemaleNightWorkHour}
+          ,daily_female_night_hourly_cost = #{dailyFemaleNightHourlyCost}
+          ,supplies_direct_cost = #{suppliesDirectCost}
+          ,meal_direct_cost = #{mealDirectCost}
+          ,etc_direct_cost = #{etcDirectCost}
+          ,admin_etc_indirect_cost = #{adminEtcIndirectCost}
+          ,depreciation_indirect_cost = #{depreciationIndirectCost}
+          ,finance_indirect_cost = #{financeIndirectCost}
+          ,indirect_labor_cost = #{indirectLaborCost}
+          ,upd_id = #{userId}
+          ,upd_dt = GETDATE()
+        WHERE daily_id = #{dailyId}
+    </update>
 
 
 

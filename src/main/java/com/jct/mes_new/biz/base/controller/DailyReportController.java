@@ -123,4 +123,23 @@ public class DailyReportController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
+
+
+    /**************************************** 생산일보 통합관리대장 ************************************************/
+    @PostMapping("/getDailyMgmtList")
+    public List<DailyMgmtVo> getDailyMgmtList(@RequestBody DailyReportVo vo) {
+        return dailyReportService.getDailyMgmtList(vo);
+    }
+
+    @GetMapping("/getDailyMgmtInfo")
+    public DailyMgmtVo getDailyMgmtInfo(@RequestParam(required = false) Long dailyId) {
+        return dailyReportService.getDailyMgmtInfo(dailyId);
+    }
+
+    @PostMapping("/saveDailyMgmt")
+    public ResponseEntity<ApiResponse<?>> saveDailyMgmt(@RequestBody DailyMgmtVo vo) {
+        dailyReportService.saveDailyMgmt(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.base.mapper;
 
 import com.jct.mes_new.biz.base.vo.DailyLaborCostVo;
+import com.jct.mes_new.biz.base.vo.DailyMgmtVo;
 import com.jct.mes_new.biz.base.vo.DailyReportVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -30,4 +31,11 @@ public interface DailyReportMapper {
     List<DailyLaborCostVo> getProcList(@Param("procCd") String procCd, @Param("procStatus") String procStatus);
 
 
+    int insertDailyMgmt(DailyMgmtVo vo);
+
+    int updateDailyMgmt(DailyMgmtVo vo);
+
+    List<DailyMgmtVo> getDailyMgmtList(DailyReportVo vo);
+
+    DailyMgmtVo getDailyMgmtInfo(Long dailyId);
 }

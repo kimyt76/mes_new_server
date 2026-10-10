@@ -3,10 +3,7 @@ package com.jct.mes_new.biz.base.service.impl;
 import com.jct.mes_new.biz.base.excel.*;
 import com.jct.mes_new.biz.base.mapper.*;
 import com.jct.mes_new.biz.base.service.DailyReportService;
-import com.jct.mes_new.biz.base.vo.DailyLaborCostVo;
-import com.jct.mes_new.biz.base.vo.DailyReportRequestVo;
-import com.jct.mes_new.biz.base.vo.DailyReportVo;
-import com.jct.mes_new.biz.base.vo.LaborCostRequestVo;
+import com.jct.mes_new.biz.base.vo.*;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
@@ -640,12 +637,47 @@ public class DailyReportServiceImpl implements DailyReportService {
 
     /********************************** 통합관리대장 ******************************************************************/
 
+    public List<DailyMgmtVo> getDailyMgmtList(DailyReportVo vo){
+        return  dailyReportMapper.getDailyMgmtList(vo);
+    }
 
+    public DailyMgmtVo getDailyMgmtInfo(Long dailyId){
+        return  dailyReportMapper.getDailyMgmtInfo(dailyId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveDailyMgmt(DailyMgmtVo vo){
+        String userId = UserUtil.getUserId();
+        DailyReportVo mst = new DailyReportVo();
+        vo.setUserId(userId);
+
+        /*
+         * 1. 마스터 저장
+         * dailyId가 없을 때만 최초 1회 INSERT
+         */
+        if (vo.getDailyId() == null) {
+            mst.setTypeCd("M");
+            mst.setEndYn("N");
+            mst.setUserId(userId);
+            if (dailyReportMapper.insertDailyReportMst(mst) <= 0) {
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+            vo.setDailyId(mst.getDailyId());
+
+            if(dailyReportMapper.insertDailyMgmt(vo) <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }else{
+            if(dailyReportMapper.updateDailyMgmt(vo) <= 0 ){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }
+    }
 
 
     /********************************** 엑셀파일 출력 ******************************************************************/
     public byte[] downloadDailyReport(DailyReportVo vo) {
-        if ("M".equals(vo.getTypeCd())) {
+        if ("I".equals(vo.getTypeCd())) {
             return m1DailyReportExcel.download(vo);
         }
 

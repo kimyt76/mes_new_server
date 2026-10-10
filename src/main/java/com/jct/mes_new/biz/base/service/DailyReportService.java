@@ -1,9 +1,6 @@
 package com.jct.mes_new.biz.base.service;
 
-import com.jct.mes_new.biz.base.vo.DailyLaborCostVo;
-import com.jct.mes_new.biz.base.vo.DailyReportRequestVo;
-import com.jct.mes_new.biz.base.vo.DailyReportVo;
-import com.jct.mes_new.biz.base.vo.LaborCostRequestVo;
+import com.jct.mes_new.biz.base.vo.*;
 
 import java.util.List;
 
@@ -35,4 +32,10 @@ public interface DailyReportService {
     String saveLaborCostInfo(LaborCostRequestVo vo);
 
     List<DailyLaborCostVo> getLaborCostList();
+
+    void saveDailyMgmt(DailyMgmtVo vo);
+
+    List<DailyMgmtVo> getDailyMgmtList(DailyReportVo vo);
+
+    DailyMgmtVo getDailyMgmtInfo(Long dailyId);
 }
