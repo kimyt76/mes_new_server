@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 @AllArgsConstructor
 public class WeighLabelPrint {
     private String matUseId;
+    private String weighId;
     private String prodItemCd;
     private String prodItemName;
     private String itemAlias;
