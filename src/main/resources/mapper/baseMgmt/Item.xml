@@ -16,6 +16,8 @@
                     ,b.vegan
                     ,b.halal
                     ,b.rspo
+                    ,b.charge_salesman
+                    ,b.charge_researcher
                     ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
                     ,c.customer_name as customerName
                     ,(select LCode_name from tb_prodL where lcode = a.item_category1) as item_category1Name
