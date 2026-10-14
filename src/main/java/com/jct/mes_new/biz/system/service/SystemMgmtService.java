@@ -30,4 +30,6 @@ public interface SystemMgmtService {
     String saveMenuAuth(MenuVo vo);
 
     String copyMenuAuthInfo(MenuVo vo);
+
+    void changePassword(SystemUserVo request);
 }

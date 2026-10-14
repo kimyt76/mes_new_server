@@ -74,6 +74,14 @@ public class SytemMgmtController {
         return msg;
     }
 
+    @PostMapping("/changePassword")
+    public ResponseEntity<?> changePassword(@RequestBody SystemUserVo request) {
+
+        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        systemMgmtService.changePassword(request);
+        return ResponseEntity.ok("패스워드가 변경되었습니다.");
+    }
+
     @GetMapping("/getMenuList")
     public List<MenuVo> getMenuList() {
         return systemMgmtService.getMenuList();

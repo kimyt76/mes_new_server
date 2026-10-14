@@ -89,4 +89,23 @@ public class SystemMgmtServiceImpl implements SystemMgmtService {
 
         return "저장되었습니다.";
     }
+
+    @Transactional
+    public void changePassword(SystemUserVo request) {
+        if (request.getUserId() == null ||
+                request.getUserId().isBlank()) {
+            throw new IllegalArgumentException("사용자 ID가 없습니다.");
+        }
+
+        if (request.getPassword() == null ||
+                request.getPassword().length() < 3) {
+            throw new IllegalArgumentException("패스워드는 3자리 이상이어야 합니다.");
+        }
+        int result = systemMgmtMapper.changePassword(request);
+
+        if (result == 0) {
+            throw new IllegalArgumentException("사용자 정보가 없습니다.");
+        }
+    }
+
 }
