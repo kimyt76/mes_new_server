@@ -60,8 +60,6 @@
                 , a.src_storage_cd
                 , a.tran_id
         from    tb_inv_tran_mst a
-                inner join tb_inv_tran_item b
-                on a.tran_id = b.tran_id
                 inner join tb_users c
                 on c.user_id = a.manager_id
                 left outer join tb_storage_mst d
@@ -84,9 +82,9 @@
 
     <insert id="insertAdjustMst" parameterType="com.jct.mes_new.biz.stock.vo.AdjustVo"  useGeneratedKeys="true" keyProperty="tranId">
         insert into tb_inv_tran_mst
-        ( tran_date, seq, tran_type_cd, src_storage_cd, manager_id, etc, tran_status, end_yn, reg_id, upd_id)
+        ( tran_date, seq, tran_type_cd, src_storage_cd, manager_id, etc, tran_status, end_yn, area_cd, reg_id, upd_id)
         values
-        ( #{tranDate}, #{seq}, #{tranTypeCd}, #{srcStorageCd}, #{managerId}, #{etc}, 'C', 'Y', #{userId}, #{userId} )
+        ( #{tranDate}, #{seq}, #{tranTypeCd}, #{srcStorageCd}, #{managerId}, #{etc}, 'C', 'Y', dbo.getStorageByAreaCd(#{srcStorageCd}), #{userId}, #{userId} )
     </insert>
 
     <insert id="insertAdjustItemList">
