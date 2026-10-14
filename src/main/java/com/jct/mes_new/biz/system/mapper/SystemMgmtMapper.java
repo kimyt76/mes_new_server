@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.system.mapper;
 
 import com.jct.mes_new.auth.vo.UserVo;
 import com.jct.mes_new.biz.system.vo.MenuVo;
+import com.jct.mes_new.biz.system.vo.SystemUserVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -35,4 +36,6 @@ public interface SystemMgmtMapper {
     void updateMenuAuth(MenuVo vo);
 
     void copyMenuAuthInfo(@Param("srcUserId") String srcUserId, @Param("tarUserId") String tarUserId);
+
+    int changePassword(SystemUserVo request);
 }

@@ -4,12 +4,9 @@ import com.jct.mes_new.auth.mapper.UserMapper;
 import com.jct.mes_new.auth.service.UserService;
 import com.jct.mes_new.auth.vo.UserVo;
 import com.jct.mes_new.biz.system.mapper.SystemMgmtMapper;
-import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.annotations.Param;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,4 +51,5 @@ public class UserServiceImpl implements UserService {
     public boolean passwordInit(String id, String password){
         return userMapper.passwordInit(id, password);
     }
+
 }

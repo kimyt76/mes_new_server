@@ -253,4 +253,9 @@
           AND S.user_id = #{srcUserId}
     </update>
 
+    <update id="changePassword">
+        update tb_users
+        set    password = #{password}
+        where  user_id  = #{userId}
+    </update>
 </mapper>
