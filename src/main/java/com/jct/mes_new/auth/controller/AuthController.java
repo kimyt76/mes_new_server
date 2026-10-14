@@ -1,6 +1,5 @@
 package com.jct.mes_new.auth.controller;
 
-import com.fasterxml.jackson.core.Base64Variant;
 import com.jct.mes_new.auth.service.UserService;
 import com.jct.mes_new.auth.vo.LoginRequest;
 import com.jct.mes_new.auth.vo.UserVo;
@@ -17,8 +16,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,11 +41,17 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
 
+            // 인증 정보를 SecurityContext에 먼저 설정
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
+
+            // 세션에 인증 정보 저장
             session.setAttribute(
                     HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                    SecurityContextHolder.getContext()
+                    securityContext
             );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+
             session.setAttribute("userInfo", userInfo);
 
             return ResponseEntity.ok().body(userInfo);
@@ -66,7 +71,7 @@ public class AuthController {
         }
 
         // JSESSIONID 쿠키 즉시 만료
-        Cookie cookie = new Cookie("JSESSIONID", "");
+        Cookie cookie = new Cookie("SESSION", "");
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
