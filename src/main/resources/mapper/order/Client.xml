@@ -111,7 +111,7 @@
                  ,a.manager_rank
                  ,a.manager_rank2
                  ,a.client_id
-                 ,a.first_trade_Date
+                 ,isnull(a.first_trade_Date, (select min(contract_date) from tb_contract_mst where client_id = a.client_id)) as first_trade_Date
         from  tb_client_mst	 a
         where  a.client_id = #{clientId}
     </select>
