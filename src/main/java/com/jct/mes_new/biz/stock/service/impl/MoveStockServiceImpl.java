@@ -91,7 +91,6 @@ public class MoveStockServiceImpl implements MoveStockService {
         return "저장되었습니다.";
     }
 
-
     /**
      * 자재이동 승인
      * @param vo
@@ -102,10 +101,16 @@ public class MoveStockServiceImpl implements MoveStockService {
         String userId = UserUtil.getUserId();
         vo.setUserId(userId);
 
-        //승인완료
+
         if ( moveStockMapper.updateMoveStockConfirm(vo) <=0 ) {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
+
+        if (!"C".equals(vo.getConfirmStatus())) {
+            return "저장되었습니다.";
+        }
+
+        //C	승인
         //마스터
         MoveStockVo moveStockVo = moveStockMapper.getMoveStockMst(vo.getMoveStockId());
 
