@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jct.mes_new.biz.mobile.mapper.MobileMapper">
+    <select id="getEquipmentList">
+        select   a.equipment_cd
+                ,c.make_no
+                ,a.equipment_name
+                ,i.item_name
+                ,b.order_qty
+                ,b.order_qty
+                ,b.proc_status
+                ,b1.work_proc_id
+        from   tb_equipment_mst a
+                   left join TB_WORK_ORDER_PROC b
+                             on  b.proc_cd = 'PRC002'
+                                 and b.work_equipment_Cd = a.equipment_cd
+                                 and  b.proc_status = '21'
+                   left join TB_WORK_ORDER_BATCH c
+                             on c.work_batch_id = b.work_batch_id
+                                 and  c.batch_status = '21'
+                   left join tb_item_mst i
+                             on i.item_cd = b.item_cd
+                   left join TB_WORK_ORDER_PROC b1
+                             on  b1.proc_cd = 'PRC001'
+                             and b1.work_batch_id = b.work_batch_id
+
+        where  a.storage_cd in ( select storage_cd from tb_storage_mst where area_cd = #{areaCd})
+          and  a.prod_yn ='Y'
+          and  a.use_yn ='Y'
+        order by a.equipment_cd
+    </select>
+
+    <select id="getWorkOrderItems">
+        select  b.make_no
+               ,i.item_name
+               ,a.order_qty
+               ,a.work_proc_id
+               ,(select proc_status from  TB_WORK_ORDER_PROC where proc_cd = 'PRC002' and work_batch_id  = a.work_batch_id) as proc_status
+               ,a.work_batch_id
+        from   TB_WORK_ORDER_PROC a
+               join TB_WORK_ORDER_BATCH b
+                on a.work_batch_id = b.work_batch_id
+                and b.batch_status = #{batchStatus}
+               join TB_WORK_ORDER_MST c
+                on c.work_order_id = a.work_order_id
+               join tb_item_mst i
+                on i.item_cd = a.item_cd
+        where  a.proc_order_date between  #{strDate} and #{endDate}
+          and  a.proc_cd = #{procCd}
+          and  c.area_cd = #{areaCd}
+        order by a.proc_order_date desc , b.work_batch_id desc
+    </select>
+
+
+    <select id="getProdPerformaceStatus">
+        select    m.area_name
+                 ,c.item_cd
+                 ,i.item_name
+                 ,a.make_no
+                 ,a.lot_no
+                 ,a.lot_no2
+                 ,co.code_nm as batch_status
+                 ,b.prod_qty
+                 ,b.coating_qty
+                 ,b.charging_qty
+                 ,b.packing_qty
+        from   TB_WORK_ORDER_BATCH a
+                   left join (
+                        select work_batch_id
+                             , max(case when proc_cd = 'PRC002' then prod_qty end) as prod_qty-- 제조
+                             , max(case when proc_cd = 'PRC003' then prod_qty end) as coating_qty-- 코팅
+                             , max(case when proc_cd = 'PRC004' then prod_qty end) as charging_qty-- 충전
+                             , max(case when proc_cd = 'PRC005' then prod_qty end) as packing_qty-- 포장
+                        from   TB_WORK_ORDER_PROC
+                        group by work_batch_id
+                    ) b on A.work_batch_id = B.work_batch_id
+                   left join TB_WORK_ORDER_MST c
+                             on c.work_order_id = a.work_order_id
+                   left join tb_item_mst i
+                             on i.item_cd = c.item_cd
+                   left join tb_area_mst m
+                        on m.area_cd = c.area_cd
+                   left join tb_common_code co
+                        on co.code = a.batch_status
+                        and co.com_type_cd = 'batch_STATUS'
+        where    a.batch_status >= '22'
+          and    c.work_order_date between #{strDate} and #{endDate}
+        <if test="areaCd != null and areaCd != ''">
+          and    c.area_cd =  #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+          and    c.item_cd like '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+          and    i.item_name like '%' + #{itemName} + '%'
+        </if>
+    </select>
+
+    <select id="getWorkerAllList">
+        select *
+        from   tb_worker_mst
+    </select>
+
+    <select id="getProcMake">
+        select *
+
+        from  tb_weigh_info
+        where weigh_id = #{weighId}
+    </select>
+
+    <update id="updateMakeMobile">
+        update tb_weigh_info
+        set    make_qty = #{makeQty}
+        <if test="itemCd == 'JRW00215' or itemCd == 'JRMSC00011'">
+             ,weigh_qty = #{weighQty}
+        </if>
+              ,make_yn  = #{makeYn}
+              ,weigh_yn = #{weighYn}
+              ,make_time = #{makeTime}
+              ,maker    = #{maker}
+              ,upd_id   = #{maker}
+              ,upd_dt   = getdate()
+        where  weigh_id = #{weighId}
+    </update>
+
+    <select id="getWorkOrderProc">
+        select a.work_proc_id
+             ,a.work_batch_id
+             ,a.work_order_id
+             ,b.area_cd
+             ,a.item_cd
+             ,a.proc_cd
+             ,case when b.area_cd = 'A001' then 'WS103'
+                   when b.area_cd = 'A002' then 'WA102'
+                   else '' end as storage_cd
+             ,a.test_no
+        from   TB_WORK_ORDER_PROC a
+                   join TB_WORK_ORDER_MST b
+                        on b.work_order_id = a.work_order_id
+        where  a.proc_cd = 'PRC002'
+          and    a.end_yn ='N'
+          and    a.work_batch_id = (
+            select work_batch_id
+            from   TB_WORK_ORDER_PROC a
+            where work_proc_id = #{workProcId}
+        )
+          and    a.proc_status != '99'
+    </select>
+
+    <select id="getMakeEtc">
+        select COUNT(*) as cnt from tb_make_etc where work_proc_id = #{workProcId}
+    </select>
+
+    <insert id="insertMakeEtc">
+        insert into tb_make_etc
+        (work_proc_id, item_cd, maker, reg_id ,upd_id )
+        values
+        (#{workProcId}, #{itemCd}, #{maker}, #{userId} , #{userId} )
+    </insert>
+    <update id="updateMakeEtc">
+        update tb_make_etc
+        set    maker = #{maker}
+              ,upd_id = #{userId}
+              ,upd_dt = getDate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+
+</mapper>
