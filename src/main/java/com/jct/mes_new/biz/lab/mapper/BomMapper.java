@@ -32,9 +32,9 @@ public interface BomMapper {
 
     /**
      * bom 레시피 리스트
-     * @param deleteBomProc
+     * @param deleteBomRecipe
      */
-    void deleteBomRecipe(List<String> deleteBomProc);
+    void deleteBomRecipe(List<String> deleteBomRecipe);
     int insertBomRecipe(BomRecipeVo recipe);
     int updateBomRecipe(BomRecipeVo recipe);
 

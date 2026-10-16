@@ -2,7 +2,10 @@ package com.jct.mes_new.biz.lab.controller;
 
 
 import com.jct.mes_new.biz.lab.service.BomService;
-import com.jct.mes_new.biz.lab.vo.*;
+import com.jct.mes_new.biz.lab.vo.BomProcVo;
+import com.jct.mes_new.biz.lab.vo.BomRecipeVo;
+import com.jct.mes_new.biz.lab.vo.BomRequestVo;
+import com.jct.mes_new.biz.lab.vo.BomVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

@@ -9,7 +9,6 @@ public class BomRequestVo {
     private BomVo  bomInfo;
     private List<BomRecipeVo> bomRecipeList;
     private List<BomProcVo> bomProcList;
-
     private List<String> deleteBomRecipe;
     private List<String> deleteBomProc;
 }

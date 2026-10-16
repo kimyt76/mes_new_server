@@ -55,7 +55,8 @@ public class BomServiceImpl implements BomService {
         List<BomRecipeVo> bomRecipeList = vo.getBomRecipeList();
         List<BomProcVo> bomProcList = vo.getBomProcList();
         String userId = UserUtil.getUserId();
-
+log.info("====================vo.getDeleteBomRecipe()=============== : " + vo.getDeleteBomRecipe());
+log.info("====================bomRecipeList=============== : " + bomRecipeList);
         String bomId = bomMst.getBomId();
         String msg = "저장되었습니다.";
 
@@ -77,16 +78,16 @@ public class BomServiceImpl implements BomService {
         // 2. 처방정보 저장
         //처방전에 삭제가 있는지 확인
         if (vo.getDeleteBomRecipe() != null && !vo.getDeleteBomRecipe().isEmpty()) {
-            bomMapper.deleteBomRecipe(vo.getDeleteBomProc());
+            bomMapper.deleteBomRecipe(vo.getDeleteBomRecipe());
         }
 
         if (bomRecipeList != null && !bomRecipeList.isEmpty()) {
             for (BomRecipeVo recipe : bomRecipeList) {
-                recipe.setBomItemId(CommonUtil.generateUUID());
                 recipe.setBomId(bomId);
                 recipe.setUserId(userId);
 
                 if( recipe.getBomItemId() == null || recipe.getBomItemId().isEmpty()) {
+                    recipe.setBomItemId(CommonUtil.generateUUID());
                     if ( bomMapper.insertBomRecipe(recipe) <= 0 ) {
                         throw new BusinessException(ErrorCode.FAIL_CREATED);
                     }
