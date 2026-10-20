@@ -22,7 +22,7 @@ public interface TranMapper {
     Long getTranId(Long purId);
 
     /* 원장 삭제*/
-    void deleteTranItem(Long tranId);
+    void deleteAllTranItem(Long tranId);
     void deleteTranMst(Long tranId);
 
     /* 원장  조회*/
@@ -31,4 +31,7 @@ public interface TranMapper {
     List<TranItemVo> getTranItemList(Long tranId);
 
     List<TranVo> getTranList(TranVo vo);
+
+
+    void deleteTranItem(Long tranItemId);
 }

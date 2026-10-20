@@ -44,5 +44,13 @@ public class AdjustController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
+    @GetMapping("/deleteAdjust/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteAdjust (@PathVariable("id") Long tranId) {
+        String result = adjustService.deleteAdjust(tranId);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+
+
 
 }

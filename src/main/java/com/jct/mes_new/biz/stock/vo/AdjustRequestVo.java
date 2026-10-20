@@ -11,5 +11,6 @@ public class AdjustRequestVo {
 
     private AdjustVo adjustInfo;
     private List<AdjustItemVo> adjustItemList;
+    private List<Long> deleteTranItemIds;
 
 }

@@ -12,4 +12,6 @@ public interface AdjustService {
     AdjustRequestVo getAdjustInfo(Long tranId);
 
     String saveAdjust(AdjustRequestVo vo);
+
+    String deleteAdjust(Long tranId);
 }

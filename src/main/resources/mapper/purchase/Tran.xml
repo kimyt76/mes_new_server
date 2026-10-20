@@ -41,7 +41,7 @@
             AND b.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            AND c.item_name LIKE '%' + #{itemName} + '%'
+            AND c.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="customerName != null and customerName != ''">
             AND e.customer_name LIKE '%' + #{customerName} + '%'
@@ -181,8 +181,12 @@
     </delete>
 
 <!--  이건 전체 삭제용  -->
-    <delete id="deleteTranItem">
+    <delete id="deleteAllTranItem">
         DELETE FROM tb_inv_tran_item WHERE tran_id = #{tranId}
+    </delete>
+
+    <delete id="deleteTranItem">
+        DELETE FROM tb_inv_tran_item WHERE tran_item_id = #{tranItemId}
     </delete>
 
     <delete id="deleteTranMst">
@@ -194,7 +198,6 @@
         set    qc_status = #{qcStatus}
         where  tran_item_id = #{tranItemId}
     </select>
-
 
 
 </mapper>
