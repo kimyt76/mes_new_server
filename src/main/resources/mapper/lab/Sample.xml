@@ -8,14 +8,23 @@
         DECLARE @monthKey NVARCHAR(4) = FORMAT(GETDATE(), 'yyMM');
         DECLARE @seq INT;
 
-            SELECT @seq = ISNULL(MAX(CAST(SUBSTRING(prod_mgmt_no, 10, 3) AS INT)), 0) + 1
-            FROM tb_lab_sample
-            WHERE SUBSTRING(prod_mgmt_no, 4, 4) = @monthKey;
+                SELECT @seq = ISNULL(MAX(
+                                             TRY_CONVERT(INT, SUBSTRING(prod_mgmt_no, 10, 3))
+                                     ), 0) + 1
+                FROM tb_lab_sample
+                WHERE SUBSTRING(prod_mgmt_no, 4, 4) = @monthKey
+                  AND LEFT(prod_mgmt_no, 3) = @prefix
+                  AND LEN(prod_mgmt_no) >= 12
+                  AND SUBSTRING(prod_mgmt_no, 4, 9) NOT LIKE '%[^0-9]%';
+
+                IF @seq > 999
+            THROW 50001, '제품관리번호 시퀀스가 999를 초과했습니다.', 1;
 
         DECLARE @newNo NVARCHAR(20);
+
         SET @newNo = @prefix + @today + FORMAT(@seq, '000');
 
-        SELECT @newNo;
+                SELECT @newNo;
     </select>
 
     <select id="getSampleList">
@@ -41,7 +50,7 @@
         and    area_cd = #{areaCd}
         </if>
         <if test="itemName != null and itemName != ''">
-        and    item_name like '%' + #{itemName} + '%'
+        and    item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="clientName != null and clientName != ''">
         and    client_name like '%' + #{clientName} + '%'
