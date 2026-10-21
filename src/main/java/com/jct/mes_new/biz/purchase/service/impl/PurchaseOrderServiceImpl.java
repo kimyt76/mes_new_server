@@ -97,7 +97,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         // 2. 삭제 처리
         List<Long> deletedItemIds = vo.getDeletePurchaseOrderItems();
         if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
-            purchaseOrderMapper.deleteItemList(purOrderId,deletedItemIds);
+            purchaseOrderMapper.deletePurOrderItemList(purOrderId,deletedItemIds);
         }
 
         //3. 발주 품목 처리

@@ -6,6 +6,7 @@ import com.jct.mes_new.biz.purchase.service.PurchaseService;
 import com.jct.mes_new.biz.purchase.service.TranService;
 import com.jct.mes_new.biz.purchase.vo.*;
 import com.jct.mes_new.biz.qc.mapper.ItemTestMapper;
+import com.jct.mes_new.biz.qc.mapper.QcTestMapper;
 import com.jct.mes_new.biz.qc.service.ItemTestService;
 import com.jct.mes_new.biz.qc.service.QcTestService;
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final ItemTestService itemTestService;
     private final QcTestService qcTestService;
     private final PurchaseOrderService purchaseOrderService;
+    private final ItemTestMapper itemTestMapper;
 
     /**
      * 구매 조회
@@ -119,16 +122,23 @@ public class PurchaseServiceImpl implements PurchaseService {
                     throw new BusinessException(ErrorCode.FAIL_CREATED);
                 }
                 if (item.getPurOrderItemId() != null   ) {
-                    //7. 발주서 품목 입고
-                    if ( purchaseOrderService.updateInYn(item.getPurOrderItemId(), userId) <= 0 ) {
-                        throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                    BigDecimal orderQty = purchaseMapper.getPurchaseItemInfo(item.getPurOrderItemId());
+
+                    if (orderQty != null && item.getQty() != null && orderQty.compareTo(item.getQty()) == 0) {
+                        item.setInYn("Y");
+                        //7. 발주서 품목 입고
+                        if ( purchaseOrderService.updateInYn(item.getPurOrderItemId(), userId) <= 0 ) {
+                            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+                        }
+                    } else {
+                        item.setInYn("N");
                     }
-                    //8. 발주서 마스터 end 조건 업데이트
-                    purchaseOrderService.updatePurchaseOrderEndYn(item.getPurOrderId(), userId);
                 }
             }
         }
 
+        //8. 발주서 마스터 end 조건 업데이트
+        //purchaseOrderService.updatePurchaseOrderEndYn(item.getPurOrderId(), userId);
         // 4. 원장 저장
         TranRequestVo tranRequestVo = makeTranRequestVo(vo, purId, userId);
         Long tranId = tranService.saveTranInfo(tranRequestVo);
@@ -159,10 +169,10 @@ public class PurchaseServiceImpl implements PurchaseService {
      */
     @Transactional(rollbackFor = Exception.class)
     public String updatePurchaseInfo(PurchaseRequestVo vo){
-        String msg = "수정되었습니다.";
         String userId = UserUtil.getUserId();
         Long purId = vo.getPurchaseInfo().getPurId();
         PurchaseVo purchaseInfo = vo.getPurchaseInfo();
+        List<PurchaseVo.PurchaseListVo> itemList = vo.getPurchaseItemList();
 
         //mst
         purchaseInfo.setUserId(userId);
@@ -172,12 +182,19 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // 2. 삭제 처리
-        List<Long> deletedItemIds = vo.getDeletePurchaseItems();
-        if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
-            purchaseMapper.deleteItemList(purId,deletedItemIds);
+        List<String> deleteTestNos = vo.getDeleteTestNos();
+        if (deleteTestNos != null && !deleteTestNos.isEmpty()) {
+            for( String testNo : deleteTestNos ){
+                //구매
+                purchaseMapper.deletePurTestNo(testNo);
+                //재고
+                purchaseMapper.deleteInvTranTestNo(testNo);
+                //품질
+                purchaseMapper.deleteReqQcTestNo(testNo);
+                //시험번호
+                purchaseMapper.deleteItemTestNo(testNo);
+            }
         }
-
-        List<PurchaseVo.PurchaseListVo> itemList = vo.getPurchaseItemList();
 
         if (itemList != null && !itemList.isEmpty()) {
             Map<String, Integer> seqMap = new HashMap<>();
@@ -220,7 +237,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
             //원장 수정
             TranRequestVo tranRequestVo = makeTranRequestVo(vo, purId, userId);
-            tranRequestVo.setDeleteTranItems(deletedItemIds);
             tranService.updateTranInfo(tranRequestVo);
 
             //5 .Qc품질검사 수정 및 등록
@@ -236,7 +252,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 throw new BusinessException(ErrorCode.FAIL_UPDATED);
             }
         }
-        return msg;
+        return "수정되었습니다.";
     }
 
     /**
@@ -245,14 +261,29 @@ public class PurchaseServiceImpl implements PurchaseService {
      * @return
      */
     public String deletePurchase(Long purId){
-        String msg="삭제되었습니다.";
+        List<PurchaseVo.PurchaseListVo> purItemList = purchaseMapper.getPurchaseItemList(purId);
 
-        purchaseMapper.deletePurchaseItemList(purId);
+        //품질검사, 시험번호
+        if( purItemList.isEmpty() ){
+            for (PurchaseVo.PurchaseListVo item : purItemList) {
+                String testNo = item.getTestNo();
+                //품질검사 요청
+                purchaseMapper.deleteReqQcTestNo(testNo);
+                //시험번호
+                purchaseMapper.deleteItemTestNo(testNo);
+            }
+        }
+
+        //재고
+        purchaseMapper.deleteTranItemList(purId);
+        purchaseMapper.deleteTranMst(purId);
+
+        //구매
+        purchaseMapper.deleteItemList(purId);
         purchaseMapper.deletePurMst(purId);
 
-        tranService.deleteTranInfo(purId);
 
-        return msg;
+        return "삭제되었습니다.";
     }
 
     /**

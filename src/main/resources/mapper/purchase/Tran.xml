@@ -171,7 +171,7 @@
         select tran_id from tb_inv_tran_mst where pur_id = #{purId} and tran_type_cd ='A'
     </select>
 
-    <delete id="deleteItemList">
+    <delete id="deleteInvTrnaItemList">
         DELETE FROM tb_inv_tran_item
         WHERE tran_id = #{tranId}
         and   pur_item_id IN

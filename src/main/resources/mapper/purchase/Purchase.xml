@@ -44,7 +44,7 @@
                 SELECT 1
                 FROM tb_pur_item i
                 WHERE i.pur_id = a.pur_id
-                AND i.item_name LIKE '%' + #{itemName} + '%'
+                AND i.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
             )
         </if>
         <if test="itemCd != null and itemCd != ''">
@@ -182,7 +182,7 @@
                 ,supply_price = #{supplyPrice}
                 ,vat_price    = #{vatPrice}
                 ,lot_no       = #{lotNo}
-                ,expiry_date  = #{expiryDate}
+                ,expiry_date = #{expiryDate, jdbcType=DATE}
                 ,etc          = #{etc}
                 ,upd_id       = #{userId}
                 ,upd_dt       = GETDATE()
@@ -193,10 +193,6 @@
     <delete id="deleteItemList">
         DELETE FROM tb_pur_item
         WHERE pur_id = #{purId}
-        AND pur_item_id IN
-        <foreach collection="deletedItemIds" item="itemId" open="(" separator="," close=")">
-            #{itemId}
-        </foreach>
     </delete>
 
     <!--  이건 전체 삭제용  -->
@@ -264,10 +260,10 @@
             AND b.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            and b.item_name like '%' + #{itemName} + '%'
+            and b.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="customerName != null and customerName != ''">
-            and e.customer_name like '%' + #{customerName} + '%'
+            and e.customer_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="testState != null and testState != ''">
             and c.test_state = #{testState}
@@ -275,5 +271,32 @@
         order by a.pur_date desc, a.seq desc
     </select>
 
+    <select id="getPurchaseItemInfo">
+        select *
+        from   tb_pur_order_item
+        where  pur_order_item_id = #{purOrderItemId}
+    </select>
+
+<!--  건 삭제  -->
+    <delete id="deletePurTestNo">
+        delete from tb_pur_item where test_no = #{testNo}
+    </delete>
+    <delete id="deleteInvTranTestNo">
+        delete from tb_inv_tran_item where test_no = #{testNo}
+    </delete>
+    <delete id="deleteReqQcTestNo">
+        delete from tb_qc_test_mst where test_no = #{testNo}
+    </delete>
+    <delete id="deleteItemTestNo">
+        delete from tb_item_test_no where test_no = #{testNo}
+    </delete>
+
+    <!--  전체 삭제  -->
+    <delete id="deleteTranItemList">
+        delete from tb_inv_tran_item where test_no = #{purId}
+    </delete>
+    <delete id="deleteTranMst">
+        delete from tb_inv_tran_mst where test_no = #{purId}
+    </delete>
 
 </mapper>

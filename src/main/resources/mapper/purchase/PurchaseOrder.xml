@@ -17,16 +17,19 @@
                 ,b.in_price
                 ,b.vat_price
                 ,b.item_type_cd
-                ,case when b.in_yn = 'Y' then '입고완료'else '미입고' end inYn
-                ,case when a.end_yn = 'Y' then '종결'else '진행중' end endYn
-                ,case when a.mail_yn = 'Y' then '발송'else '미발송' end mailYn
+                ,b.in_yn
+                ,a.end_Yn
+                ,isnull(b.item_end_Yn, 'N') as item_end_Yn
+                ,a.mail_Yn
+                ,a.print_yn
+                ,isnull(b.item_end_yn, 'N') as item_end_yn
                 ,dbo.getUserName(a.manager_id) as manager_name
                 ,a.pur_order_id
                 ,b.pur_order_item_id
         from    tb_pur_order_mst a
                 inner join tb_pur_order_item b
                 on a.pur_order_id = b.pur_order_id
-        where  a.end_yn ='N'
+        where  1=1
         <if test="strDate != null">
           and   a.pur_order_date between #{strDate} and #{endDate}
         </if>
@@ -40,13 +43,16 @@
           and   b.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-          and   b.item_name like '%' + #{itemName} + '%'
+          and   b.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="customerName != null and customerName != ''">
           and   dbo.getCustomerName(a.customer_cd)  like '%' + #{customerName} + '%'
         </if>
         <if test="inYn != null and inYn != ''">
           and   b.in_yn = #{inYn}
+        </if>
+        <if test="itemEndYn != null and itemEndYn != ''">
+          and   b.item_end_yn = #{itemEndYn}
         </if>
         <if test="endYn != null and endYn != ''">
           and   a.end_yn = #{endYn}
@@ -84,7 +90,7 @@
             and    b.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            and    b.item_name like '%' + #{itemName} + '%'
+            and    b.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="customerName != null and customerName != ''">
             and   dbo.getCustomerName(a.customer_cd) like '%' + #{customerName} + '%'
@@ -254,7 +260,7 @@
             )
     </insert>
 
-    <delete id="deleteItemList">
+    <delete id="deletePurOrderItemList">
         DELETE FROM tb_pur_order_item
         WHERE pur_order_id = #{purOrderId}
         AND pur_order_item_id IN
@@ -319,7 +325,7 @@
 
     <update id="updatePrintYn">
         update tb_pur_order_mst
-        set mail_yn = 'Y'
+        set    print_yn = 'Y'
         where pur_order_id in
         <foreach collection="purOrderIds" item="id" open="(" separator="," close=")">
             #{id}
@@ -344,6 +350,7 @@
                  ,b.item_type_cd
                  ,a.pur_order_id
                  ,b.pur_order_item_id
+                 ,b.in_price
         from   tb_pur_order_mst a
                 inner join tb_pur_order_item b
                 on a.pur_order_id = b.pur_order_id
@@ -361,7 +368,7 @@
             and   b.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            and   b.item_name like '%' + #{itemName} + '%'
+            and   b.item_name like CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
         </if>
         <if test="customerName != null and customerName != ''">
             and   dbo.getCustomerName(a.customer_cd)  like '%' + #{customerName} + '%'
@@ -397,6 +404,21 @@
                 HAVING COUNT(*) = COUNT(CASE WHEN in_yn = 'Y' THEN 1 END)
             ) i ON m.pur_order_id = i.pur_order_id
          where  m.pur_order_id = #{purOrderId}
+    </update>
+
+    <update id="updatePurchaseOrderItemEndYn">
+        UPDATE tb_pur_order_item
+        SET    item_end_yn = 'Y'
+              ,upd_id = #{userId}
+              ,upd_dt = getDate()
+        where  pur_order_item_id = #{purOrderItemId}
+    </update>
+    <update id="updatePurchaseOrderM2EndYn">
+        UPDATE tb_pur_order_mst
+        SET    end_yn = 'Y'
+              ,upd_id = #{userId}
+              ,upd_dt = getDate()
+        where  pur_order_id = #{purOrderId}
     </update>
 
 

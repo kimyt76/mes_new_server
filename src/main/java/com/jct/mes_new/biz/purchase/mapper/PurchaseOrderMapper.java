@@ -52,7 +52,7 @@ public interface PurchaseOrderMapper {
      * @param
      * @return
      */
-    void deleteItemList(@Param("purOrderId") Long purOrderId,
+    void deletePurOrderItemList(@Param("purOrderId") Long purOrderId,
                         @Param("deletedItemIds") List<Long> deletedItemIds);
     /* 발주 item 리스트 신규*/
     int insertPurchaseOrderItem(PurchaseOrderItemVo vo);

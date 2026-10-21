@@ -55,7 +55,7 @@
             AND b.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            AND c.item_name LIKE '%' + #{itemName} + '%'
+            AND c.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="testNo != null and testNo != ''">
             AND a.test_no LIKE '%' + #{testNo} + '%'
@@ -63,7 +63,7 @@
         <if test="passState != null and passState != ''">
             AND a.pass_state LIKE '%' + #{passState} + '%'
         </if>
-        order by a.upd_dt desc,  a.test_no desc
+        order by a.req_date desc
     </select>
 
     <select id="getQcTestDetailInfo">
@@ -114,20 +114,20 @@
         where  a.qc_test_id = #{qcTestId}
     </select>
 
-    <select id="getQcTestMethod">
-        SELECT  test_item
-               ,test_method
-               ,test_spec
-               ,test_result
-               ,order_dist
-               ,item_cd
-               ,tester_name
-               ,pass_state
-               ,test_type_method_id
-        FROM    tb_test_type_method
-        WHERE   item_cd = #{itemCe}
-        ORDER BY order_dist ASC
-    </select>
+<!--    <select id="getQcTestMethod">-->
+<!--        SELECT  test_item-->
+<!--               ,test_method-->
+<!--               ,test_spec-->
+<!--               ,test_result-->
+<!--               ,order_dist-->
+<!--               ,item_cd-->
+<!--               ,tester_name-->
+<!--               ,pass_state-->
+<!--               ,test_type_method_id-->
+<!--        FROM    tb_qc_test_type_method-->
+<!--        WHERE   item_cd = #{itemCe}-->
+<!--        ORDER BY order_dist ASC-->
+<!--    </select>-->
 
     <insert id="insertQcTest">
         insert into tb_qc_test_mst
@@ -197,12 +197,12 @@
 
     <update id="updateQcTestInfo">
         update tb_qc_test_mst
-        set       req_tester_id = #{vo.reqTesterId}
-                , area_cd       = #{vo.areaCd}
-                , storage_cd    = #{vo.storageCd}
-                , req_qty       = #{vo.reqQty}
-                , TEST_STATE    = #{vo.testState}
-                , PASS_STATE    = #{vo.passState}
+        set       req_tester_id = #{reqTesterId}
+                , area_cd       = #{areaCd}
+                , storage_cd    = #{storageCd}
+                , req_qty       = #{reqQty}
+                , TEST_STATE    = #{testState}
+                , PASS_STATE    = #{passState}
                 , upd_id        = #{userId}
                 , upd_dt        = getdate()
         where  test_no  = #{testNo}
@@ -419,4 +419,5 @@
                                         where x.test_no = a.test_no
                                     ), 0)
     </select>
+
 </mapper>

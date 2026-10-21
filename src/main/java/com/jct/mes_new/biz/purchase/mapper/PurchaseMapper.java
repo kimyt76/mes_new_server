@@ -5,6 +5,7 @@ import com.jct.mes_new.biz.purchase.vo.PurchaseVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -47,7 +48,7 @@ public interface PurchaseMapper {
      * @param purId
      */
     void deletePurMst(Long purId);
-    void deleteItemList(Long purId, List<Long> deletedItemIds);
+    void deleteItemList(Long purId);
 
     /**
      * 구매 현황 조회
@@ -57,5 +58,13 @@ public interface PurchaseMapper {
     List<PurchaseVo.searchPurchaseListVo> getPurchaseDetailList(PurchaseVo vo);
 
 
+    BigDecimal getPurchaseItemInfo(Long purOrderItemId);
 
+    void deletePurTestNo(String testNo);
+    void deleteInvTranTestNo(String testNo);
+    void deleteReqQcTestNo(String testNo);
+    void deleteItemTestNo(String testNo);
+
+    void deleteTranItemList(Long purId);
+    void deleteTranMst(Long purId);
 }

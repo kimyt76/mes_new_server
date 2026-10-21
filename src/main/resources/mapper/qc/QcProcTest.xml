@@ -40,7 +40,7 @@
          and   b.batch_status = #{batchStatus}
         </if>
         <if test="testState != null and testState != ''">
-          and  m.test_state)  =#{testState}
+          and  m.test_state  = #{testState}
         </if>
         order by a.work_order_date desc, a.seq desc
     </select>
@@ -170,7 +170,7 @@
         ( #{qcProcTestMstId} , #{sampleDate}, #{qty1}, #{qty2}, #{qty3}, #{qty4}, #{qty5}, #{qty6}, #{qty7}, #{qty8}, #{qty9}, #{userId}, #{userId})
     </insert>
 
-    <update id="tb_qc_proc_test_sample">
+    <update id="updateQcProcTestSample">
         update tb_qc_proc_test_sample
         set    sample_date = #{sampleDate}
               ,qty1        =#{qty1}
@@ -286,4 +286,10 @@
         where  a.work_batch_id =  #{workBatchId}
         and    a.proc_cd = #{procCd}
     </select>
+
+    <update id="completeQcProcTest">
+        update tb_qc_proc_test_mst
+        set    test_state = 'E'
+        where  qc_proc_test_mst_id = #{qcProcTestMstId}
+    </update>
 </mapper>
