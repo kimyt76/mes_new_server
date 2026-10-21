@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.work.controller;
 
 import com.jct.mes_new.biz.work.service.WorkOrderService;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderResetRequestVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
@@ -32,7 +33,7 @@ public class WorkOrderController {
     }
 
     @GetMapping("/getWorkOrderInfo/{id}")
-    public WorkOrderVo getWorkOrderInfo (@PathVariable("id") String workOrderId){
+    public WorkOrderVo getWorkOrderInfo (@PathVariable("id") Long workOrderId){
         WorkOrderVo vo = workOrderService.getWorkOrderInfo(workOrderId);
         return  vo;
     }
@@ -48,4 +49,17 @@ public class WorkOrderController {
         int result = workOrderService.deleteWorkOrders(workOrderIds);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.deleted")));
     }
+
+    @PostMapping("/resetWorkOrderProc")
+    public ResponseEntity<ApiResponse<Void>> resetWorkOrderProc(@RequestBody WorkOrderResetRequestVo vo){
+        String result = workOrderService.resetWorkOrderProc(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+    @PostMapping("/cancelWorkOrderProc")
+    public ResponseEntity<ApiResponse<Void>> cancelWorkOrderProc(@RequestBody WorkOrderResetRequestVo vo){
+        String result = workOrderService.cancelWorkOrderProc(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
 }

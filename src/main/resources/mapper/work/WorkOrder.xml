@@ -47,7 +47,7 @@
             AND a.area_cd = #{areaCd}
         </if>
         <if test="clientName != null and clientName != ''">
-            AND b.clientName '%' + #{clientName} + '%'
+            AND b.client_Name LIKE '%' + #{clientName} + '%'
         </if>
         <if test="managerId != null and managerId != ''">
             AND d.user_id = #{managerId}
@@ -61,7 +61,7 @@
          2) 상세 조회(마스터)
          WorkOrderVo getWorkOrderMst(String workOrderId);
          ========================================================= -->
-    <select id="getWorkOrderMst" parameterType="string" resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
+    <select id="getWorkOrderMst" parameterType="long" resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo">
         SELECT   a.work_order_date   AS workOrderDate
                 ,a.seq               AS seq
                 ,dbo.getCommonName('area', a.area_cd)  AS areaName
@@ -81,10 +81,9 @@
 
     <!-- =========================================================
          3) 상세 조회(BATCH)
-         List<WorkOrderVo.Batch> getWorkOrderBatch(String workOrderId);
+         List<WorkOrderVo.Batch> getWorkOrderBatch(long workOrderId);
          ========================================================= -->
-    <select id="getWorkOrderBatch" parameterType="string"
-            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
+    <select id="getWorkOrderBatch" parameterType="long" resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
         SELECT   work_batch_id  AS workBatchId
                 ,work_order_id  AS workOrderId
                 ,po_no          AS poNo
@@ -97,10 +96,9 @@
     </select>
     <!-- =========================================================
          4) 상세 조회(ITEM)
-         List<WorkOrderVo.Item> getWorkOrderProc(String workOrderId);
+         List<WorkOrderVo.Item> getWorkOrderProc(long workOrderId);
          ========================================================= -->
-    <select id="getWorkOrderProc" parameterType="string"
-            resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
+    <select id="getWorkOrderProc" parameterType="long" resultType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
         SELECT   work_proc_id    AS workProcId
                 ,work_batch_id   AS workBatchId
                 ,po_no           AS poNo
@@ -249,7 +247,7 @@
     <update id="updateBatchStatus">
         update TB_WORK_ORDER_BATCH
         set    batch_status = #{batchStatus}
-              ,prodDate    = #{prodDate}
+              ,prod_Date    = #{prodDate}
         where  work_batch_id = #{workBatchId}
     </update>
 
@@ -261,7 +259,7 @@
                  ,dbo.getItemName(a.item_cd) as item_name
                  ,a.prod_date
                  ,a.order_qty
-                 ,dbo.getUserName(a.manager_id) as manager_name
+                 ,w.member_nm as manager_name
                  ,dbo.getStorageName(a.storage_cd ) as storage_name
                  ,b.make_no
                  ,b.lot_no
@@ -288,6 +286,9 @@
                  ,c.po_no
                  ,a.prod_date
                  ,a.proc_order_date
+               --  ,isnull((select (isnull(use_qty, 0)+ isnull(work_Bad_Qty, 0)+ isnull(bad_Qty, 0))
+               --           from tb_prod_info where work_proc_id = a.work_proc_id ), 0) as useQty
+                 ,a.prod_yield
         from   TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
@@ -295,6 +296,8 @@
                 on c.work_order_id = a.work_order_id
                 left outer join tb_equipment_mst d
                 on d.equipment_cd = a.work_equipment_Cd
+                left join tb_users w
+                on w.user_id = a.manager_id
         where  a.work_proc_id = #{workProcId}
     </select>
 
@@ -344,8 +347,60 @@
             AND a.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            AND i.item_name like '%' + #{itemName} + '%'
+            AND i.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         order by a.work_order_date desc , b.work_batch_id desc
     </select>
+
+    <!-- 칭량 리셋-->
+    <delete id="deleteWeighInv">
+        delete from tb_weigh_inv
+        where  weigh_id in (
+            select weigh_id
+            from   tb_weigh_info
+            where   work_proc_id = #{workProcId}
+        )
+    </delete>
+    <delete id="deleteWeighInfo">
+        delete from  tb_weigh_info where  work_proc_id = #{workProcId}
+    </delete>
+
+    <!-- 제조 리셋-->
+    <update id="deleteMatInfo">
+        update  tb_weigh_info
+        set     make_time = #{makeTime}
+              , make_yn   = #{makeYn}
+              , make_qty  = #{makeQty}
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <!-- 충전, 포장 리셋-->
+    <delete id="deleteProcUse">
+        delete from tb_prod_use
+        where  prod_info_id in (
+            select prod_info_id
+            from   tb_prod_info
+            where  work_proc_id = #{workProcId}
+        )
+    </delete>
+    <delete id="deleteProcInfo">
+        delete from tb_prod_info where  work_proc_id = #{workProcId}
+    </delete>
+    <delete id="deleteWorkRecodeInfo">
+        delete from   tb_work_record where  work_proc_id = #{workProcId}
+    </delete>
+
+    <update id="updateCancelWorkOrderProc">
+        update TB_WORK_ORDER_PROC
+        set proc_status = '99'
+            ,end_yn  ='Y'
+        where work_proc_id = #{workProcId}
+    </update>
+    <update id="updateCancelWorkOrderBatch">
+        update TB_WORK_ORDER_BATCH
+        set   batch_status = '99'
+        where work_batch_id = (
+             select work_batch_id from TB_WORK_ORDER_PROC where work_proc_id = #{workProcId}
+            )
+    </update>
 </mapper>

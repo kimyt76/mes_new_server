@@ -13,9 +13,9 @@ public interface WorkOrderMapper {
     List<WorkOrderVo> getWorkOrderList(WorkOrderVo vo);
 
     //상세 조회
-    WorkOrderVo getWorkOrderMst(@Param("workOrderId") String workOrderId);
-    List<WorkOrderVo.Batch> getWorkOrderBatch(@Param("workOrderId") String workOrderId);
-    List<WorkOrderVo.Item> getWorkOrderProc(@Param("workOrderId") String workOrderId);
+    WorkOrderVo getWorkOrderMst(@Param("workOrderId") Long workOrderId);
+    List<WorkOrderVo.Batch> getWorkOrderBatch(@Param("workOrderId") Long workOrderId);
+    List<WorkOrderVo.Item> getWorkOrderProc(@Param("workOrderId") Long workOrderId);
 
     //등록 및 수정
     void insertWorkOrderMst(WorkOrderVo vo);
@@ -39,4 +39,14 @@ public interface WorkOrderMapper {
     WorkOrderInfoVo getWorkOrderProcInfo(@Param("procCd") String procCd, @Param("workProcId") Long workProcId);
 
     List<WorkOrderInfoVo> getWorkOrderProgressList(WorkOrderVo vo);
+
+    void deleteWeighInv(Long workProcId);
+    void deleteWeighInfo(Long workProcId);
+    void deleteMatInfo(Long workProcId, String userId);
+    void deleteProcUse(Long workProcId);
+    void deleteProcInfo(Long workProcId);
+    void deleteWorkRecodeInfo(Long workProcId);
+
+    void updateCancelWorkOrderProc(Long workProcId);
+    void updateCancelWorkOrderBatch(Long workProcId);
 }

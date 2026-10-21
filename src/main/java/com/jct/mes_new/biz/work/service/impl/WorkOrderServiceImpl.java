@@ -1,8 +1,10 @@
 package com.jct.mes_new.biz.work.service.impl;
 
+import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.service.WorkOrderService;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderResetRequestVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class WorkOrderServiceImpl implements WorkOrderService {
 
     private final WorkOrderMapper workOrderMapper;
+    private final ProcWeighMapper procWeighMapper;
 
     public List<WorkOrderVo> getWorkOrderList(WorkOrderVo vo){
         return workOrderMapper.getWorkOrderList(vo);
@@ -30,7 +33,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         return workOrderMapper.getWorkOrderProgressList(vo);
     }
 
-    public WorkOrderVo getWorkOrderInfo(String workOrderId){
+    public WorkOrderVo getWorkOrderInfo(Long workOrderId){
         WorkOrderVo mst = workOrderMapper.getWorkOrderMst(workOrderId);
 
         List<WorkOrderVo.Batch> batches = workOrderMapper.getWorkOrderBatch(workOrderId);
@@ -107,4 +110,51 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         return workOrderMapper.deleteWorkOrderMstByOrderIds(ids); // MST 삭제 건수
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public  String resetWorkOrderProc(WorkOrderResetRequestVo vo) {
+        String userId = UserUtil.getUserId();
+        String procCd = vo.getProcCd();
+        List<Long> workProcIds = vo.getWorkProcIds();
+
+        // 공정별 작업 데이터 삭제
+        for (Long workProcId : workProcIds) {
+            if (workProcId == null) {
+                throw new IllegalArgumentException("공정 ID가 없습니다.");
+            }
+
+            if ("PRC001".equals(procCd)) {
+                // 칭량
+                workOrderMapper.deleteWeighInv(workProcId);
+                workOrderMapper.deleteWeighInfo(workProcId);
+            } else if ("PRC002".equals(procCd)) {
+                // 제조
+                workOrderMapper.deleteMatInfo(workProcId, userId);
+            } else if ("PRC003".equals(procCd) || "PRC004".equals(procCd) || "PRC005".equals(procCd)) {
+                // 코팅, 충전 / 포장
+                workOrderMapper.deleteProcUse(workProcId);
+                workOrderMapper.deleteProcInfo(workProcId);
+                workOrderMapper.deleteWorkRecodeInfo(workProcId);
+            }
+        }
+
+        return "리셋되었습니다.";
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public  String cancelWorkOrderProc(WorkOrderResetRequestVo vo) {
+        String procCd = vo.getProcCd();
+        List<Long> workProcIds = vo.getWorkProcIds();
+
+        // 공정별 작업 데이터 삭제
+        for (Long workProcId : workProcIds) {
+            if (workProcId == null) {
+                throw new IllegalArgumentException("공정 ID가 없습니다.");
+            }
+            workOrderMapper.updateCancelWorkOrderProc(workProcId);
+            workOrderMapper.updateCancelWorkOrderBatch(workProcId);
+        }
+
+        return "리셋되었습니다.";
+    }
 }
