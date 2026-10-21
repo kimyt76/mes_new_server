@@ -27,6 +27,7 @@ import com.jct.mes_new.config.util.ExcelStyleUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,9 +128,13 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         }
         makeEtcVo.setMatProc(result);
         makeEtcVo.setManipulate(result2);
-        makeEtcVo.setBomVer(bomProcList.get(0).getBomVer());
-        makeEtcVo.setNote(bomProcList.get(0).getNote());
-        makeEtcVo.setSignificant(bomProcList.get(0).getSignificant());
+
+        // BOM 공정정보가 존재하는 경우에만 설정
+        if (bomProcList != null && !bomProcList.isEmpty()) {
+            makeEtcVo.setBomVer(bomProcList.get(0).getBomVer());
+            makeEtcVo.setNote(bomProcList.get(0).getNote());
+            makeEtcVo.setSignificant(bomProcList.get(0).getSignificant());
+        }
 
         info.setMakeEtcInfo(makeEtcVo);
 
@@ -221,8 +226,14 @@ public class ProcMakeServiceImpl implements ProcMakeService {
     public Long completeMake(ProcMakeVo vo){
         String userId = UserUtil.getUserId();
 
+        //칭량 재고 완료
+        Long tranId = procMakeMapper.getWeighOutTranId(vo.getWorkBatchId());
+
+        procMakeMapper.updateWeighTranEndYn(tranId, userId);
+
         //재고 마스터
         WorkOrderInfoVo workOrder = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
+
         TranVo invMst = new TranVo();
         String toStorage = "";
         if ( "A001".equals(workOrder.getAreaCd()) ){
@@ -242,14 +253,13 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         invMst.setPoNo(workOrder.getPoNo());
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
-        invMst.setPoNo(workOrder.getPoNo());
         invMst.setUserId(userId);
 
         if (  tranMapper.insertTranMst(invMst) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
-        if ( itemTestMapper.updateQty(vo.getTestNo(), workOrder.getProdQty(), userId) <=0 ){
+        if ( itemTestMapper.updateQty(vo.getTestNo(), vo.getProdQty(), userId) <=0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
@@ -265,13 +275,14 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         tranItemVo.setLotNo(item.getLotNo());
         tranItemVo.setTestNo(item.getTestNo());
         tranItemVo.setExpiryDate(item.getExpiryDate());
-        tranItemVo.setQty(item.getQty());
+        tranItemVo.setQty(vo.getProdQty());
         tranItemVo.setUserId(userId);
 
         if ( tranMapper.insertTranItem(tranItemVo) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
+        vo.setProdQty(vo.getProdQty());
         vo.setInTranId(invMst.getTranId() );
         vo.setUserId(userId);
         //작업지시 업데이트 (공정)
@@ -287,6 +298,9 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         if ( procCommonMapper.updateBatchStatus(comVo) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
+
+        //시험번호 제조량 업데이트
+        itemTestMapper.updateQty(workOrder.getTestNo(), vo.getProdQty(), userId);
 
         return vo.getWorkProcId();
     }
@@ -345,195 +359,256 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         WorkOrderInfoVo workOrderInfoVo = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
         MakeEtcVo makeEtcVo = procMakeMapper.getMakeEtcInfo(vo.getWorkProcId());
         List<BomProcVo> bomProcList = bomMapper.getBomProcInfo(vo.getItemCd());
-        Long workProcId = null;
-        List<ProcWeighBomVo> weighList = new ArrayList<>();
+        List<ProcWeighBomVo> weighList = Collections.emptyList();
 
         if (workOrderInfoVo != null) {
-            workProcId = procMakeMapper.getWorkProcId(workOrderInfoVo.getWorkBatchId(),"PRC001");
+            Long weighWorkProcId = procMakeMapper.getWorkProcId(workOrderInfoVo.getWorkBatchId(), "PRC001");
+            if (weighWorkProcId != null) {
+                List<ProcWeighBomVo> fetched = procMakeMapper.getRealBomMakeList(weighWorkProcId, vo.getItemCd());
+                if (fetched != null) weighList = fetched;
+            }
         }
 
-        if (workProcId != null) {
-            weighList = procMakeMapper.getRealBomMakeList(workProcId, vo.getItemCd());
-        }
+        try (InputStream excelStream = getClass().getResourceAsStream("/excel/mat_proc_template.xlsx")) {
+            if (excelStream == null) throw new IllegalStateException("Excel template not found");
+            try (Workbook workbook = ExcelStyleUtil.createWorkbook(excelStream)) {
+                Sheet sheet = workbook.getSheet("Sheet1");
+                if (sheet == null) throw new IllegalStateException("Sheet1 not found");
 
-        if (bomProcList == null) {
-            bomProcList = new ArrayList<>();
-        }
+                final int START_ROW = 8;
+                final int LAST_DATA_ROW = 44;
+                final int TOTAL_ROW = 45;
+                final int defaultRowCount = LAST_DATA_ROW - START_ROW + 1;
+                final int extraRowCount = Math.max(0, weighList.size() - defaultRowCount);
 
-        if (weighList == null) {
-            weighList = new ArrayList<>();
-        }
+                // Populate header fields without changing the template's formatting.
+                setCellByCol(sheet, 5, "D", workOrderInfoVo == null ? null : workOrderInfoVo.getClientName());
+                setCellByCol(sheet, 5, "M", workOrderInfoVo == null ? null : workOrderInfoVo.getMakeNo());
+                setCellByCol(sheet, 5, "V", workOrderInfoVo == null ? null : workOrderInfoVo.getWorkEquipmentCd());
+                setCellByCol(sheet, 5, "AD", makeEtcVo == null ? null : makeEtcVo.getMaker());
+                setCellByCol(sheet, 5, "AL", workOrderInfoVo == null ? null : workOrderInfoVo.getProdDate());
+                setCellByCol(sheet, 0, "AK", vo.getItemCd());
+                setCellByCol(sheet, 2, "AK", makeEtcVo == null ? null : makeEtcVo.getBomVer());
+                setCellByCol(sheet, 2, "I", vo.getItemName());
 
-        try {
-            InputStream excelStream = getClass().getResourceAsStream("/excel/mat_proc_template.xlsx");
-            Workbook workbook = ExcelStyleUtil.createWorkbook(excelStream);
-            Sheet sheet = workbook.getSheet("Sheet1");
-
-            int START_ROW = 8;
-            int LAST_DATA_ROW = 44;
-            int TOTAL_ROW = 45;
-            // =========================
-            // 상단 정보
-            // =========================
-            setCellByCol(sheet, 5, "D",workOrderInfoVo == null ? null : workOrderInfoVo.getClientName());
-            setCellByCol(sheet, 5, "M", workOrderInfoVo == null ? null : workOrderInfoVo.getMakeNo());
-            setCellByCol(sheet, 5, "V",workOrderInfoVo == null ? null : workOrderInfoVo.getWorkEquipmentCd());
-            setCellByCol(sheet, 5, "AD",makeEtcVo == null ? null : makeEtcVo.getMaker());
-            setCellByCol(sheet, 5, "AL",workOrderInfoVo == null ? null : workOrderInfoVo.getProdDate());
-            // 코드번호
-            setCellByCol(sheet, 0, "AK", vo.getItemCd());
-            // 제정일자
-            setCellByCol(sheet, 2, "AK", makeEtcVo == null ? null : makeEtcVo.getBomVer());
-            setCellByCol(sheet, 2, "I", vo.getItemName());
-            // =========================
-            // BOM Map
-            // =========================
-            Map<String, BomProcVo> bomProcMap = new HashMap<>();
-
-            for (BomProcVo bomProc : bomProcList) {
-                if (bomProc == null) continue;
-                String gbn = bomProc.getPhase();
-                if (gbn != null && !gbn.isBlank()) {
-                    bomProcMap.put(gbn, bomProc);
+                if (extraRowCount > 0) {
+                    // shiftRows also moves merged ranges below the material table.
+                    sheet.shiftRows(TOTAL_ROW, sheet.getLastRowNum(), extraRowCount, true, false);
+                    for (int i = 0; i < extraRowCount; i++) {
+                        copyRow(workbook, sheet, LAST_DATA_ROW, LAST_DATA_ROW + 1 + i);
+                    }
+                    // Extend vertical merged ranges crossing the material table's old bottom.
+                    // Horizontal/vertical regions that already moved are not modified.
+                    extendCrossingMergedRegions(sheet, LAST_DATA_ROW, extraRowCount);
                 }
-            }
-            // =========================
-            // 행 추가
-            // =========================
-            int defaultRowCount = LAST_DATA_ROW - START_ROW + 1;
-            int extraRowCount = Math.max(0, weighList.size() - defaultRowCount);
 
-            if (extraRowCount > 0) {
-                sheet.shiftRows(
-                        TOTAL_ROW,
-                        sheet.getLastRowNum(),
-                        extraRowCount,
-                        true,
-                        false
-                );
-                for (int i = 0; i < extraRowCount; i++) {
-                    int newRowNum = LAST_DATA_ROW + 1 + i;
-                    copyRow(workbook, sheet, LAST_DATA_ROW, newRowNum);
+                BigDecimal totalMakeQty = BigDecimal.ZERO;
+                for (int i = 0; i < weighList.size(); i++) {
+                    ProcWeighBomVo weigh = weighList.get(i);
+                    if (weigh == null) continue;
+                    int rowNum = START_ROW + i;
+                    setCellByCol(sheet, rowNum, "A", String.format("%03d", i + 1));
+                    setCellByCol(sheet, rowNum, "C", weigh.getItemCd());
+                    setCellByCol(sheet, rowNum, "G", weigh.getItemName());
+                    setCellByCol(sheet, rowNum, "L", weigh.getPhase());
+                    setCellByCol(sheet, rowNum, "N", weigh.getOrderQty());
+                    setCellByCol(sheet, rowNum, "Q", weigh.getMakeQty());
+                    setCellByCol(sheet, rowNum, "R", weigh.getMaker());
+                    if (weigh.getMakeQty() != null) totalMakeQty = totalMakeQty.add(weigh.getMakeQty());
                 }
+                setCellByCol(sheet, TOTAL_ROW + extraRowCount, "N", totalMakeQty);
+
+                // Write wrapped text into the top-left cell of each merged range.
+                // For multi-row merged ranges, heights are increased only when needed.
+                setMergedCellText(sheet, 8, "S", makeEtcVo == null ? null : makeEtcVo.getMatProc());
+                setMergedCellText(sheet, 8, "AC", makeEtcVo == null ? null : makeEtcVo.getManipulate());
+                setMergedCellText(sheet, 8, "AG", makeEtcVo == null ? null : makeEtcVo.getProcessTime());
+                setMergedCellText(sheet, 21, "AJ", makeEtcVo == null ? null : makeEtcVo.getSignificant());
+                setMergedCellText(sheet, 30, "AJ", makeEtcVo == null ? null : makeEtcVo.getNote());
+
+                String prodQty = workOrderInfoVo != null && workOrderInfoVo.getProdQty() != null
+                        ? workOrderInfoVo.getProdQty() + " kg" : "";
+                setCellByCol(sheet, 8, "AL", prodQty);
+                setCellByCol(sheet, 38, "AM", makeEtcVo == null ? null : makeEtcVo.getFilterCnt());
+                setCellByCol(sheet, 39, "AM", makeEtcVo == null ? null : makeEtcVo.getFilterType());
+                setCellByCol(sheet, 40, "AM", makeEtcVo == null ? null : makeEtcVo.getFilterDamage());
+                setCellByCol(sheet, 41, "AM", makeEtcVo == null ? null : makeEtcVo.getSubstanceCheck());
+
+                return ExcelStyleUtil.toByteArray(workbook);
             }
-            // =========================
-            // 원료 리스트
-            // =========================
-            BigDecimal totalMakeQty = BigDecimal.ZERO;
-            for (int i = 0; i < weighList.size(); i++) {
-                ProcWeighBomVo weigh = weighList.get(i);
-                if (weigh == null) continue;
-                int rowNum = START_ROW + i;
-                String gbn = weigh.getPhase();
-                // 번호
-                setCellByCol(sheet, rowNum, "A",String.format("%03d", i + 1));
-                // 원료코드
-                setCellByCol(sheet, rowNum, "C",weigh.getItemCd());
-                // 원료명칭
-                setCellByCol(sheet, rowNum, "G",weigh.getItemName());
-                // 구분
-                setCellByCol(sheet, rowNum, "L",gbn);
-                // 투입량
-                setCellByCol(sheet, rowNum, "N",weigh.getOrderQty());
-                // 실투입량
-                setCellByCol(sheet, rowNum, "Q",weigh.getMakeQty());
-                // 작업자확인
-                setCellByCol(sheet, rowNum, "R",weigh.getMaker());
-
-                if (weigh.getMakeQty() != null) {
-                    totalMakeQty = totalMakeQty.add(weigh.getMakeQty());
-                }
-                BomProcVo bomProc = bomProcMap.get(gbn);
-            }
-
-            setCellByCol(sheet, TOTAL_ROW, "N", totalMakeQty);
-
-            // 제조공정
-            setCellByCol(sheet, 8, "S",makeEtcVo == null ? null : makeEtcVo.getMatProc());
-            // 조작조건
-            setCellByCol(sheet, 8, "AC",makeEtcVo == null ? null : makeEtcVo.getManipulate());
-            // 공정시간
-            setCellByCol(sheet, 8, "AG",makeEtcVo == null ? null : makeEtcVo.getProcessTime());
-
-            String prodQty = "";
-
-            if (workOrderInfoVo != null &&
-                    workOrderInfoVo.getProdQty() != null) {
-                prodQty = workOrderInfoVo.getProdQty() + " kg";
-            }
-            // 제조량
-            setCellByCol(sheet, 8, "AL", prodQty);
-            setCellByCol(sheet, 21, "AJ",makeEtcVo == null ? null : makeEtcVo.getSignificant());
-            setCellByCol(sheet, 30, "AJ",makeEtcVo == null ? null : makeEtcVo.getNote());
-            // 여과포 수량
-            setCellByCol(sheet, 38, "AM",makeEtcVo == null ? null : makeEtcVo.getFilterCnt());
-            // 여과포 종류
-            setCellByCol(sheet, 39, "AM",makeEtcVo == null ? null : makeEtcVo.getFilterType());
-            // 여과포 손상
-            setCellByCol(sheet, 40, "AM",makeEtcVo == null ? null : makeEtcVo.getFilterDamage());
-            // 이물질 확인
-            setCellByCol(sheet, 41, "AM",makeEtcVo == null ? null : makeEtcVo.getSubstanceCheck());
-
-            return ExcelStyleUtil.toByteArray(workbook);
-
         } catch (Exception e) {
-
+            // Replace with your project's logger if available.
             e.printStackTrace();
-
             throw new BusinessException("엑셀파일 생성중 에러발생!");
         }
     }
 
-    /**
-     * 컬럼 문자 기반 셀 입력
-     */
-    private void setCellByCol(
-            Sheet sheet,
-            int rowNum,
-            String col,
-            Object value
-    ) {
-        int colIndex = CellReference.convertColStringToIndex(col);
-        setCell(sheet, rowNum, colIndex, value);
+    private void setCellByCol(Sheet sheet, int rowNum, String col, Object value) {
+        setCell(sheet, rowNum, CellReference.convertColStringToIndex(col), value);
     }
 
     private void setCell(Sheet sheet, int rowNum, int colNum, Object value) {
         Row row = sheet.getRow(rowNum);
         if (row == null) row = sheet.createRow(rowNum);
-
         Cell cell = row.getCell(colNum);
         if (cell == null) cell = row.createCell(colNum);
-
-        if (value == null) {
-            cell.setBlank();
-        } else if (value instanceof Number number) {
-            cell.setCellValue(number.doubleValue());
-        } else {
-            cell.setCellValue(String.valueOf(value));
-        }
+        if (value == null) cell.setBlank();
+        else if (value instanceof Number) cell.setCellValue(((Number) value).doubleValue());
+        else cell.setCellValue(String.valueOf(value));
     }
 
     private void copyRow(Workbook workbook, Sheet sheet, int sourceRowNum, int targetRowNum) {
         Row sourceRow = sheet.getRow(sourceRowNum);
-        Row targetRow = sheet.getRow(targetRowNum);
-
         if (sourceRow == null) return;
+        Row targetRow = sheet.getRow(targetRowNum);
         if (targetRow == null) targetRow = sheet.createRow(targetRowNum);
-
         targetRow.setHeight(sourceRow.getHeight());
-
-        for (int i = sourceRow.getFirstCellNum(); i < sourceRow.getLastCellNum(); i++) {
+        for (int i = Math.max(0, sourceRow.getFirstCellNum()); i < sourceRow.getLastCellNum(); i++) {
             Cell sourceCell = sourceRow.getCell(i);
             if (sourceCell == null) continue;
-
             Cell targetCell = targetRow.getCell(i);
             if (targetCell == null) targetCell = targetRow.createCell(i);
-
-            CellStyle style = workbook.createCellStyle();
-            style.cloneStyleFrom(sourceCell.getCellStyle());
-            targetCell.setCellStyle(style);
+            // Reuse immutable template styles instead of creating one style per cell.
+            targetCell.setCellStyle(sourceCell.getCellStyle());
         }
     }
+
+    private void extendCrossingMergedRegions(Sheet sheet, int oldLastDataRow, int extraRows) {
+        if (extraRows <= 0) return;
+        List<CellRangeAddress> ranges = new ArrayList<>(sheet.getMergedRegions());
+        for (CellRangeAddress region : ranges) {
+            if (region.getFirstRow() <= oldLastDataRow && region.getLastRow() >= oldLastDataRow
+                    && region.getFirstRow() < region.getLastRow()) {
+                int index = findExactMergedRegionIndex(sheet, region);
+                if (index < 0) continue;
+                sheet.removeMergedRegion(index);
+                sheet.addMergedRegion(new CellRangeAddress(region.getFirstRow(), region.getLastRow() + extraRows,
+                        region.getFirstColumn(), region.getLastColumn()));
+            }
+        }
+    }
+
+    private int findExactMergedRegionIndex(Sheet sheet, CellRangeAddress target) {
+        for (int i = 0; i < sheet.getNumMergedRegions(); i++) {
+            CellRangeAddress region = sheet.getMergedRegion(i);
+            if (region.getFirstRow() == target.getFirstRow() && region.getLastRow() == target.getLastRow()
+                    && region.getFirstColumn() == target.getFirstColumn() && region.getLastColumn() == target.getLastColumn()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void setMergedCellText(Sheet sheet, int rowNum, String col, Object value) {
+        int colIndex = CellReference.convertColStringToIndex(col);
+        CellRangeAddress merged = null;
+        for (CellRangeAddress region : sheet.getMergedRegions()) {
+            if (region.isInRange(rowNum, colIndex)) {
+                merged = region;
+                break;
+            }
+        }
+        int anchorRow = merged == null ? rowNum : merged.getFirstRow();
+        int anchorCol = merged == null ? colIndex : merged.getFirstColumn();
+        Row row = sheet.getRow(anchorRow);
+        if (row == null) row = sheet.createRow(anchorRow);
+        Cell cell = row.getCell(anchorCol);
+        if (cell == null) cell = row.createCell(anchorCol);
+
+        String text = value == null ? "" : String.valueOf(value).replace("\r\n", "\n").replace('\r', '\n');
+        cell.setCellValue(text);
+        CellStyle style = sheet.getWorkbook().createCellStyle();
+        style.cloneStyleFrom(cell.getCellStyle());
+        style.setWrapText(true);
+        style.setVerticalAlignment(VerticalAlignment.TOP);
+        cell.setCellStyle(style);
+
+        if (text.isEmpty()) return;
+        int firstCol = merged == null ? anchorCol : merged.getFirstColumn();
+        int lastCol = merged == null ? anchorCol : merged.getLastColumn();
+        double widthChars = 0;
+        for (int c = firstCol; c <= lastCol; c++) {
+            if (!sheet.isColumnHidden(c)) widthChars += sheet.getColumnWidth(c) / 256.0;
+        }
+        widthChars = Math.max(3, widthChars - 3);
+        int lines = estimateVisualLines(text, widthChars);
+
+        Font font = sheet.getWorkbook().getFontAt(style.getFontIndex());
+        double linePoints = Math.max(11, font.getFontHeightInPoints() * 1.35);
+        double requiredPoints = lines * linePoints + 5;
+        int firstRow = merged == null ? anchorRow : merged.getFirstRow();
+        int lastRow = merged == null ? anchorRow : merged.getLastRow();
+        double currentPoints = 0;
+        for (int r = firstRow; r <= lastRow; r++) {
+            Row current = sheet.getRow(r);
+            currentPoints += current == null ? sheet.getDefaultRowHeightInPoints() : current.getHeightInPoints();
+        }
+        if (requiredPoints > currentPoints) {
+            // Distribute additional height across merged rows (Excel max 409.5pt per row).
+            double remaining = requiredPoints - currentPoints;
+            for (int r = lastRow; r >= firstRow && remaining > 0.01; r--) {
+                Row target = sheet.getRow(r);
+                if (target == null) target = sheet.createRow(r);
+                double available = Math.max(0, 409.5 - target.getHeightInPoints());
+                double add = Math.min(available, remaining);
+                target.setHeightInPoints((float) (target.getHeightInPoints() + add));
+                remaining -= add;
+            }
+        }
+    }
+
+
+    private int estimateVisualLines(String text, double widthChars) {
+
+        if (text == null || text.isEmpty()) {
+            return 1;
+        }
+
+        if (widthChars <= 0) {
+            return 1;
+        }
+
+        int lines = 0;
+
+        String normalized = text
+                .replace("\r\n", "\n")
+                .replace("\r", "\n");
+
+        for (String paragraph : normalized.split("\n", -1)) {
+
+            double units = 0;
+            int paragraphLines = 1;
+
+            for (int offset = 0; offset < paragraph.length();) {
+
+                int cp = paragraph.codePointAt(offset);
+                offset += Character.charCount(cp);
+
+                Character.UnicodeScript script =
+                        Character.UnicodeScript.of(cp);
+
+                double charUnits =
+                        (script == Character.UnicodeScript.HANGUL
+                                || script == Character.UnicodeScript.HAN
+                                || script == Character.UnicodeScript.HIRAGANA
+                                || script == Character.UnicodeScript.KATAKANA)
+                                ? 1.8 : 1.0;
+
+                if (units > 0 && units + charUnits > widthChars) {
+                    paragraphLines++;
+                    units = 0;
+                }
+
+                units += charUnits;
+            }
+
+            lines += paragraphLines;
+        }
+
+        return Math.max(1, lines);
+    }
+
+
 
 
     public List<WorkOrderInfoVo> getMatProcCondList(ProcSearchVo vo){

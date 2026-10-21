@@ -25,6 +25,7 @@
               ,a.make_time
               ,a.make_yn
               ,a.maker
+              ,a.weigh_qty
               ,a.make_confirmer
               ,a.weigh_id
               ,a.work_proc_id
@@ -50,6 +51,7 @@
     <update id="updateMakeProcComplete">
         update TB_WORK_ORDER_PROC
         set    proc_status      = #{procStatus}
+              ,prod_qty         = #{prodQty}
               ,in_tran_id       = #{inTranId}
               ,work_end_time    = getDate()
               ,upd_id           = #{userId}
@@ -213,7 +215,7 @@
             and  a.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            and  d.item_name LIKE '%' + #{itemName} + '%'
+            and  d.item_name LIKE CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
         </if>
         <if test="clientName != null and clientName != ''">
             and  t.client_name LIKE '%' + #{clientName} + '%'
@@ -257,4 +259,19 @@
         where  a.work_proc_id =  #{workProcId}
     </select>
 
+    <select id="getWeighOutTranId">
+        select out_tran_id
+        from  TB_WORK_ORDER_PROC a
+        where  a.work_batch_id = #{workBatchId}
+          and  a.proc_cd = 'PRC001'
+    </select>
+
+    <update id="updateWeighTranEndYn">
+        update tb_inv_tran_mst
+        set    tran_status = 'C'
+              ,upd_id      = #{userId}
+              ,upd_dt      = getdate()
+        where  tran_id     = #{tranId}
+
+    </update>
 </mapper>

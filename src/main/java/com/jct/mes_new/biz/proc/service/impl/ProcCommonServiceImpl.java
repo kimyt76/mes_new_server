@@ -7,6 +7,9 @@ import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.qc.mapper.ProcTestTypeMapper;
+import com.jct.mes_new.biz.qc.vo.ProcTestTypeVo;
+import com.jct.mes_new.biz.qc.vo.QcProcTestVo;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.UserUtil;
@@ -37,6 +40,8 @@ public class ProcCommonServiceImpl implements ProcCommonService {
     private final ProcCommonMapper procCommonMapper;
     private final ItemMapper itemMapper;
     private final WorkOrderMapper workOrderMapper;
+    private final ProcTestTypeMapper procTestTypeMapper;
+
 
 
     /**
@@ -57,6 +62,29 @@ public class ProcCommonServiceImpl implements ProcCommonService {
 
     public List<ProcCommonVo> getEquipmentList(String storageCd){
         return procCommonMapper.getEquipmentList(storageCd);
+    }
+
+    public ProcTestRequestVo getProcTestMethodList(ProcTestVo vo){
+        ProcTestRequestVo procTest = new ProcTestRequestVo();
+        Long procTestId = vo.getProcTestId();
+        String procCd = vo.getProcCd();
+
+
+        procTest.setWorkOrderInfo( workOrderMapper.getWorkOrderProcInfo(procCd, vo.getWorkProcId()));
+        procTest.setProcTest(procCommonMapper.getWorkOrderProc(procTestId));
+        procTest.setEquipList(procCommonMapper.getProcTestEquip(procTestId));
+        procTest.setProcTest(procCommonMapper.getProcTestMst(procTestId));
+        procTest.setWorkerList(procCommonMapper.getProcTestWorker(procTestId));
+
+        int cnt = procCommonMapper.getProcTestMethodCnt(procTestId);
+
+        if ( cnt > 0 ) {
+            procTest.setMethodList(procCommonMapper.getProcTestMethod(procTestId));
+        }else{
+            procTest.setMethodList(procCommonMapper.getProcTestTypeMethod(procCd));
+        }
+
+        return procTest;
     }
 
     /**
@@ -99,28 +127,33 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         mst.setUserId(userId);
 
         //투입자재 정보 등록
-        Long prodInfoId = procCommonMapper.insertProdInfo(mst);
-
-        if ( prodInfoId == null || prodInfoId <= 0 ){
-            throw new BusinessException(ErrorCode.FAIL_CREATED);
+        if ( mst.getProdInfoId() == null  ){
+            if( procCommonMapper.insertProdInfo(mst) <= 0  ){
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }else{
+            if( procCommonMapper.updateProdInfo(mst) <= 0  ){
+                throw new BusinessException(ErrorCode.FAIL_UPDATED);
+            }
         }
+
         //투입량 저장
         for (ProcUseInfoVo prodUseInfo : prodUseList){
             prodUseInfo.setProdInfoId(mst.getProdInfoId());
             prodUseInfo.setUserId(userId);
 
-            if ( procCommonMapper.insertProdUseInfo(prodUseInfo) <= 0 ){
-                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            if ( prodUseInfo.getProdUseId() == null  ){
+                if ( procCommonMapper.insertProdUseInfo(prodUseInfo) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
+            }else{
+                if ( procCommonMapper.updateProdUseInfo(prodUseInfo) <= 0 ){
+                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                }
             }
         }
 
-
-        //work_order_proc 작업지시에 투입량 정보 업데이트
-//        if ( procCommonMapper.updateProdByWorkOrderProc(mst) <= 0  ){
-//            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-//        }
-
-        return prodInfoId;
+        return mst.getProdInfoId();
     }
 
     public WorkRecordVo getWorkRecordInfo(Long workRecordId){
@@ -190,13 +223,25 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         ProcProdInfoVo info = new ProcProdInfoVo();
 
         info.setItemInfo(itemMapper.getItemInfo(vo.getItemCd()));
-        info.setProdList(procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId()));
+
+        int cnt = procCommonMapper.getProdInfoCnt(vo.getWorkProcId());
+
+        if ( cnt > 0 ) {
+            info.setProdList(procCommonMapper.getProdListNoBom(vo.getWorkProcId()));
+        }else{
+            info.setProdList(procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId()));
+        }
         info.setWorkOrderProcInfo(workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId()) );
         info.setWorkRecordList(procCommonMapper.getWorkRecordList(vo.getWorkProcId()) );
 
         return info;
     }
 
+    public String deleteWorkRecode(Long workRecordId){
+        procCommonMapper.deleteWorkRecode(workRecordId);
+
+        return "저장했습니다.";
+    }
     /**
      * 공정별 자재이동요청
      * @param ids
@@ -207,6 +252,15 @@ public class ProcCommonServiceImpl implements ProcCommonService {
             return Collections.emptyList();
         }
         return procCommonMapper.getProcItemList(ids);
+    }
+
+    public int getProcStartCnt(WorkOrderInfoVo vo){
+        String procCd = vo.getProcCd();
+        Long workProcId = vo.getWorkProcId();
+
+        int cntRes = procCommonMapper.getProcStartCnt(procCd, workProcId);
+
+        return cntRes;
     }
 
 
@@ -229,7 +283,7 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         Boolean isCoating = "PRC003".equals(vo.getProcCd());
 
         try {
-            InputStream excelStream = getClass().getResourceAsStream(getTemplatePathByProcessCd(vo.getProcCd()));
+            InputStream excelStream = getClass().getResourceAsStream(getTemplatePathByProcCd(vo.getProcCd()));
             Workbook workbook = ExcelStyleUtil.createWorkbook(excelStream);
             Sheet sheet = workbook.getSheet("Sheet1");
 
@@ -251,7 +305,7 @@ public class ProcCommonServiceImpl implements ProcCommonService {
             //제조번호 : F7
             ExcelStyleUtil.getCellRef(sheet, "F7").setCellValue(workInfo.getMakeNo());
             //제조량 : S7
-            double producedQty = (workInfo.getProdQty() != null )? workInfo.getProdQty().doubleValue() : 0;
+            double producedQty = (workInfo.getMakeQty() != null )? workInfo.getMakeQty().doubleValue() : 0;
             ExcelStyleUtil.getCellRef(sheet, "S7").setCellValue(producedQty);
             // 작업처 : F8
             ExcelStyleUtil.getCellRef(sheet, "F8").setCellValue(workInfo.getStorageName());
@@ -384,10 +438,10 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         }
     }
 
-    public String getTemplatePathByProcessCd (String processCd) {
+    public String getTemplatePathByProcCd (String procCd) {
         String templatePath = "";
         //각 공정에 해당하는 양식 설정
-        switch (processCd) {
+        switch (procCd) {
             case "PRC003":
                 templatePath = "/excel/coating_template.xlsx"; break;
             case "PRC004":

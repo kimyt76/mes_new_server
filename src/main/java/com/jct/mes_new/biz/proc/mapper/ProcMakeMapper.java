@@ -42,4 +42,8 @@ public interface ProcMakeMapper {
     ProcMakeVo getMakeInfo(Long weighId);
 
     void updateMakeYn(Long weighId);
+
+    int updateWeighTranEndYn(@Param("tranId") Long tranId, String userId);
+
+    Long getWeighOutTranId(Long workBatchId);
 }

@@ -26,4 +26,6 @@ public interface ProcWeighService {
     List<TranLedgerVo> getItemCloseList(TranLedgerVo vo);
 
     byte[] downloadWeighProc(ProcWeighVo vo);
+
+    String updateBagWeigh(ProcWeighVo vo);
 }

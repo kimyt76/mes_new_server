@@ -32,8 +32,17 @@ public class ProcCommonController {
 
     @PostMapping("/getProcList")
     public List<WorkOrderInfoVo> getProcList(@RequestBody ProcSearchVo vo) {
-        log.info("=====================vo============== : " + vo);
         return  procCommonService.getProcList(vo);
+    }
+
+    /**
+     * 공정별 공정검사 공정검사
+     * @param vo
+     * @return
+     */
+    @PostMapping("/getProcTestMethodList")
+    public ProcTestRequestVo getProcTestMethodList(@RequestBody ProcTestVo vo) {
+        return  procCommonService.getProcTestMethodList(vo);
     }
 
     /**
@@ -105,6 +114,20 @@ public class ProcCommonController {
     @PostMapping("/saveWorkRecordInfo")
     public ResponseEntity<ApiResponse<Void>> saveWorkRecordInfo(@RequestBody List<WorkRecordVo> recordList) {
         String result = procCommonService.saveWorkRecordInfo(recordList);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+    @PostMapping("/getProcStartCnt")
+    public int getProcStartCnt (@RequestBody WorkOrderInfoVo vo) {
+        return  procCommonService.getProcStartCnt(vo);
+    }
+
+
+
+
+    @GetMapping("/deleteWorkRecode/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteWorkRecode(@PathVariable("id") Long workRecordId   ) {
+        String result = procCommonService.deleteWorkRecode(workRecordId);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 

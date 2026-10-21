@@ -97,6 +97,15 @@ public class ProcPackingServiceImpl implements ProcPackingService {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
+        List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
+        if ( !prodList.isEmpty() ){
+            for ( ProcUseInfoVo item : prodList ){
+                item.setUserId(userId);
+                item.setWorkProcId(vo.getWorkProcId());
+                procCommonMapper.insertProdInfo(item);
+            }
+        }
+
         return  "저장되었습니다.";
     }
 

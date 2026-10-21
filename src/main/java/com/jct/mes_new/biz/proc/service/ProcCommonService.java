@@ -40,5 +40,9 @@ public interface ProcCommonService {
 
     List<ProcItemVo> getProcItemList(List<Long> ids);
 
+    ProcTestRequestVo getProcTestMethodList(ProcTestVo vo);
 
+    String deleteWorkRecode(Long workRecordId);
+
+    int getProcStartCnt(WorkOrderInfoVo workProcId);
 }

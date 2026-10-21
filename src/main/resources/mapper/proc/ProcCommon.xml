@@ -49,7 +49,7 @@
             and  a.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            and  d.item_name LIKE '%' + #{itemName} + '%'
+            and  d.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="procStatus != null and procStatus != ''">
             and  a.proc_status = #{procStatus}
@@ -179,7 +179,7 @@
         and     c.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-        and c.item_name LIKE '%' + #{itemName} + '%'
+        and c.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         order by a.tran_date desc
     </select>
@@ -247,10 +247,10 @@
     </update>
 
     <select id="getProdList">
-        select b.test_nos
+        SELECT b.test_nos
              ,a.mat_name
              ,a.spec_info
-             ,a.ex_Appearance
+             ,a.ex_appearance
              ,a.packing_spec_value
              ,a.packing_spec_unit
              ,a.unit
@@ -265,39 +265,45 @@
              ,a.work_batch_id
              ,a.work_order_id
              ,a.work_proc_id
-        from (
-                 select a.work_batch_id
+        FROM (
+                 SELECT a.work_batch_id
                       ,a.work_proc_id
                       ,a.work_order_id
                       ,c.item_cd
                       ,e.mat_name
                       ,e.spec_info
-                      ,e.ex_Appearance
+                      ,e.ex_appearance
                       ,e.packing_spec_value
                       ,e.packing_spec_unit
                       ,d.unit
-                      ,dbo.getItemName(c.item_cd) as item_name
-                 from TB_WORK_ORDER_PROC a
-                          inner join tb_bom_mst b
-                                     on a.item_cd = b.item_cd
-                                         and b.default_yn = 'Y'
-                          inner join tb_bom_recipe c
-                                     on c.bom_id = b.bom_id
-                          inner join tb_item_mst d
-                                     on c.item_cd = d.item_cd
-                          inner join tb_item_detail e
-                                     on e.item_cd = d.item_cd
-                 where a.work_proc_id =  #{workProcId}
+                      ,dbo.getItemName(c.item_cd) AS item_name
+                 FROM TB_WORK_ORDER_PROC a
+                          INNER JOIN tb_bom_mst b
+                                     ON a.item_cd = b.item_cd
+                                         AND b.default_yn = 'Y'
+
+                          INNER JOIN tb_bom_recipe c
+                                     ON c.bom_id = b.bom_id
+
+                          INNER JOIN tb_item_mst d
+                                     ON c.item_cd = d.item_cd
+
+                          INNER JOIN tb_item_detail e
+                                     ON e.item_cd = d.item_cd
+
+                 WHERE a.work_proc_id =  #{workProcId}
              ) a
-                 left outer join (
-            select a.*
+                 LEFT OUTER JOIN (
+            SELECT a.*
                  ,b.prod_use_id
-            from tb_prod_info a
-                     left outer join tb_prod_use b
-                                     on b.prod_info_id = a.prod_info_id
+            FROM tb_prod_info a
+                     LEFT OUTER JOIN tb_prod_use b
+                                     ON b.prod_info_id = a.prod_info_id
         ) b
-                                 on a.work_proc_id = b.work_proc_id
-                                     and a.item_cd = b.item_cd
+                                 ON a.work_proc_id = b.work_proc_id
+                                     AND a.item_cd = b.item_cd
+        ORDER BY a.item_cd
+
     </select>
 
     <insert id="insertProdInfo" parameterType="com.jct.mes_new.biz.proc.vo.ProcUseInfoVo" useGeneratedKeys="true" keyProperty="prodInfoId">
@@ -560,7 +566,75 @@
         WHERE proc_test_id = #{procTestId}
     </update>
 
+    <update id="updateProdInfo">
+        UPDATE tb_prod_info
+        SET     test_nos   = #{testNos}
+              , unitQty  = #{unitQty}
+              , req_qty  = #{reqQty}
+              , use_qty  = #{useQty}
+              , bad_Qty  = #{badQty}
+              , work_Bad_Qty  = #{workBadQty}
+              ,upd_id              = #{userId}
+              ,upd_dt              = GETDATE()
+        WHERE  prod_info_id = #{prodInfoId}
+    </update>
 
+    <update id="updateProdUseInfo">
+        UPDATE tb_prod_use
+        SET    test_no   = #{testNo}
+              , item_cd  = #{itemCd}
+              , lot_no   = #{lotNo}
+              , req_qty  = #{reqQty}
+              , use_qty  = #{useQty}
+              , bad_qty  = #{badQty}
+              , work_Bad_Qty   = #{workBadQty}
+              ,upd_id         = #{userId}
+              ,upd_dt    = GETDATE()
+        WHERE prod_use_id = #{prodUseId}
+    </update>
 
+    <delete id="deleteWorkRecode">
+        delete from tb_work_record where work_record_id = #{workRecordId}
+    </delete>
+
+    <select id="getProdInfoCnt">
+        select count(*) as cnt from tb_prod_info where work_proc_id = #{workProcId}
+    </select>
+
+    <select id="getProdListNoBom">
+        select a.test_nos
+             ,a.spec_info
+             ,a.ex_appearance
+             ,a.packing_spec_unit
+             ,a.packing_spec_value
+             ,a.unitQty
+             ,a.item_cd
+             ,b.lot_no
+             ,b.storage_cd
+             ,b.bad_qty
+             ,b.work_Bad_Qty
+             ,b.tot_use_qty
+             ,a.prod_info_id
+             ,b.prod_use_id
+             ,b.use_qty
+             ,e.mat_name
+             ,i.item_name
+             ,i.unit
+        from  tb_prod_info a
+              left join tb_prod_use b
+                        on b.prod_info_id = a.prod_info_id
+              left join tb_item_mst i
+                        on i.item_cd = a.item_cd
+              left join tb_item_detail e
+                        on i.item_cd = e.item_cd
+        where a.work_proc_id =  #{workProcId}
+    </select>
+
+    <select id="getProcStartCnt">
+        select COUNT(*)
+        from   TB_WORK_ORDER_PROC a
+        where  work_proc_id = #{workProcId}
+        and    proc_status != '00'
+    </select>
 
 </mapper>

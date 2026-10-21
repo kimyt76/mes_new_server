@@ -105,4 +105,22 @@ public interface ProcCommonMapper {
     List<ProcItemVo> getProcItemList(@Param("ids") List<Long> ids);
 
 
+    ProcTestVo getWorkOrderProc(Long procTestId);
+    List<ProcTestEquipVo> getProcTestEquip(Long procTestId);
+    List<ProcTestWorkerVo> getProcTestWorker(Long procTestId);
+    ProcTestVo getProcTestMst(Long procTestId);
+    int getProcTestMethodCnt(Long procTestId);
+    List<ProcTestMethodVo> getProcTestMethod(Long procTestId);
+    List<ProcTestMethodVo> getProcTestTypeMethod(String procCd);
+
+    int updateProdInfo(ProcUseInfoVo mst);
+    int updateProdUseInfo(ProcUseInfoVo prodUseInfo);
+
+    void deleteWorkRecode(Long workRecordId);
+
+    int getProdInfoCnt(Long workProcId);
+
+    List<ProcUseInfoVo> getProdListNoBom(Long workProcId);
+
+    int getProcStartCnt(@Param("procCd") String procCd, @Param("workProcId") Long workProcId);
 }

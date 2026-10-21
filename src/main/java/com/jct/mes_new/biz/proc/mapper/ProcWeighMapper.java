@@ -43,4 +43,6 @@ public interface ProcWeighMapper {
     List<TranLedgerVo> getWeighCloseList(TranLedgerVo vo);
 
     List<TranLedgerVo> getItemCloseList(TranLedgerVo vo);
+
+    void updateBagWeigh(ProcWeighVo vo);
 }

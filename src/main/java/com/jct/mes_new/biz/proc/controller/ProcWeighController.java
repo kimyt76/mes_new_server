@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -94,6 +95,14 @@ public class ProcWeighController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created"), result));
     }
 
+    @PostMapping("/updateBagWeigh")
+    public ResponseEntity<ApiResponse<?>> updateBagWeigh(@RequestBody ProcWeighVo vo){
+        String ressult = procWeighService.updateBagWeigh(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
+
+
     /**
      * 칭량 리스트 저장
      * @param vo
@@ -156,25 +165,35 @@ public class ProcWeighController {
         String itemName = "";
         for (ProcWeighBomVo labelItem : labelItems ) {
             WeighLabelPrint item = new WeighLabelPrint();
-            item.setMatUseId( String.valueOf(labelItem.getWeighId()));
+
+            item.setWeighId( String.valueOf(labelItem.getWeighId()));
             item.setProdItemCd(prodItemCd);
             item.setProdItemName(prodItemName);
-
             item.setItemName(labelItem.getItemName());
             item.setItemAlias(labelItem.getPhase() + "-" + labelItem.getOrderDist());
-            item.setProdQty( prodQty);
-            item.setBagWeight(df.format(labelItem.getBagWeight() == null ? 0 : labelItem.getBagWeight()) + unit);
-            item.setWeighQty(df2.format(labelItem.getWeighQty() == null ? 0 : labelItem.getWeighQty()) + unit);
-            item.setTotalQty(df.format(labelItem.getTotQty() == null ? 0 : labelItem.getTotQty()) + unit);
+            item.setProdQty(prodQty);
+
+            BigDecimal bagWeight = labelItem.getBagWeight() == null
+                    ? BigDecimal.ZERO : labelItem.getBagWeight();
+
+            BigDecimal weighQty = labelItem.getWeighQty() == null
+                    ? BigDecimal.ZERO : labelItem.getWeighQty();
+
+            // 합계 계산
+            BigDecimal totalQty = bagWeight.add(weighQty);
+
+            item.setBagWeight(df.format(bagWeight) + unit);
+            item.setWeighQty(df2.format(weighQty) + unit);
+            item.setTotalQty(df.format(totalQty) + unit);
+
             // QR 생성
             try {
-                item.setBarcodeImage(BarcodeUtil.generateQRCodeImage(item.getMatUseId()));
+                item.setBarcodeImage(BarcodeUtil.generateQRCodeImage(item.getWeighId()));
             } catch (Exception e) {
                 item.setBarcodeImage(null);
             }
             item.setLotNo(lotNo);
             item.setProdNo(prodNo);
-
             labelPrintList.add(item);
         }
 

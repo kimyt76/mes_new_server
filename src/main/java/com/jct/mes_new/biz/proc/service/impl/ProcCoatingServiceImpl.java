@@ -102,6 +102,18 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
+        //여기에 prod_info 에 등록 로직 추가
+        List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
+        if ( prodList.isEmpty() ){
+            for ( ProcUseInfoVo item : prodList ){
+                if ( "".equals(item.getMatName()) || item.getMatName() == null ){
+                    item.setUserId(userId);
+                    item.setWorkProcId(vo.getWorkProcId());
+                    procCommonMapper.insertProdInfo(item);
+                }
+            }
+        }
+
         return "코팅작업을 시작할수 있습니다.";
     }
 
@@ -211,6 +223,15 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
 
             if ( tranMapper.insertTranItem(tranItemVo2) <= 0 ){
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }
+
+        List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
+        if ( !prodList.isEmpty() ){
+            for ( ProcUseInfoVo item : prodList ){
+                item.setUserId(userId);
+                item.setWorkProcId(vo.getWorkProcId());
+                procCommonMapper.insertProdInfo(item);
             }
         }
 

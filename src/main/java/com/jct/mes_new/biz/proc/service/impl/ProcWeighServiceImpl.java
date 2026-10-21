@@ -91,8 +91,6 @@ public class ProcWeighServiceImpl implements ProcWeighService {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
-
-
         List<ProcWeighBomVo>  recipeList = procWeighMapper.getBomWeighList(vo.getWorkProcId(), vo.getItemCd());
 
         for ( ProcWeighBomVo item : recipeList ){
@@ -211,6 +209,11 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         return mst.getWorkProcId();
     }
 
+    public String updateBagWeigh(ProcWeighVo vo){
+        procWeighMapper.updateBagWeigh(vo);
+        return "저장되었습니다.";
+    }
+
     /**
      * 칭량 완료
      * @param vo
@@ -239,7 +242,7 @@ public class ProcWeighServiceImpl implements ProcWeighService {
         invMst.setSrcStorageCd(mst.getStorageCd() );
         invMst.setTarStorageCd(storageCd);
         invMst.setManagerId(mst.getManagerId());
-        invMst.setEndYn("Y");
+        invMst.setEndYn("N");
         invMst.setTranStatus("E");
         invMst.setPoNo(mst.getPoNo());
         invMst.setUserId(userId);

@@ -31,6 +31,7 @@ public class ProcWeighVo {
     private BigDecimal orderQty;
     private BigDecimal weighQty;
     private BigDecimal prodYield;
+    private BigDecimal bagWeight;
     private String batchStatus;
     private String batchStatusName;
     private String procStatus;
