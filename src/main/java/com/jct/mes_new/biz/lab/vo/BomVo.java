@@ -10,6 +10,7 @@ import java.math.BigInteger;
 @Data
 public class BomVo {
 
+    private BigInteger rowNum;
     private String bomId;
     private String itemCd;
     private String itemName;
@@ -32,7 +33,6 @@ public class BomVo {
     private String etc;
     private String useYn;
     private String itemCnt;
-
 
     private String asBomId;
     private String itemTypeCd;

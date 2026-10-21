@@ -10,49 +10,53 @@
     </select>
 
     <select id="getBomList">
-        select  a.item_cd
-                ,b.item_name
-                ,c.member_nm as managerName
-                ,a.bom_ver
-                ,(select count(item_cd) from tb_bom_recipe where bom_id = a.bom_id) as itemCnt
-                ,dbo.getCommonName('approval_state', a.approval_state) as approval_state
-                ,a.etc
-                ,a.bom_id
-                ,a.default_yn
-                ,b.unit
-                ,b.item_type_cd
-        from   tb_bom_mst a
-            inner join tb_item_mst b
-            on a.item_cd = b.item_cd
-            left outer join tb_users c
-            on c.user_id = a.manager_id
-        where  1=1
-        <if test="defaultYn != null and defaultYn != ''">
-        and  a.default_yn = #{defaultYn}
-        </if>
+        SELECT
+        ROW_NUMBER() OVER ( ORDER BY CASE WHEN b.bom_id IS NOT NULL THEN 0 ELSE 1 END, a.item_cd, b.bom_ver DESC, b.bom_id DESC ) AS rowNum
+        ,a.item_cd
+        ,a.item_name
+        ,c.member_nm AS managerName
+        ,b.bom_ver
+        ,(
+        SELECT COUNT(*)
+        FROM tb_bom_recipe r
+        WHERE r.bom_id = b.bom_id
+        ) AS itemCnt
+        ,dbo.getCommonName('approval_state', b.approval_state) AS approval_state
+        ,b.etc
+        ,b.bom_id
+        ,b.default_yn
+        ,a.unit
+        ,a.item_type_cd
+        FROM tb_item_mst a
+        LEFT JOIN tb_bom_mst b
+        ON a.item_cd = b.item_cd
+        LEFT JOIN tb_users c
+        ON c.user_id = b.manager_id
+        WHERE 1 = 1
+
         <if test="itemName != null and itemName != ''">
-            and  b.item_name like '%' + #{itemName} + '%'
+            AND a.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
+
         <if test="itemCd != null and itemCd != ''">
-            and  a.item_cd like '%' + #{itemCd} + '%'
+            AND a.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
+
         <if test="managerName != null and managerName != ''">
-            AND  c.member_nm LIKE '%' + #{managerName} + '%'
+            AND c.member_nm LIKE '%' + #{managerName} + '%'
         </if>
         <choose>
             <when test="itemTypeCd == 'M3'">
-                AND b.item_type_cd = 'M3'
+                AND a.item_type_cd = 'M3'
             </when>
             <when test="itemTypeCd == 'M2'">
-                AND b.item_type_cd IN ('M5', 'M6', 'M0')
+                AND a.item_type_cd IN ('M5', 'M6', 'M0')
             </when>
             <when test="itemTypeCd != null and itemTypeCd != ''">
-                AND b.item_type_cd = #{itemTypeCd}
+                AND a.item_type_cd = #{itemTypeCd}
             </when>
         </choose>
-
-
-        order by a.item_cd , a.bom_ver desc
+        ORDER BY CASE WHEN b.bom_id IS NOT NULL THEN 0 ELSE 1 END ,a.item_cd ASC ,b.bom_ver DESC ,b.bom_id DESC
     </select>
 
     <select id="getBomInfo">
@@ -277,7 +281,7 @@
         where  1=1
         and  a.default_yn = 'Y'
         <if test="itemName != null and itemName != ''">
-            and  b.item_name like '%' + #{itemName} + '%'
+            and  b.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="itemCd != null and itemCd != ''">
             and  a.item_cd like '%' + #{itemCd} + '%'
@@ -320,8 +324,11 @@
         where   a.default_yn ='Y'
           and    a.item_cd = #{itemCd}
         order by b.order_dist
-
     </select>
+
+    <delete id="deleteAllBomRecipe">
+        delete from tb_bom_recipe where bom_id = #{bomId}
+    </delete>
 
 </mapper>
 

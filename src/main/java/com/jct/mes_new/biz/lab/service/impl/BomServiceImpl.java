@@ -55,8 +55,6 @@ public class BomServiceImpl implements BomService {
         List<BomRecipeVo> bomRecipeList = vo.getBomRecipeList();
         List<BomProcVo> bomProcList = vo.getBomProcList();
         String userId = UserUtil.getUserId();
-log.info("====================vo.getDeleteBomRecipe()=============== : " + vo.getDeleteBomRecipe());
-log.info("====================bomRecipeList=============== : " + bomRecipeList);
         String bomId = bomMst.getBomId();
         String msg = "저장되었습니다.";
 
@@ -125,6 +123,11 @@ log.info("====================bomRecipeList=============== : " + bomRecipeList);
         return msg;
     }
 
+    public  String deleteRecipeAll(Long bomId) {
+        bomMapper.deleteAllBomRecipe(bomId);
+
+        return "삭제되었습니다.";
+    }
 
     @Transactional(rollbackFor = BusinessException.class)
     public String saveBomVerInfo(BomRequestVo vo) {

@@ -102,11 +102,16 @@ public class BomController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
-
-
     @GetMapping("/getBomProcInfo/{id}")
     public List<BomProcVo> getBomProcInfo(@PathVariable("id") String itemCd) {
         return bomService.getBomProcInfo(itemCd);
     }
 
+
+
+    @GetMapping("/deleteRecipeAll/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteRecipeAll(@PathVariable("id") Long bomId) {
+        String  response = bomService.deleteRecipeAll(bomId);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
 }

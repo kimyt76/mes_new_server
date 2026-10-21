@@ -45,4 +45,6 @@ public interface BomMapper {
     void deleteBomProc(List<String> deleteBomProc);
     int insertBomProc(BomProcVo proc);
     int updateBomProc(BomProcVo proc);
+
+    void deleteAllBomRecipe(Long bomId);
 }

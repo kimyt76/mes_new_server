@@ -25,4 +25,6 @@ public interface BomService {
     List<BomVo> getBomMatList(BomVo bomVo);
 
     List<BomProcVo> getBomProcInfo(String itemCd);
+
+    String deleteRecipeAll(Long bomId);
 }
