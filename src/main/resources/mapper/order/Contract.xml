@@ -13,8 +13,9 @@
             GROUP BY po_no
         )
         select   b.po_no
-                ,a.client_no
+                ,a.client_id
                 ,c.client_name
+                ,c.client_cd
                 ,e.member_nm as manager_name
                 ,d1.code_nm as prodType
                 ,d.code_nm as orderType
@@ -71,7 +72,7 @@
             and b.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            and i.item_name like '%' + #{itemName} + '%'
+            and i.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="statusType != null and statusType != ''">
             and b.status_type = #{statusType}
@@ -451,14 +452,14 @@
         <if test="clientName != null and clientName != ''">
             AND c.client_name LIKE CONCAT('%', #{clientName}, '%')
         </if>
-        <if test="managerId != null and managerId != ''">
-            AND a.manager_id = #{managerId}
+        <if test="managerName != null and managerName != ''">
+            AND a.manager_id like  CONCAT('%', #{managerName}, '%')
         </if>
         <if test="itemCd != null and itemCd != ''">
             AND b.item_cd LIKE CONCAT('%', #{itemCd}, '%')
         </if>
         <if test="itemName != null and itemName != ''">
-            AND i.item_name LIKE CONCAT('%', #{itemName}, '%')
+            AND i.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <choose>
             <when test='"Y".equals(endYn)'>
@@ -615,10 +616,10 @@
     </select>
 
     <delete id="deleteOrderPlanTypeList">
-        delete from tb_order_plan_type
-        where  order_plan_id in (
+        DELETE FROM tb_order_plan_type
+        WHERE order_plan_id IN
         <foreach collection="ids" item="orderPlanId" open="(" separator="," close=")">
-            #{id}
+            #{orderPlanId}
         </foreach>
     </delete>
 

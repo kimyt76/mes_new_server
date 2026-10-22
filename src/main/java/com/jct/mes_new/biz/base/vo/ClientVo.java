@@ -14,7 +14,9 @@ public class ClientVo {
     private BigDecimal rowNum;
     private Long clientId;
     private String businessNo;
+    private String customerCd;
     private String clientName;
+    private String clientCd;
     private String clientType;
     private String clientTypeName;
     private String tradeType;

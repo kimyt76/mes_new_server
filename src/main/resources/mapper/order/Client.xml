@@ -142,6 +142,8 @@
         ,payment_name
         ,manager_rank
         ,manager_rank2
+        ,client_cd
+        ,customer_cd
         ,reg_id
         ,upd_id
         )
@@ -170,6 +172,8 @@
             ,#{paymentName}
             ,#{managerRank}
             ,#{managerRank2}
+            ,#{businessNo}
+            ,#{businessNo}
             ,#{userId}
             ,#{userId}
             );
@@ -178,6 +182,8 @@
         UPDATE tb_client_mst
         SET    business_no       = #{businessNo}
               ,client_name       = #{clientName}
+              ,client_cd         = #{businessNo}
+              ,customer_cd       = #{clientName}
               ,client_type       = #{clientType}
               ,client_type_name  = #{clientTypeName}
               ,trade_type        = #{tradeType}
