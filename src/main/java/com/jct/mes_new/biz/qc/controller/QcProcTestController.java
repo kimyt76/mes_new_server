@@ -48,6 +48,12 @@ public class QcProcTestController {
         return qcProcTestService.getQcProcTestTabInfo(vo);
     }
 
+    @GetMapping("/completeQcProcTest/{id}")
+    public ResponseEntity<ApiResponse<Void>> completeQcProcTest(@PathVariable("id") Long qcProcTestMstId) {
+        String msg = qcProcTestService.completeQcProcTest(qcProcTestMstId);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
+    }
+
     @PostMapping("/saveQcProcTestTabInfo")
     public ResponseEntity<ApiResponse<Void>>  saveQcProcTestTabInfo (@RequestBody QcProcTestRequestVo vo) {
         String msg = qcProcTestService.saveQcProcTestTabInfo(vo);

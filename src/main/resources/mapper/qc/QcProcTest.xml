@@ -15,8 +15,10 @@
                  ,c.proc_order_date as charge_date
                  ,d.proc_order_date as packing_date
                  ,b.work_batch_id
-                 ,b.work_batch_id
                  ,m.qc_proc_test_mst_id
+                 ,a.item_cd
+                 ,d.work_proc_id
+                 ,d.proc_cd
         from    TB_WORK_ORDER_MST a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_order_id = a.work_order_id
@@ -28,10 +30,18 @@
                 inner join TB_WORK_ORDER_PROC d
                 on  d.work_batch_id = b.work_batch_id
                 and d.proc_cd = 'PRC005'
+                join tb_item_mst i
+                on i.item_cd = a.item_cd
         where  b.batch_status != '99' and b.batch_status >= '22'
         and    d.proc_order_date between #{strDate} and #{endDate}
         <if test="areaCd != null and areaCd != ''">
           and  a.area_cd = #{areaCd}
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+          and  a.item_cd = #{itemCd}
+        </if>
+        <if test="itemName != null and itemName != ''">
+          and  i.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="itemCd != null and itemCd != ''">
           and  a.item_cd = #{itemCd}
@@ -42,7 +52,7 @@
         <if test="testState != null and testState != ''">
           and  m.test_state  = #{testState}
         </if>
-        order by a.work_order_date desc, a.seq desc
+        order by a.work_order_date desc, a.seq desc, b.make_no desc
     </select>
 
     <insert id="createQcProcTestInfo">
@@ -87,8 +97,7 @@
                left join TB_WORK_ORDER_PROC d
                 on d.work_batch_id = b.work_batch_id
                 and d.proc_cd = 'PRC002'
-        where  b.work_batch_id = #{workBatchId}
-        and    a.proc_cd =  #{procCd}
+        where  a.work_proc_id = #{workProcId}
     </select>
 
     <select id="getQcProcSample">
@@ -267,9 +276,13 @@
               ,b.batch_status
               ,a.etc
               ,a.tester_id
+              ,c.work_proc_id
         from  tb_qc_proc_test_mst a
               join TB_WORK_ORDER_BATCH b
               on a.work_batch_id = b.work_batch_id
+              join tb_work_order_proc c
+              on c.work_batch_id = b.work_batch_id
+              and c.proc_cd = 'PRC005'
         where  qc_proc_test_mst_id = #{qcProcTestMstId}
     </select>
 

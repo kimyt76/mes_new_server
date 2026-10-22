@@ -13,7 +13,7 @@ public interface QcProcTestMapper {
     int createQcProcTestInfo(QcProcTestVo vo);
 
 
-    QcProcTestVo getQcProcTestMst(Long workBatchId, String procCd);
+    QcProcTestVo getQcProcTestMst(Long workBatchId);
     QcProcSampleVo getQcProcSample(String testType, Long qcProcTestMstId);
     List<QcProcMethodVo> getMethodList(String testType, Long qcProcTestMstId);
     List<QcProcDetailVo> getDetailList(String testType, Long qcProcTestMstId);
@@ -34,4 +34,6 @@ public interface QcProcTestMapper {
     QcProcTestVo getQcProcTestInfo(Long qcProcTestMstId);
 
     WorkOrderInfoVo getProcItem(Long workBatchId, String procCd);
+
+    int completeQcProcTest(Long qcProcTestId);
 }

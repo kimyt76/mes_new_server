@@ -19,4 +19,6 @@ public interface QcProcTestService {
     String saveQcProcTestLineList(QcProcTestRequestVo vo);
 
     byte[] downloadQcProcTest(Long qcProcTestMstId) throws Exception;
+
+    String completeQcProcTest(Long qcProcTestMstId);
 }

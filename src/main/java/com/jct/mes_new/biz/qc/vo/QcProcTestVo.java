@@ -10,11 +10,13 @@ public class QcProcTestVo {
 
     private Long  qcProcTestMstId;
     private Long  workBatchId;
-    
+    private Long  workProcId;
+
     private String qcTestType; /* 공정검사 구분*/
     private String testType; /* 탭 구분*/
 
     private String testerId;
+    private String procCd;
     private String testState;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
