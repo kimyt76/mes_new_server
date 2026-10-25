@@ -119,6 +119,7 @@ public class QcTestServiceImpl implements QcTestService {
                 target.setTestItem(item.getTestItem());
                 target.setTestMethod(item.getTestMethod());
                 target.setTestSpec(item.getTestSpec());
+                target.setTestResult(item.getTestResult());
                 target.setOrderDist(item.getOrderDist());
 
                 return target;

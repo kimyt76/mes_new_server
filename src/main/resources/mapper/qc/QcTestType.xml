@@ -6,10 +6,10 @@
     <select id="getTestTypeMethodList">
         with test_method as (
             select  a.item_cd
-                    , STUFF(( SELECT ',' + test_item FROM tmp_test_type_method b WHERE b.item_cd = a.item_cd FOR XML PATH('') ),1,1,'') AS test_item_join
+                    , STUFF(( SELECT ',' + test_item FROM tb_test_type_method b WHERE b.item_cd = a.item_cd FOR XML PATH('') ),1,1,'') AS test_item_join
                     , min(a.test_item) as test_item
                     ,COUNT(*) as cnt
-            from   tmp_test_type_method a
+            from   tb_test_type_method a
             group by item_cd
         ),
         test_item_method as (
@@ -51,13 +51,13 @@
                ,order_dist
                ,item_cd
                ,test_type_method_id
-        FROM    tmp_test_type_method
+        FROM    tb_test_type_method
         WHERE   item_cd = #{itemCe}
         ORDER BY order_dist ASC
     </select>
 
     <insert id="insertTestTypeMethod">
-        INSERT INTO tmp_test_type_method (
+        INSERT INTO tb_test_type_method (
             item_cd,
             test_item,
             test_method,
@@ -81,7 +81,7 @@
     </insert>
 
     <update id="updateTestTypeMethod">
-        update tmp_test_type_method
+        update tb_test_type_method
         set    test_item   = #{testItem}
               ,test_method = #{testMethod}
               ,test_spec   = #{testSpec}
@@ -113,7 +113,7 @@
     </select>
 
     <delete id="deleteTestTypeMethod">
-        delete tmp_test_type_method
+        delete tb_test_type_method
         where  test_type_method_id  in
         <foreach collection="deleteIds" item="testTypeMethodId" open="(" separator="," close=")">
             #{testTypeMethodId}

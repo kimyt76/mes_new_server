@@ -135,7 +135,10 @@
         , PASS_STATE
         , tran_yn
         , REG_ID
-        ,  UPD_ID  )
+        , reg_dt
+        , UPD_ID
+        , upd_dt
+        )
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
@@ -150,7 +153,9 @@
             , 'REQ'
             , 'N'
             ,#{userId}
+            ,getdate()
             ,#{userId}
+            ,getdate()
             )
         </foreach>
     </insert>
@@ -169,7 +174,10 @@
         , PASS_STATE
         , tran_yn
         , REG_ID
-        ,  UPD_ID  )
+        , reg_dt
+        ,  UPD_ID
+        , upd_dt
+        )
         VALUES
             (
              #{list.testNo}
@@ -183,7 +191,9 @@
             , 'REQ'
             ,'N'
             ,#{userId}
+            ,getDate()
             ,#{userId}
+            ,getDate()
             )
     </insert>
 
