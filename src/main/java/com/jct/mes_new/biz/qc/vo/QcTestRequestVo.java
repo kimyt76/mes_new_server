@@ -7,6 +7,6 @@ import java.util.List;
 @Data
 public class QcTestRequestVo {
     private QcTestVo qcTestInfo;
-    private List<QcTestTypeVo> qcTestTypeMethodList;
+    private List<QcTestTypeMethodVo> qcTestTypeMethodList;
     private List<Long> deleteIds;
 }

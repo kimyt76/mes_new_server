@@ -29,6 +29,7 @@
         from    tb_qc_test_mst a
                 inner join tb_item_test_no b
                 on a.test_no = b.test_no
+                and b.end_yn ='N'
                 inner join tb_item_mst c
                 on b.item_cd = c.item_cd
         where
@@ -114,20 +115,11 @@
         where  a.qc_test_id = #{qcTestId}
     </select>
 
-<!--    <select id="getQcTestMethod">-->
-<!--        SELECT  test_item-->
-<!--               ,test_method-->
-<!--               ,test_spec-->
-<!--               ,test_result-->
-<!--               ,order_dist-->
-<!--               ,item_cd-->
-<!--               ,tester_name-->
-<!--               ,pass_state-->
-<!--               ,test_type_method_id-->
-<!--        FROM    tb_qc_test_type_method-->
-<!--        WHERE   item_cd = #{itemCe}-->
-<!--        ORDER BY order_dist ASC-->
-<!--    </select>-->
+    <select id="getQcTestTypeMethodList">
+        select *
+        from   tb_qc_test_type_method
+        where  qc_test_id = #{qcTestId}
+    </select>
 
     <insert id="insertQcTest">
         insert into tb_qc_test_mst
@@ -419,5 +411,63 @@
                                         where x.test_no = a.test_no
                                     ), 0)
     </select>
+
+    <delete id="deleteQcTestTypeMethod">
+        delete from tb_qc_test_type_method
+        where  qc_test_type_method_id IN
+        <foreach collection="deleteIds" item="qcTestTypeMethodId" open="(" separator="," close=")">
+            #{qcTestTypeMethodId}
+        </foreach>
+    </delete>
+
+
+    <insert id="insertQcTestTypeMethod">
+        INSERT INTO tb_qc_test_type_method (
+            item_cd,
+            test_item,
+            test_method,
+            test_spec,
+            test_result,
+            order_dist,
+            test_date_string,
+            qc_test_id,
+            tester_name,
+            pass_state,
+            reg_id,
+            upd_id
+        )
+        VALUES
+            (
+                #{itemCd},
+                #{testItem},
+                #{testMethod},
+                #{testSpec},
+                #{testResult},
+                #{orderDist},
+                #{testDateString},
+                #{qcTestId},
+                #{testerName},
+                #{passState},
+                #{userId},
+                #{userId}
+            )
+    </insert>
+
+    <update id="updateQcTestTypeMethod">
+        update tb_qc_test_type_method
+        set     test_item   = #{testItem}
+          ,test_method = #{testMethod}
+          ,test_spec   = #{testSpec}
+          ,test_result = #{testResult}
+          ,order_dist  = #{orderDist}
+          ,test_date_string = #{testDateString}
+          ,qc_test_id  = #{qcTestId}
+          ,tester_name = #{testerName}
+          ,pass_state  = #{passState}
+          ,upd_id      = #{userId}
+          ,upd_dt      = getdate()
+        where  qc_test_type_method_id = #{qcTestTypeMethodId}
+    </update>
+
 
 </mapper>

@@ -112,18 +112,6 @@
           order by m.order_dist, a.test_no
     </select>
 
-    <select id="getQcTestTypeMethodList">
-        select *
-        from   tb_qc_test_type_method
-        where  qc_test_id = #{qcTestId}
-    </select>
-
-    <select id="getTestTypeMethodItemList">
-        select *
-        from  tmp_test_type_method
-        where  item_cd = #{itemCd}
-    </select>
-
     <delete id="deleteTestTypeMethod">
         delete tmp_test_type_method
         where  test_type_method_id  in
@@ -131,5 +119,6 @@
             #{testTypeMethodId}
         </foreach>
     </delete>
+
 
 </mapper>

@@ -37,7 +37,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -106,7 +105,27 @@ public class QcTestServiceImpl implements QcTestService {
         QcTestRequestVo vo = new QcTestRequestVo();
 
         vo.setQcTestInfo(this.getQcTestDetailInfo(qcTestId));
-        vo.setQcTestTypeMethodList(qcTestTypeMapper.getQcTestTypeMethod(vo.getQcTestInfo().getItemCd()) );
+
+        // 기존 QC 시험항목 조회 (1회)
+        List<QcTestTypeMethodVo> list = qcTestMapper.getQcTestTypeMethodList(qcTestId);
+
+        // 기존 데이터가 없으면 품목별 기본 시험항목 조회
+        if (list == null || list.isEmpty()) {
+            List<TestTypeMethodVo> defaultList = qcTestTypeMapper.getTestTypeMethod(vo.getQcTestInfo().getItemCd());
+
+            list = defaultList.stream().map(item -> {
+                QcTestTypeMethodVo target = new QcTestTypeMethodVo();
+
+                target.setTestItem(item.getTestItem());
+                target.setTestMethod(item.getTestMethod());
+                target.setTestSpec(item.getTestSpec());
+                target.setOrderDist(item.getOrderDist());
+
+                return target;
+            }).toList();
+        }
+
+        vo.setQcTestTypeMethodList(list);
         return vo;
     }
 
@@ -194,19 +213,19 @@ public class QcTestServiceImpl implements QcTestService {
         //삭제
         List<Long> getDeleteIds = vo.getDeleteIds();
         if (getDeleteIds != null && !getDeleteIds.isEmpty()) {
-            qcTestTypeMapper.deleteQcTestTypeMethod(qcTestMst.getItemCd(), vo.getDeleteIds());
+            qcTestMapper.deleteQcTestTypeMethod(qcTestMst.getItemCd(), vo.getDeleteIds());
         }
-        for (QcTestTypeVo item : vo.getQcTestTypeMethodList()) {
+        for (QcTestTypeMethodVo item : vo.getQcTestTypeMethodList()) {
             item.setItemCd(qcTestMst.getItemCd());
             item.setUserId(userId);
             item.setQcTestId(qcTestMst.getQcTestId());
 
-            if ( item.getTestTypeMethodId() != null ){
-                if ( qcTestTypeMapper.updateTestTypeMethod(qcTestMst.getItemCd(), item) <= 0  ){
+            if ( item.getQcTestTypeMethodId() != null ){
+                if ( qcTestMapper.updateQcTestTypeMethod(item) <= 0  ){
                     throw new BusinessException(ErrorCode.FAIL_UPDATED);
                 }
             }else{
-                if ( qcTestTypeMapper.insertTestTypeMethod(item) <= 0  ){
+                if ( qcTestMapper.insertQcTestTypeMethod(item) <= 0  ){
                     throw new BusinessException(ErrorCode.FAIL_UPDATED);
                 }
             }
@@ -261,6 +280,13 @@ public class QcTestServiceImpl implements QcTestService {
         return 1;
     }
 
+    public String deleteQcTest(String testNo){
+        String userId = UserUtil.getUserId();
+        itemTestMapper.updateItemTestNoEndYn(testNo, userId);
+
+        return "삭제되었습니다.";
+    }
+
     public byte[] getPrintCertificate(List<Long> qcTestIds) throws Exception {
         return getPrintPdf(qcTestIds, PrintDocumentType.REPORT);
     }
@@ -290,7 +316,7 @@ public class QcTestServiceImpl implements QcTestService {
             }
 
             QcTestVo mst = vo.getQcTestInfo();
-            List<QcTestTypeVo> typeList = vo.getQcTestTypeMethodList();
+            List<QcTestTypeMethodVo> typeList = vo.getQcTestTypeMethodList();
 
             if (mst == null) {
                 continue;
@@ -303,8 +329,7 @@ public class QcTestServiceImpl implements QcTestService {
 
             // 성적서
             if (printType == PrintDocumentType.REPORT || printType == PrintDocumentType.ALL) {
-                List<QcTestTypeReportVo> qtReportList =
-                        filledListItem(qtItemList, REPO_MAX_ROW, REPO_DIVIDE_CNT);
+                List<QcTestTypeReportVo> qtReportList = filledListItem(qtItemList, REPO_MAX_ROW, REPO_DIVIDE_CNT);
 
                 JasperPrint jasperPrintReport = writeJasperReportPage(
                         "quality_test_report_M" + itemGb,
@@ -361,67 +386,6 @@ public class QcTestServiceImpl implements QcTestService {
         return baos.toByteArray();
     }
 
-
-
-
-
-
-
-
-    /**
-     * pdf print
-     * @param
-     * @return
-
-    public byte[] getPrintTest(List<Long> qcTestIds)  throws Exception {
-        if (qcTestIds == null || qcTestIds.isEmpty()) {
-            throw new BusinessException("출력할 시험일지가 없습니다.");
-        }
-        List<JasperPrint> jasperPrintList = new ArrayList<JasperPrint>();
-        // 1. qcTestIds로 데이터 조회
-        for (Long qcTestId : qcTestIds) {
-            QcTestRequestVo vo = this.getQcTestInfo(qcTestId);
-            QcTestVo mst = vo.getQcTestInfo();
-            List<QcTestTypeVo> typeList = vo.getQcTestTypeMethodList();
-
-            if (mst == null) {
-                continue;
-            }
-            String itemGb = CodeUtil.convertItemTypeCd(mst.getItemTypeCd());
-            Map<String, Object> param = this.getParamMap(mst, itemGb);
-            // 리스트 구성
-            List<QcTestTypeReportVo> qtItemList = getQtItemList(typeList, mst.getConfirmTesterId());
-            List<QcTestTypeReportVo> qtReportList = filledListItem(qtItemList, REPO_MAX_ROW, REPO_DIVIDE_CNT);
-            List<QcTestTypeReportVo> qtLogList = filledListItem(qtItemList, TEST_LOG_MAX_ROWS, TEST_LOG_MAX_ROWS);
-            // 성적서 생성
-            JasperPrint jasperPrint1 = writeJasperReportPage("quality_test_report_M" + itemGb, qtReportList, param);
-            // 시험일지 생성
-            JasperPrint jasperPrint2 = writeJasperReportPage("quality_test_log_M" + itemGb, qtLogList, param);
-
-            if (jasperPrint1 != null) {
-                jasperPrintList.add(jasperPrint1);
-            }
-            if (jasperPrint2 != null) {
-                jasperPrintList.add(jasperPrint2);
-            }
-        }
-
-        if (jasperPrintList.isEmpty()) {
-            throw new BusinessException("출력할 PDF 데이터가 없습니다.");
-        }
-
-        JRPdfExporter exporter = new JRPdfExporter();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        exporter.setExporterInput(SimpleExporterInput.getInstance(jasperPrintList));
-        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(baos));
-        exporter.exportReport();
-
-        return baos.toByteArray();
-    }
-     */
-
-
     public List<QcTestTypeReportVo> filledListItem (List<QcTestTypeReportVo> listItem, int maxRow, int divideCnt) {
         List<QcTestTypeReportVo> resultList = new ArrayList<>(listItem);
 
@@ -458,11 +422,11 @@ public class QcTestServiceImpl implements QcTestService {
         }
     }
 
-    public List<QcTestTypeReportVo> getQtItemList (List<QcTestTypeVo> qtMethods, String confirmMemberCd) {
+    public List<QcTestTypeReportVo> getQtItemList (List<QcTestTypeMethodVo> qtMethods, String confirmMemberCd) {
         List<QcTestTypeReportVo> resultList = new ArrayList<>();
 
         int rowCount = 0;
-        for (QcTestTypeVo qtMethod: qtMethods) {
+        for (QcTestTypeMethodVo qtMethod: qtMethods) {
             rowCount++;
             QcTestTypeReportVo qtItem = new QcTestTypeReportVo();
             qtItem.setRowNo(rowCount);
@@ -500,7 +464,13 @@ public class QcTestServiceImpl implements QcTestService {
         resultMap.put("reqDept", (itemGb.equals("1") || itemGb.equals("2"))? "구매부" : "생산부");
 
         // 시험번호 처리, 재검사 일경우 처리 포함.
-        String printTestNo = qualityTest.getTestNo();
+        String qcCd = qualityTest.getQcCd();
+        String testNo = qualityTest.getTestNo();
+
+        String resultQcCd = (qcCd == null || qcCd.isBlank())
+                ? testNo
+                : qcCd;
+        String printTestNo = resultQcCd;
         if (StringUtils.isNotBlank(qualityTest.getRetestYn()) && qualityTest.getRetestYn().equals("Y")) {
             printTestNo = qualityTest.getTestNo() + " - " + qualityTest.getSeq();
         }
@@ -560,7 +530,7 @@ public class QcTestServiceImpl implements QcTestService {
     public byte[] certificateDownloadExcel(Long qcTestId){
         QcTestRequestVo vo = this.getQcTestInfo(qcTestId);
         QcTestVo mst = vo.getQcTestInfo();
-        List<QcTestTypeVo> typeList = vo.getQcTestTypeMethodList();
+        List<QcTestTypeMethodVo> typeList = vo.getQcTestTypeMethodList();
 
         String itemGb = CodeUtil.convertItemTypeCd(mst.getItemTypeCd());
 
@@ -604,7 +574,7 @@ public class QcTestServiceImpl implements QcTestService {
             /** 검사내역 **/
             int rowNo = (itemGb.equals("3")) ? 14 : 15;
 
-            for (QcTestTypeVo item : typeList) {
+            for (QcTestTypeMethodVo item : typeList) {
                 ExcelStyleUtil.getCellRef(sheet, "A" + rowNo).setCellValue(item.getTestItem());
                 ExcelStyleUtil.getCellRef(sheet, "D" + rowNo).setCellValue(item.getTestSpec());
                 ExcelStyleUtil.getCellRef(sheet, "J" + rowNo).setCellValue(item.getTestResult());
@@ -652,7 +622,15 @@ public class QcTestServiceImpl implements QcTestService {
         String sampleMember = (qualityTestView.getSampleTesterId() != null)? qualityTestView.getSampleTesterId() : "";
         String itemCd = (qualityTestView.getItemCd() != null)? qualityTestView.getItemCd(): "";
         String customer = (qualityTestView.getCustomerName() != null)? qualityTestView.getCustomerName() : "";
-        String testNo = (qualityTestView.getTestNo() != null)? qualityTestView.getTestNo() : "";
+
+        String qcCd = qualityTestView.getQcCd();
+        String iTestNo = qualityTestView.getTestNo();
+
+        String testNo = (qcCd == null || qcCd.isBlank())
+                ? iTestNo
+                : qcCd;
+
+        //String testNo = ( qualityTestView.getQcCd() != null)? qualityTestView.getQcCd() : qualityTestView.getTestNo() ;
         if (StringUtils.isNotBlank(qualityTestView.getRetestYn()) && qualityTestView.getRetestYn().equals("Y")) {
             testNo = testNo + " - " + qualityTestView.getSeq();
         }
@@ -740,7 +718,7 @@ public class QcTestServiceImpl implements QcTestService {
     public byte[] tesetDownloadExcel(Long qcTestId){
         QcTestRequestVo vo = this.getQcTestInfo(qcTestId);
         QcTestVo mst = vo.getQcTestInfo();
-        List<QcTestTypeVo> typeList = vo.getQcTestTypeMethodList();
+        List<QcTestTypeMethodVo> typeList = vo.getQcTestTypeMethodList();
 
         String itemGb = CodeUtil.convertItemTypeCd(mst.getItemTypeCd());
         List<CommonVo> commonCodeList = commonMapper.getCodeList(CodeUtil.getDocNo(itemGb, "B"));
@@ -768,7 +746,13 @@ public class QcTestServiceImpl implements QcTestService {
                     "3".equals(itemGb) ? mst.getMakeNo() : mst.getLotNo()
             );
             // P8 시험번호
-            ExcelStyleUtil.getCellRef(sheet, "P8").setCellValue(mst.getTestNo());
+            String qcCd = mst.getQcCd();
+            String iTestNo = mst.getTestNo();
+
+            String testNo = (qcCd == null || qcCd.isBlank())
+                    ? iTestNo
+                    : qcCd;
+            ExcelStyleUtil.getCellRef(sheet, "P8").setCellValue( testNo);
 
             // 기본 변수 선언
             int rowNo = 10;      // POI는 0부터 시작 => 엑셀 11행
@@ -778,7 +762,7 @@ public class QcTestServiceImpl implements QcTestService {
             List<CellStyle> cellStyleList = ExcelStyleUtil.getRowCellStyle(sheet, rowNo, 19);
 
             // 데이터 출력
-            for (QcTestTypeVo item : typeList) {
+            for (QcTestTypeMethodVo item : typeList) {
                 // 행 생성/가져오기
                 ExcelStyleUtil.getRow(sheet, rowNo).setHeight(rowHeight);
                 // 병합 보장

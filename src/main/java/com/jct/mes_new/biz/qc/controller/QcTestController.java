@@ -95,6 +95,12 @@ public class QcTestController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 
+    @GetMapping("/deleteQcTest/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteQcTest(@PathVariable("id") String testNo) {
+        String msg = qcTestService.deleteQcTest(testNo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
     /**
      * 품질검사 재요청 등록
      * @param vo
@@ -105,6 +111,9 @@ public class QcTestController {
         String msg = qcTestService.insertRetestInfo(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
+
+
+
 
     /**
      * 시험일지 출력

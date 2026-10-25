@@ -28,9 +28,4 @@ public interface QcTestTypeMapper {
 
     List<QcTestTypeMethodVo> getQcTestTypeMethodList(Long qcTestId);
 
-    List<QcTestTypeMethodVo> getTestTypeMethodList(String itemCd);
-
-
-
-
 }

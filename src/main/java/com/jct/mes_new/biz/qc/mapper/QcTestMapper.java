@@ -1,10 +1,12 @@
 package com.jct.mes_new.biz.qc.mapper;
 
+import com.jct.mes_new.biz.qc.vo.QcTestTypeMethodVo;
 import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -19,7 +21,7 @@ public interface QcTestMapper {
     List<QcTestVo> getQcTestList(QcTestVo vo);
 
     /**
-     * 품질검사 상세 
+     * 품질검사 요청 상세
      * @param qtTestId
      * @return
      */
@@ -44,7 +46,7 @@ public interface QcTestMapper {
      * @param vo
      * @return
      */
-    int updateQcTestInfo(@Param("vo") QcTestVo vo);
+    int updateQcTestInfo(QcTestVo vo);
 
 
     /**
@@ -63,4 +65,13 @@ public interface QcTestMapper {
     String getTranYn(Long qcTestId);
 
     QcTestVo getQcTestNoInfo(String testNo);
+
+    /*품질검사요청  메소드 삭제  */
+    void deleteQcTestTypeMethod(String itemCd, List<Long> deleteIds);
+
+
+    int updateQcTestTypeMethod(QcTestTypeMethodVo item);
+    int insertQcTestTypeMethod(QcTestTypeMethodVo item);
+
+    List<QcTestTypeMethodVo> getQcTestTypeMethodList(Long qcTestId);
 }
