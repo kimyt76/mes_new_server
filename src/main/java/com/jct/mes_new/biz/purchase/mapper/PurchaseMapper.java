@@ -62,9 +62,6 @@ public interface PurchaseMapper {
 
     void deletePurTestNo(String testNo);
     void deleteInvTranTestNo(String testNo);
-    void deleteReqQcTestNo(String testNo);
-    void deleteItemTestNo(String testNo);
-
     void deleteTranItemList(Long purId);
     void deleteTranMst(Long purId);
 }

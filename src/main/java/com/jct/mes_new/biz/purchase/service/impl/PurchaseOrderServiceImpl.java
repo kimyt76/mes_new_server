@@ -183,6 +183,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         vo.setUserId(userId);
         purchaseOrderMapper.updatePurchaseOrderItemEndYn(vo);
+        //원료는 각각리스트라 해당 종료 후  나머지도 종료가 있는지 확인해서 마스터 endYn 에 종료  해줘야 함
+        this.updatePurchaseOrderEndYn(vo.purOrderId, userId);
+
         return "수정되었습니다.";
     }
 

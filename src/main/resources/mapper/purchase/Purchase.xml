@@ -263,7 +263,7 @@
             and b.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="customerName != null and customerName != ''">
-            and e.customer_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
+            and e.customer_name like '%' + dbo.fn_LikeEscape(#{customerName}) + '%'
         </if>
         <if test="testState != null and testState != ''">
             and c.test_state = #{testState}
@@ -284,19 +284,16 @@
     <delete id="deleteInvTranTestNo">
         delete from tb_inv_tran_item where test_no = #{testNo}
     </delete>
-    <delete id="deleteReqQcTestNo">
-        delete from tb_qc_test_mst where test_no = #{testNo}
-    </delete>
-    <delete id="deleteItemTestNo">
-        delete from tb_item_test_no where test_no = #{testNo}
-    </delete>
 
     <!--  전체 삭제  -->
     <delete id="deleteTranItemList">
-        delete from tb_inv_tran_item where test_no = #{purId}
+        delete from tb_inv_tran_item
+        where  tran_id = (
+            select tran_id from tb_inv_tran_mst where pur_id = #{purId}
+        )
     </delete>
     <delete id="deleteTranMst">
-        delete from tb_inv_tran_mst where test_no = #{purId}
+        delete from tb_inv_tran_mst where pur_id = #{purId}
     </delete>
 
 </mapper>

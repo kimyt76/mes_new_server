@@ -74,6 +74,7 @@ public class PurchaseVo {
     @Data
     public static class searchPurchaseListVo {
         private Long purId;
+        private Long purItemId;
         private String purDateSeq;
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate purDate;

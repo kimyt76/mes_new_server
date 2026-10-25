@@ -115,7 +115,7 @@ public class PurchaseOrderController {
     }
 
     /**
-     * 원료 종결 업데이트
+     * 부자재 종결 업데이트
      * @param vo
      * @return
      */

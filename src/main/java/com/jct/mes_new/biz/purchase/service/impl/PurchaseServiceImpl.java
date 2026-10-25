@@ -189,10 +189,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchaseMapper.deletePurTestNo(testNo);
                 //재고
                 purchaseMapper.deleteInvTranTestNo(testNo);
-                //품질
-                purchaseMapper.deleteReqQcTestNo(testNo);
                 //시험번호
-                purchaseMapper.deleteItemTestNo(testNo);
+                itemTestMapper.updateItemTestNoEndYn(testNo, userId);
             }
         }
 
@@ -262,15 +260,13 @@ public class PurchaseServiceImpl implements PurchaseService {
      */
     public String deletePurchase(Long purId){
         List<PurchaseVo.PurchaseListVo> purItemList = purchaseMapper.getPurchaseItemList(purId);
-
+        String userId = UserUtil.getUserId();
         //품질검사, 시험번호
-        if( purItemList.isEmpty() ){
+        if( !purItemList.isEmpty() ){
             for (PurchaseVo.PurchaseListVo item : purItemList) {
                 String testNo = item.getTestNo();
-                //품질검사 요청
-                purchaseMapper.deleteReqQcTestNo(testNo);
                 //시험번호
-                purchaseMapper.deleteItemTestNo(testNo);
+                itemTestMapper.updateItemTestNoEndYn(testNo, userId);
             }
         }
 
@@ -281,7 +277,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         //구매
         purchaseMapper.deleteItemList(purId);
         purchaseMapper.deletePurMst(purId);
-
 
         return "삭제되었습니다.";
     }
