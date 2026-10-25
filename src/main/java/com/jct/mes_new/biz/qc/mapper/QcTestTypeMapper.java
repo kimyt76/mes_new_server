@@ -1,6 +1,7 @@
 package com.jct.mes_new.biz.qc.mapper;
 
-import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
+import com.jct.mes_new.biz.qc.vo.QcTestTypeMethodVo;
+import com.jct.mes_new.biz.qc.vo.TestTypeMethodVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,14 +9,28 @@ import java.util.List;
 
 @Mapper
 public interface QcTestTypeMapper {
-    List<QcTestTypeVo> getQcTestTypeList(QcTestTypeVo vo);
 
-    List<QcTestTypeVo> getQcTestTypeMethod(String itemCd);
+    /*품질검사유형 조회 */
+    List<TestTypeMethodVo> getTestTypeMethodList(TestTypeMethodVo vo);
+    
+    /*품질검사유형 상세 */
+    List<TestTypeMethodVo> getTestTypeMethod(String itemCd);
 
-    void deleteQcTestTypeMethod(@Param("itemCd") String itemCd, @Param("deleteIds") List<Long> deleteIds);
+    int insertTestTypeMethod(TestTypeMethodVo item);
+    int updateTestTypeMethod(TestTypeMethodVo item);
 
-    int insertTestTypeMethod(QcTestTypeVo item);
-    int updateTestTypeMethod(@Param("itemCd") String itemCd, @Param("item") QcTestTypeVo item);
 
-    List<QcTestTypeVo> getQcTestTypeMethodComp(QcTestTypeVo vo);
+    /*품질검사유형*/
+    void deleteTestTypeMethod(List<Long> deleteIds);
+
+
+    List<QcTestTypeMethodVo> getQcTestTypeMethodComp(QcTestTypeMethodVo vo);
+
+    List<QcTestTypeMethodVo> getQcTestTypeMethodList(Long qcTestId);
+
+    List<QcTestTypeMethodVo> getTestTypeMethodList(String itemCd);
+
+
+
+
 }

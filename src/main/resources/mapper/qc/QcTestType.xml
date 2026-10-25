@@ -3,45 +3,31 @@
 
 <mapper namespace="com.jct.mes_new.biz.qc.mapper.QcTestTypeMapper">
 
-    <select id="getQcTestTypeList">
-        SELECT    a.item_cd
-                , a.item_name
-                , (SELECT code_nm FROM tb_common_code WHERE com_type_cd = 'item_type_cd' AND code = a.item_type_cd) AS item_type_name
-                , x.test_item_join
-                , CASE  WHEN x.cnt IS NULL OR x.cnt = 0 THEN NULL
-                        WHEN x.cnt = 1 THEN x.first_test_item ELSE CONCAT(x.first_test_item, ' 외 ', (x.cnt - 1), '건') END AS test_item_summary
-                , CASE WHEN x.cnt IS NULL OR x.cnt = 0 THEN '미등록' ELSE '등록' END AS regYn
-                ,a.item_type_cd
-        FROM tb_item_mst a
-            OUTER APPLY (
-                SELECT    cnt = COUNT(*)
-                        , first_test_item =
-                            (SELECT TOP (1) t.test_item
-                             FROM tb_test_type_method t
-                             WHERE t.item_cd = a.item_cd
-        <![CDATA[
-                             AND ISNULL(t.test_item,'') <> ''
-        ]]>
-                             ORDER BY t.test_item)
-                        , test_item_join =
-                            STUFF((
-                                SELECT ',' + t2.test_item
-                                FROM tb_test_type_method t2
-                                WHERE t2.item_cd = a.item_cd
-        <![CDATA[
-                                AND ISNULL(t2.test_item,'') <> ''
-        ]]>
-                                FOR XML PATH('')
-                                ), 1, 1, '')
-                        , any_test_type_method_id =
-                                (SELECT TOP (1) t3.test_type_method_id
-                                FROM tb_test_type_method t3
-                                WHERE t3.item_cd = a.item_cd
-                                ORDER BY t3.test_type_method_id)
-                FROM tb_test_type_method t0
-                WHERE t0.item_cd = a.item_cd
-                ) x
-        where  1=1
+    <select id="getTestTypeMethodList">
+        with test_method as (
+            select  a.item_cd
+                    , STUFF(( SELECT ',' + test_item FROM tmp_test_type_method b WHERE b.item_cd = a.item_cd FOR XML PATH('') ),1,1,'') AS test_item_join
+                    , min(a.test_item) as test_item
+                    ,COUNT(*) as cnt
+            from   tmp_test_type_method a
+            group by item_cd
+        ),
+        test_item_method as (
+            select  A.item_cd,
+                    A.item_type_cd,
+                    (select code_nm from tb_common_code where com_type_cd = 'ITEM_TYPE_CD' and A.item_type_cd = code ) as item_type_name,
+                    A.item_name,
+                    case when B.cnt > 0 then 'Y' else 'N' end as reg_yn,
+                    B.test_item_join,
+                    concat(B.test_item,
+                    case when B.cnt > 1 then concat(' 외',B.cnt - 1 ,'건') else '' end ) as test_item
+            from  tb_item_mst A
+            left outer join test_method B on A.item_cd = B.item_cd
+            where  item_type_cd is not null
+        )
+        select *
+        from    test_item_method a
+        where 1=1
         <if test="itemTypeCd != null and itemTypeCd != ''">
             AND a.item_type_cd = #{itemTypeCd}
         </if>
@@ -49,98 +35,61 @@
             AND a.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            AND a.item_name LIKE '%' + #{itemName} + '%'
+            AND a.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="regYn != null and regYn != ''">
-            <choose>
-                <when test='"Y".equals(regYn)'>
-                    <![CDATA[
-                    AND ISNULL(x.cnt,0) > 0
-                    ]]>
-                </when>
-                <otherwise>
-                    <![CDATA[
-                    AND ISNULL(x.cnt,0) = 0
-                    ]]>
-                </otherwise>
-            </choose>
+            and a.reg_yn = #{regYn}
         </if>
         order by a.item_cd
     </select>
 
-    <select id="getQcTestTypeMethod">
+    <select id="getTestTypeMethod">
         SELECT  test_item
                ,test_method
                ,test_spec
                ,test_result
                ,order_dist
                ,item_cd
-               ,test_date_string
-               ,tester_name
-               ,pass_state
                ,test_type_method_id
-               ,qc_test_id
-        FROM    tb_test_type_method
+        FROM    tmp_test_type_method
         WHERE   item_cd = #{itemCe}
         ORDER BY order_dist ASC
     </select>
 
-    <delete id="deleteQcTestTypeMethod">
-        delete from tb_test_type_method
-        where  item_cd = #{itemCd}
-        and    test_type_method_id IN
-        <foreach collection="deleteIds" item="testTypeMethodId" open="(" separator="," close=")">
-            #{testTypeMethodId}
-        </foreach>
-    </delete>
-
     <insert id="insertTestTypeMethod">
-        INSERT INTO tb_test_type_method (
+        INSERT INTO tmp_test_type_method (
             item_cd,
             test_item,
             test_method,
             test_spec,
             test_result,
             order_dist,
-            test_date_string,
-            qc_test_id,
-            tester_name,
-            pass_state,
             reg_id,
             upd_id
         )
         VALUES
             (
-            #{itemCd},
-            #{testItem},
-            #{testMethod},
-            #{testSpec},
-            #{testResult},
-            #{orderDist},
-            #{testDateString},
-            #{qcTestId},
-            #{testerName},
-            #{passState},
-            #{userId},
-            #{userId}
+                #{itemCd},
+                #{testItem},
+                #{testMethod},
+                #{testSpec},
+                #{testResult},
+                #{orderDist},
+                #{userId},
+                #{userId}
             )
     </insert>
 
     <update id="updateTestTypeMethod">
-        update tb_test_type_method
-        set     test_item   = #{item.testItem}
-               ,test_method = #{item.testMethod}
-               ,test_spec   = #{item.testSpec}
-               ,test_result = #{item.testResult}
-               ,order_dist  = #{item.orderDist}
-               ,test_date_string = #{item.testDateString}
-               ,qc_test_id  = #{item.qcTestId}
-               ,tester_name = #{item.testerName}
-               ,pass_state  = #{item.passState}
-               ,upd_id      = #{item.userId}
-               ,upd_dt      = getdate()
-        where  test_type_method_id = #{item.testTypeMethodId}
-        and    item_cd = #{itemCd}
+        update tmp_test_type_method
+        set    test_item   = #{testItem}
+              ,test_method = #{testMethod}
+              ,test_spec   = #{testSpec}
+              ,test_result = #{testResult}
+              ,order_dist  = #{orderDist}
+              ,upd_id      = #{userId}
+              ,upd_dt      = getdate()
+        where  test_type_method_id = #{testTypeMethodId}
     </update>
 
     <select id="getQcTestTypeMethodComp">
@@ -152,7 +101,7 @@
                  ,a.test_date
                  ,m.tester_name
                  ,dbo.getCommonName('pass_state', a.pass_state) pass_state
-        from    tb_test_type_method m
+        from    tb_qc_test_type_method m
                 inner join tb_qc_test_mst a
                 on m.qc_test_id = a.qc_test_id
                 inner join tb_pur_item b
@@ -162,5 +111,25 @@
           and   b.item_cd = #{itemCd}
           order by m.order_dist, a.test_no
     </select>
+
+    <select id="getQcTestTypeMethodList">
+        select *
+        from   tb_qc_test_type_method
+        where  qc_test_id = #{qcTestId}
+    </select>
+
+    <select id="getTestTypeMethodItemList">
+        select *
+        from  tmp_test_type_method
+        where  item_cd = #{itemCd}
+    </select>
+
+    <delete id="deleteTestTypeMethod">
+        delete tmp_test_type_method
+        where  test_type_method_id  in
+        <foreach collection="deleteIds" item="testTypeMethodId" open="(" separator="," close=")">
+            #{testTypeMethodId}
+        </foreach>
+    </delete>
 
 </mapper>

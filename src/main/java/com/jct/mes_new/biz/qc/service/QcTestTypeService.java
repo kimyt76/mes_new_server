@@ -1,17 +1,26 @@
 package com.jct.mes_new.biz.qc.service;
 
 import com.jct.mes_new.biz.qc.vo.QcTestRequestVo;
-import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
+import com.jct.mes_new.biz.qc.vo.QcTestTypeMethodVo;
+import com.jct.mes_new.biz.qc.vo.TestTypeMethodRequestVo;
+import com.jct.mes_new.biz.qc.vo.TestTypeMethodVo;
 
 import java.util.List;
-import java.util.Map;
 
 public interface QcTestTypeService {
-    List<QcTestTypeVo> getQcTestTypeList(QcTestTypeVo vo);
+    /*품질검사유형 리스트 조회 */
+    List<TestTypeMethodVo> getTestTypeMethodList(TestTypeMethodVo vo);
 
-    List<QcTestTypeVo> getQcTestTypeMethod(String itemCd);
+    /* 품질검사유형상세 */
+    List<TestTypeMethodVo> getTestTypeMethod(String itemCd);
 
-    String saveQcTestTypeMethod(QcTestRequestVo vo);
+    /* 품질검사유형 저장 */
+    String saveTestTypeMethod(TestTypeMethodRequestVo vo);
 
-    List<QcTestTypeVo> getQcTestTypeMethodComp(QcTestTypeVo vo);
+    /* 품질검사유형 전체삭제 */
+    String deleteTestTypeMethod(TestTypeMethodRequestVo vo);
+
+    /* 품질검사비교*/
+    List<QcTestTypeMethodVo> getQcTestTypeMethodComp(QcTestTypeMethodVo vo);
+
 }

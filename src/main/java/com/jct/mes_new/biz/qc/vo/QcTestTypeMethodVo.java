@@ -6,10 +6,11 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Data
-public class QcTestTypeVo {
+public class QcTestTypeMethodVo {
 
-    private Long testTypeMethodId;
+    private Long qcTestTypeMethodId;
     private Long qcTestId;
+    private Long testTypeMethodId;
     private String itemCd;
     private String itemName;
     private String itemTypeCd;
