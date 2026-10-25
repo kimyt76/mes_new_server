@@ -77,4 +77,6 @@ public interface ItemTestMapper {
     List<ItemTestVo> getItemTestNoInfoList(String testNo);
 
     int updateQty(@Param("testNo") String testNo, @Param("qty") BigDecimal prodQty, @Param("userId") String userId);
+
+    void updateItemTestNoEndYn(String testNo, String userId);
 }

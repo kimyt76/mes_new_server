@@ -41,7 +41,7 @@
             AND a.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            AND b.item_name LIKE '%' + #{itemName} + '%'
+            AND b.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="customerName != null and customerName != ''">
             AND dbo.getCustomerName(a.customer_cd) LIKE '%' + #{customerName} + '%'
@@ -49,6 +49,7 @@
         <if test="shelfLife != null and shelfLife != ''">
             AND a.shelf_life = #{shelfLife}
         </if>
+        order by a.test_no desc
     </select>
 
     <select id="getItemTestNoInfo">
@@ -120,9 +121,12 @@
               ,qty          = #{item.qty}
               ,pass_state   = #{item.passState}
               ,test_state   = #{item.testState}
+        <if test="item.expiryDate != null ">
               ,expiry_date  = #{item.expiryDate}
+        </if>
+        <if test="item.shelfLife != null ">
               ,shelf_life   = #{item.shelfLife}
-              ,end_yn       = isnull(#{item.endYn}, 'N')
+        </if>
               ,upd_id       = #{item.userId}
               ,upd_dt       = getdate()
         where  test_no      = #{item.testNo}
@@ -145,5 +149,12 @@
         where  test_no  = #{testNo}
     </update>
 
+    <update id="updateItemTestNoEndYn">
+        update tb_item_test_no
+        set    end_yn ='Y'
+              ,upd_id = #{userId}
+              ,upd_dt = getdate()
+        where  test_no = #{testNo}
+    </update>
 
 </mapper>
