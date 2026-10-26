@@ -28,7 +28,7 @@ public interface ProcCommonService {
 
     Long saveProdInfo(ProcUseRequestVo vo);
 
-    List<ProcUseInfoVo> getProdUseList(Long prodUseId);
+    List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
 
     byte[] downloadRecord(ProcCommonVo vo);
 
@@ -45,4 +45,10 @@ public interface ProcCommonService {
     String deleteWorkRecode(Long workRecordId);
 
     int getProcStartCnt(WorkOrderInfoVo workProcId);
+
+    WorkOrderInfoVo getProcMemo(Long workProcId);
+
+    String updateProcMemo(ProcCommonVo vo);
+
+    WorkOrderInfoVo getStatusEndCheck(Long workProcId);
 }

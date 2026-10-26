@@ -353,7 +353,7 @@
     <select id="getProdUseList">
         select *
         from   tb_prod_use
-        where  prod_use_id = #{prodUseId}
+        where  prod_info_id = #{prodInfoId}
     </select>
 
     <update id="updateProdByWorkOrderProc">
@@ -609,20 +609,15 @@
              ,a.packing_spec_value
              ,a.unitQty
              ,a.item_cd
-             ,b.lot_no
-             ,b.storage_cd
-             ,b.bad_qty
-             ,b.work_Bad_Qty
-             ,b.tot_use_qty
+             ,a.req_qty
+             ,a.bad_qty
+             ,a.work_Bad_Qty
              ,a.prod_info_id
-             ,b.prod_use_id
-             ,b.use_qty
+             ,a.use_qty
              ,e.mat_name
              ,i.item_name
              ,i.unit
         from  tb_prod_info a
-              left join tb_prod_use b
-                        on b.prod_info_id = a.prod_info_id
               left join tb_item_mst i
                         on i.item_cd = a.item_cd
               left join tb_item_detail e
@@ -637,4 +632,15 @@
         and    proc_status != '00'
     </select>
 
+    <select id="getStatusEndCheck">
+        select  b.batch_status
+             ,a.proc_status
+             ,a.work_proc_id
+             ,a.work_batch_id
+             ,a.work_order_id
+        from   TB_WORK_ORDER_PROC a
+                   join TB_WORK_ORDER_BATCH b
+                        on a.work_batch_id = b.work_batch_id
+        where  a.work_proc_id = #{workProcId}
+    </select>
 </mapper>

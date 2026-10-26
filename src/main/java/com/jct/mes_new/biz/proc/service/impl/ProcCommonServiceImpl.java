@@ -212,11 +212,11 @@ public class ProcCommonServiceImpl implements ProcCommonService {
 
     /**
      *  사용량 입력 조회
-     * @param prodUseId
+     * @param prodInfoId
      * @return
      */
-    public List<ProcUseInfoVo> getProdUseList(Long prodUseId){
-        return procCommonMapper.getProdUseList(prodUseId);
+    public List<ProcUseInfoVo> getProdUseList(Long prodInfoId){
+        return procCommonMapper.getProdUseList(prodInfoId);
     }
 
     public ProcProdInfoVo getProcProdInfo(ProcCommonVo vo){
@@ -262,6 +262,29 @@ public class ProcCommonServiceImpl implements ProcCommonService {
 
         return cntRes;
     }
+
+
+
+    public WorkOrderInfoVo getProcMemo(Long workProcId){
+        String procCd = "";
+        return workOrderMapper.getWorkOrderProcInfo(procCd, workProcId);
+    }
+
+    public String updateProcMemo(ProcCommonVo vo){
+        String userId = UserUtil.getUserId();
+        vo.setUserId(userId);
+
+        if ( procCommonMapper.updateProcEtc(vo) <= 0 ) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+        return "저장했습니다.";
+    }
+
+    public WorkOrderInfoVo getStatusEndCheck(Long workProcId){
+        return procCommonMapper.getStatusEndCheck(workProcId);
+    }
+
 
 
     /**

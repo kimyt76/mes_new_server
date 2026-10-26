@@ -6,6 +6,7 @@ import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.biz.work.vo.WorkOrderItemVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.common.ApiResponse;
 import com.jct.mes_new.config.common.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -97,8 +98,8 @@ public class ProcCommonController {
     }
 
     @GetMapping("/getProdUseList/{id}")
-    public List<ProcUseInfoVo> getProdUseList (@PathVariable("id") Long prodUseId) {
-        return  procCommonService.getProdUseList(prodUseId);
+    public List<ProcUseInfoVo> getProdUseList (@PathVariable("id") Long prodInfoId) {
+        return  procCommonService.getProdUseList(prodInfoId);
     }
 
     @PostMapping("/getProcProdInfo")
@@ -122,6 +123,25 @@ public class ProcCommonController {
         return  procCommonService.getProcStartCnt(vo);
     }
 
+
+    @GetMapping("/getStatusEndCheck/{id}")
+    public WorkOrderInfoVo getStatusEndCheck(@PathVariable("id") Long workProcId) {
+        return  procCommonService.getStatusEndCheck(workProcId);
+    }
+
+
+
+
+    @GetMapping("/getProcMemo/{id}")
+    public WorkOrderInfoVo getProcMemo(@PathVariable("id") Long workProcId ) {
+        return procCommonService.getProcMemo(workProcId);
+    }
+
+    @PostMapping("/updateProcMemo")
+    public ResponseEntity<ApiResponse<Void>> updateProcMemo(@RequestBody ProcCommonVo vo) {
+        String result = procCommonService.updateProcMemo(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
 
 
 

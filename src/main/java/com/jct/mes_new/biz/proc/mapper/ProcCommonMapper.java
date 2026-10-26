@@ -63,10 +63,10 @@ public interface ProcCommonMapper {
 
     /**
      * 사용량 등록 조회
-     * @param prodUseId
+     * @param prodInfoId
      * @return
      */
-    List<ProcUseInfoVo> getProdUseList(Long prodUseId);
+    List<ProcUseInfoVo> getProdUseList(Long prodInfoId);
 
     /**
      * 투입량 업데이트
@@ -123,4 +123,6 @@ public interface ProcCommonMapper {
     List<ProcUseInfoVo> getProdListNoBom(Long workProcId);
 
     int getProcStartCnt(@Param("procCd") String procCd, @Param("workProcId") Long workProcId);
+
+    WorkOrderInfoVo getStatusEndCheck(Long workProcId);
 }
