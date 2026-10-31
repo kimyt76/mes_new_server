@@ -109,6 +109,9 @@
                 ,item_name
                 ,item_type_cd
                 ,spec
+                ,in_price
+                ,supply_price
+                ,vat_price
                 ,qty
                 ,lot_no
                 ,test_no
@@ -127,6 +130,9 @@
             ,#{itemName}
             ,#{itemTypeCd}
             ,#{spec}
+            ,#{inPrice}
+            ,#{supplyPrice}
+            ,#{vatPrice}
             ,#{qty}
             ,#{lotNo}
             ,#{testNo}
@@ -159,6 +165,9 @@
     <update id="updateTranItem">
             UPDATE  tb_inv_tran_item
             SET      spec         = #{spec}
+                    ,in_price     = #{inPrice}
+                    ,supply_price = #{supplyPrice}
+                    ,vat_price    = #{vatPrice}
                     ,qty          = #{qty}
                     ,lot_no       = #{lotNo}
                     ,etc          = #{etc}
@@ -198,6 +207,15 @@
         set    qc_status = #{qcStatus}
         where  tran_item_id = #{tranItemId}
     </select>
+
+    <update id="updateTranItemQty">
+        update tb_inv_tran_item
+        set    qty          = #{qty}
+              ,upd_id       = #{userId}
+              ,upd_dt       = GETDATE()
+        where  tran_id = #{tranId}
+        and    test_no = #{testNo}
+    </update>
 
 
 </mapper>

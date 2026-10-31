@@ -51,4 +51,6 @@ public interface ProcCommonService {
     String updateProcMemo(ProcCommonVo vo);
 
     WorkOrderInfoVo getStatusEndCheck(Long workProcId);
+
+    void updateReworkInfo(WorkOrderInfoVo vo);
 }

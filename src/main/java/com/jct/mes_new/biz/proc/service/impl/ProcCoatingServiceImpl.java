@@ -4,6 +4,7 @@ import com.jct.mes_new.biz.base.mapper.ItemMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcCoatingMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.service.ProcCoatingService;
+import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.*;
 import com.jct.mes_new.biz.purchase.mapper.TranMapper;
 import com.jct.mes_new.biz.purchase.vo.TranItemVo;
@@ -21,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,12 +33,11 @@ import java.util.List;
 public class ProcCoatingServiceImpl implements ProcCoatingService {
 
     private final ProcCoatingMapper procCoatingMapper;
-    private final ItemMapper itemMapper;
     private final ItemTestMapper itemTestMapper;
     private final WorkOrderMapper workOrderMapper;
     private final ProcCommonMapper procCommonMapper;
     private final TranMapper tranMapper;
-
+    private final ProcCommonService procCommonService;
 
     @Transactional(rollbackFor = BusinessException.class)
     public String startProcCoating(ProcCoatingVo vo) {
@@ -47,7 +49,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         procCommonVo.setBatchStatus(vo.getBatchStatus());
         procCommonVo.setUserId(userId);
 
-        if ( procCommonMapper.updateBatchStatus(procCommonVo) <= 0 ) {
+        if (procCommonMapper.updateBatchStatus(procCommonVo) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
         //코팅에 제조 테스트 번호 추가
@@ -57,11 +59,11 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         String testNo = prefix + String.format("%03d", nextSeq);
 
         vo.setTestNo(testNo);
-        if ( procCoatingMapper.startProcCoating(vo) <= 0  ){
+        if (procCoatingMapper.startProcCoating(vo) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
 
-        WorkOrderInfoVo workOrderInfo =  workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
+        WorkOrderInfoVo workOrderInfo = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
 
         //시험번호 등록
         ItemTestVo itemTestVo = new ItemTestVo();
@@ -87,15 +89,15 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         itemTestVo.setEndYn("N");
         itemTestVo.setUserId(userId);
 
-        if ( itemTestMapper.insertItemTestNo(itemTestVo) <= 0 ) {
+        if (itemTestMapper.insertItemTestNo(itemTestVo) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
         //여기에 prod_info 에 등록 로직 추가
         List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
-        if ( prodList.isEmpty() ){
-            for ( ProcUseInfoVo item : prodList ){
-                if ( "".equals(item.getMatName()) || item.getMatName() == null ){
+        if (prodList.isEmpty()) {
+            for (ProcUseInfoVo item : prodList) {
+                if ("".equals(item.getMatName()) || item.getMatName() == null) {
                     item.setUserId(userId);
                     item.setWorkProcId(vo.getWorkProcId());
                     procCommonMapper.insertProdInfo(item);
@@ -109,16 +111,95 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
 
     /**
      * 코팅 작업종료
+     *
      * @param vo
      * @return
      */
-    @Transactional(rollbackFor = BusinessException.class)
-    public String completeCoating(ProcCoatingVo vo){
+    @Transactional(rollbackFor = Exception.class)
+    public String completeCoating(ProcCoatingVo vo) {
         String userId = UserUtil.getUserId();
+        Long workProcId = vo.getWorkProcId();
 
-        //벌크 제품 입고
-        //재고 마스터
-        WorkOrderInfoVo workOrder = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
+        // 1. 동일 공정 잠금 및 재고 상태 조회
+        WorkOrderInfoVo tranStatus = procCommonMapper.getCoatingTranStatus(workProcId);
+
+        if (tranStatus == null) {
+            throw new BusinessException("작업공정 정보가 없습니다.");
+        }
+
+        //완료 이력이 있는지 확인
+        WorkOrderInfoVo workOrder = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), workProcId);
+
+        //공정에 수량 업데이트
+        ProcUseInfoVo procUseInfoVo = procCommonMapper.getProdUseQty(workProcId);
+        workOrder.setUserId(userId);
+        workOrder.setProdQty(procUseInfoVo.getProdQty());
+        workOrder.setUseQty(procUseInfoVo.getUseQty());
+
+        //수욜 공식이 생기면
+        BigDecimal prodYield = BigDecimal.ZERO;
+        if (procUseInfoVo.getProdQty() != null && procUseInfoVo.getUseQty() != null
+                && procUseInfoVo.getUseQty().compareTo(BigDecimal.ZERO) > 0) {
+
+            prodYield = procUseInfoVo.getProdQty()
+                    .divide(procUseInfoVo.getUseQty(), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+        workOrder.setProdYield(prodYield);
+        workOrderMapper.updateProdQty(workOrder);
+
+        Long inTranId = tranStatus.getInTranId();
+        Long outTranId = tranStatus.getOutTranId();
+
+        String tranYn = tranStatus.getTranYn();
+
+        boolean hasIn = inTranId != null;
+        boolean hasOut = outTranId != null;
+        boolean completed = "Y".equals(tranYn);
+
+        // 4. 비정상 상태 차단
+        if (hasIn != hasOut) {
+            throw new BusinessException(
+                    "입고 및 출고 전표 정보가 일치하지 않습니다."
+            );
+        }
+
+        if (completed && !hasIn) {
+            throw new BusinessException(
+                    "재고 처리 완료 상태이나 전표 정보가 없습니다."
+            );
+        }
+
+        if (!completed && hasIn) {
+            throw new BusinessException(
+                    "재고 전표는 존재하지만 완료 상태가 아닙니다."
+            );
+        }
+
+        //배치 업데이트
+        ProcCommonVo procCommonVo = new ProcCommonVo();
+        procCommonVo.setWorkBatchId(vo.getWorkBatchId());
+        procCommonVo.setBatchStatus(vo.getBatchStatus());
+        procCommonVo.setWorkProcId(vo.getWorkProcId());
+        procCommonVo.setProcStatus(vo.getProcStatus());
+        procCommonVo.setUserId(userId);
+
+        if (procCommonMapper.updateBatchStatus(procCommonVo) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+        //proc 업데이트
+        if (procCommonMapper.updateProcStatus(procCommonVo) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+        //수정건
+        if (workOrder.getInTranId() != null) {
+            procCommonService.updateReworkInfo(workOrder);
+            return "수정되었습니다.";
+        }
+
+        //벌크 제품 입고 는 무조건 구역별 현장창고로
         TranVo invMst = new TranVo();
 
         invMst.setTranDate(LocalDate.now());
@@ -126,22 +207,22 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         invMst.setAreaCd(workOrder.getAreaCd());
         invMst.setTarStorageCd(workOrder.getStorageCd());
         String storageCd = "";
-        if ( "A001".equals(workOrder.getAreaCd())){
+        if ("A001".equals(workOrder.getAreaCd())) {
             storageCd = "WS005";
-        }else if ( "A002".equals(workOrder.getAreaCd())){
+        } else if ("A002".equals(workOrder.getAreaCd())) {
             storageCd = "WA005";
-        }else{
+        } else {
             storageCd = "WS005";
         }
         invMst.setSrcStorageCd(storageCd);
-        invMst.setManagerId(userId);
+        invMst.setManagerId(workOrder.getManagerId());
         invMst.setPoNo(workOrder.getPoNo());
         invMst.setEndYn("Y");
         invMst.setTranStatus("C");
         invMst.setPoNo(workOrder.getPoNo());
         invMst.setUserId(userId);
 
-        if (  tranMapper.insertTranMst(invMst) <= 0 ){
+        if (tranMapper.insertTranMst(invMst) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
@@ -157,24 +238,13 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         tranItemVo.setQty(workOrder.getProdQty());
         tranItemVo.setUserId(userId);
 
-        if ( tranMapper.insertTranItem(tranItemVo) <= 0 ){
+        if (tranMapper.insertTranItem(tranItemVo) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        //배치 업데이트
-        ProcCommonVo procCommonVo = new ProcCommonVo();
-        procCommonVo.setWorkBatchId(vo.getWorkBatchId());
-        procCommonVo.setBatchStatus(vo.getBatchStatus());
-        procCommonVo.setWorkProcId(vo.getWorkProcId());
-        procCommonVo.setProcStatus(vo.getProcStatus());
-        procCommonVo.setUserId(userId);
 
-        if( procCommonMapper.updateBatchStatus(procCommonVo)  <= 0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-        //proc 업데이트
-        if( procCommonMapper.updateProcStatus(procCommonVo)  <= 0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        //벌크제품 tran_id 업데이트   in_tran_id
+        workOrder.setInTranId(invMst.getTranId());
+        procCommonMapper.updateInTranId(workOrder);
 
         //반제품 제조출고
         //재고 마스터
@@ -189,42 +259,42 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         invMst2.setPoNo(workOrder.getPoNo());
         invMst2.setUserId(userId);
 
-        if (  tranMapper.insertTranMst(invMst2) <= 0 ){
+        if (tranMapper.insertTranMst(invMst2) <= 0) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
         //재고 상세
-        List<ProcUseInfoVo> prodUseList = procCommonMapper.getProdUse(vo.getWorkProcId());
-        for( ProcUseInfoVo procUseInfo : prodUseList ){
+        List<ProcUseInfoVo> prodUseList = procCommonMapper.getProdUseWorkProcIdList(vo.getWorkProcId());
+        for (ProcUseInfoVo procUseInfo : prodUseList) {
             //재고 상세
             TranItemVo tranItemVo2 = new TranItemVo();
 
             tranItemVo2.setTranId(invMst2.getTranId());
-            tranItemVo2.setItemTypeCd("M3");
+            tranItemVo2.setItemTypeCd(procUseInfo.getItemTypeCd());
             tranItemVo2.setItemCd(procUseInfo.getItemCd());
             tranItemVo2.setItemName(procUseInfo.getItemName());
             tranItemVo2.setLotNo(procUseInfo.getLotNo());
             tranItemVo2.setTestNo(procUseInfo.getTestNo());
             tranItemVo2.setExpiryDate(procUseInfo.getExpiryDate());
-            tranItemVo2.setQty(procUseInfo.getUseQty());
+            tranItemVo2.setQty(procUseInfoVo.getUseQty());
             tranItemVo2.setInYn("Y");
             tranItemVo2.setQcStatus("PASS");
             tranItemVo2.setUserId(userId);
 
-            if ( tranMapper.insertTranItem(tranItemVo2) <= 0 ){
+            if (tranMapper.insertTranItem(tranItemVo2) <= 0) {
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
         }
-//        List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
-//        if ( !prodList.isEmpty() ){
-//            for ( ProcUseInfoVo item : prodList ){
-//                item.setUserId(userId);
-//                item.setWorkProcId(vo.getWorkProcId());
-//                procCommonMapper.insertProdInfo(item);
-//            }
-//        }
-        return  "저장되었습니다.";
-    }
 
+        //제조출고 tran_id 업데이트
+        workOrder.setOutTranId(invMst2.getTranId());
+        procCommonMapper.updateOutTranId(workOrder);
+
+        //작업완료 시간 및 재고이동 완료 업데이트
+        workOrder.setTranYn("Y");
+        procCommonMapper.updateProcCompleteTranYn(workOrder);
+
+        return "저장되었습니다.";
+    }
 
 
 }

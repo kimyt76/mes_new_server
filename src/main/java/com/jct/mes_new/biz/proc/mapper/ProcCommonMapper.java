@@ -6,6 +6,7 @@ import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -125,4 +126,17 @@ public interface ProcCommonMapper {
     int getProcStartCnt(@Param("procCd") String procCd, @Param("workProcId") Long workProcId);
 
     WorkOrderInfoVo getStatusEndCheck(Long workProcId);
+
+    ProcUseInfoVo getProdUseQty(Long workProcId);
+
+    //
+    void updateInTranId(WorkOrderInfoVo workOrder);
+
+    void updateOutTranId(WorkOrderInfoVo workOrder);
+
+    void updateProcCompleteTranYn(WorkOrderInfoVo workOrder);
+
+    List<ProcUseInfoVo> getProdUseWorkProcIdList(Long workProcId);
+
+    WorkOrderInfoVo getCoatingTranStatus(Long workProcId);
 }

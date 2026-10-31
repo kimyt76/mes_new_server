@@ -7,9 +7,15 @@ import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
 import com.jct.mes_new.biz.proc.service.ProcCommonService;
 import com.jct.mes_new.biz.proc.vo.*;
+import com.jct.mes_new.biz.purchase.mapper.TranMapper;
+import com.jct.mes_new.biz.purchase.vo.TranItemVo;
+import com.jct.mes_new.biz.qc.mapper.ItemTestMapper;
 import com.jct.mes_new.biz.qc.mapper.ProcTestTypeMapper;
+import com.jct.mes_new.biz.qc.mapper.QcTestMapper;
+import com.jct.mes_new.biz.qc.vo.ItemTestVo;
 import com.jct.mes_new.biz.qc.vo.ProcTestTypeVo;
 import com.jct.mes_new.biz.qc.vo.QcProcTestVo;
+import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.UserUtil;
@@ -40,8 +46,9 @@ public class ProcCommonServiceImpl implements ProcCommonService {
     private final ProcCommonMapper procCommonMapper;
     private final ItemMapper itemMapper;
     private final WorkOrderMapper workOrderMapper;
-    private final ProcTestTypeMapper procTestTypeMapper;
-
+    private final QcTestMapper qcTestMapper;
+    private final ItemTestMapper itemTestMapper;
+    private final TranMapper tranMapper;
 
 
     /**
@@ -285,6 +292,57 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         return procCommonMapper.getStatusEndCheck(workProcId);
     }
 
+    public void updateReworkInfo(WorkOrderInfoVo vo) {
+        String userId = UserUtil.getUserId();
+
+        //생산재고, 품질테스트, 시험번호 수량 수정
+        TranItemVo tranItemVo = new TranItemVo();
+        QcTestVo qcTestVo = new QcTestVo();
+        ItemTestVo itemTestVo = new ItemTestVo();
+
+        TranItemVo tranItemVo2 = new TranItemVo();
+        //생산한 재고 수량 업데이트
+        Long inTranId = vo.getInTranId();
+        if ( inTranId != null ) {
+            tranItemVo.setTranId(inTranId);
+            tranItemVo.setUserId(userId);
+            tranItemVo.setQty(vo.getProdQty());
+            tranItemVo.setTestNo(vo.getTestNo());
+            tranMapper.updateTranItemQty(tranItemVo);
+
+            if ("PRC003".equals(vo.getProcCd()) || "PRC004".equals(vo.getProcCd())  ) {
+                //품질유형 수량에 업데이트 testNo
+                qcTestVo.setReqQty(vo.getProdQty());
+                qcTestVo.setUserId(userId);
+                qcTestVo.setTestNo(vo.getTestNo());
+                qcTestMapper.updateQcTestQty(qcTestVo);
+            }
+
+            //시험번호 수량에 업데이트
+            itemTestVo.setTestNo(vo.getTestNo());
+            itemTestVo.setQty(vo.getProdQty());
+            itemTestVo.setUserId(userId);
+            int cnt = itemTestMapper.updateQty(vo.getTestNo(), vo.getProdQty(), userId);
+        }
+        //제조출고한 재고 수량 업데이트
+        List<ProcUseInfoVo> useList = procCommonMapper.getProdUseWorkProcIdList(vo.getWorkProcId());
+        if (!useList.isEmpty()) {
+            for(ProcUseInfoVo useInfo : useList){
+                log.info("========================useInfo========= : " + useInfo);
+                tranItemVo2.setUserId(userId);
+                tranItemVo2.setQty(useInfo.getUseQty());
+                tranItemVo2.setTestNo(useInfo.getTestNo());
+                tranItemVo2.setTranId(vo.getOutTranId());
+                //tranItemVo2.setItemName(useInfo.getItemName());
+                //tranItemVo2.setLotNo(useInfo.getLotNo());
+
+                tranMapper.updateTranItemQty(tranItemVo2);
+            }
+        }
+
+        vo.setTranYn("Y");
+        procCommonMapper.updateProcCompleteTranYn(vo);
+    }
 
 
     /**

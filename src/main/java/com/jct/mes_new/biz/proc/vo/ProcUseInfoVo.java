@@ -31,6 +31,7 @@ public class ProcUseInfoVo {
     private BigDecimal reqQty;
     private BigDecimal badQty;
     private BigDecimal useQty;
+    private BigDecimal prodQty;
     private BigDecimal totUseQty;
     private BigDecimal workBadQty;
     private String unit;

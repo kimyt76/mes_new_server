@@ -19,6 +19,7 @@
                  ,a.item_cd
                  ,d.work_proc_id
                  ,d.proc_cd
+                 ,id.charging_qtys
         from    TB_WORK_ORDER_MST a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_order_id = a.work_order_id
@@ -32,6 +33,8 @@
                 and d.proc_cd = 'PRC005'
                 join tb_item_mst i
                 on i.item_cd = a.item_cd
+                join tb_item_detail id
+                on i.item_cd = id.item_cd
         where  b.batch_status != '99' and b.batch_status >= '22'
         and    d.proc_order_date between #{strDate} and #{endDate}
         <if test="areaCd != null and areaCd != ''">
@@ -286,11 +289,11 @@
         where  qc_proc_test_mst_id = #{qcProcTestMstId}
     </select>
 
-    <select id="getProcItem">
+    <select id="getProcItem" resultType="com.jct.mes_new.biz.work.vo.WorkOrderInfoVo">
         select    a.work_start_time
                  ,a.work_end_time
                  ,a.order_qty as orderQty
-                 ,b.charging_cnt
+                 ,b.charging_cnt as chargingCnt
                  ,b.capping_range
                  ,b.essence_std
         from   TB_WORK_ORDER_PROC a

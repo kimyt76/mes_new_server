@@ -479,5 +479,11 @@
         where  qc_test_type_method_id = #{qcTestTypeMethodId}
     </update>
 
-
+    <update id="updateQcTestQty">
+        update tb_qc_test_mst
+        set     req_qty   = #{reqQty}
+               ,upd_id    = #{userId}
+               ,upd_dt    = getdate()
+        where  test_no    = #{testNo}
+    </update>
 </mapper>
