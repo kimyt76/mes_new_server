@@ -1,8 +1,6 @@
 package com.jct.mes_new.biz.proc.service.impl;
 
 import com.jct.mes_new.biz.base.mapper.ItemMapper;
-import com.jct.mes_new.biz.base.vo.ItemVo;
-import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.proc.mapper.ProcCoatingMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.service.ProcCoatingService;
@@ -12,28 +10,19 @@ import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
 import com.jct.mes_new.biz.qc.mapper.ItemTestMapper;
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
-import com.jct.mes_new.biz.qc.vo.QcTestTypeVo;
 import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
 import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
 import com.jct.mes_new.config.util.CodeUtil;
-import com.jct.mes_new.config.util.ExcelStyleUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Footer;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -225,16 +214,14 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
         }
-
-        List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
-        if ( !prodList.isEmpty() ){
-            for ( ProcUseInfoVo item : prodList ){
-                item.setUserId(userId);
-                item.setWorkProcId(vo.getWorkProcId());
-                procCommonMapper.insertProdInfo(item);
-            }
-        }
-
+//        List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
+//        if ( !prodList.isEmpty() ){
+//            for ( ProcUseInfoVo item : prodList ){
+//                item.setUserId(userId);
+//                item.setWorkProcId(vo.getWorkProcId());
+//                procCommonMapper.insertProdInfo(item);
+//            }
+//        }
         return  "저장되었습니다.";
     }
 
