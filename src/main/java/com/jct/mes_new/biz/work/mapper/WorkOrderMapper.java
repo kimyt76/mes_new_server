@@ -5,6 +5,7 @@ import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -49,4 +50,7 @@ public interface WorkOrderMapper {
 
     void updateCancelWorkOrderProc(Long workProcId);
     void updateCancelWorkOrderBatch(Long workProcId);
+
+    void updateProdQty(WorkOrderInfoVo vo);
+
 }

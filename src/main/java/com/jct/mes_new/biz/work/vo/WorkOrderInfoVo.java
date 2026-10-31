@@ -28,6 +28,7 @@ public class WorkOrderInfoVo {
     private String areaCd;
     private String areaName;
     private String clientId;
+    private String clientCd;
     private String clientName;
     private String managerId;
     private String managerName;
@@ -53,6 +54,7 @@ public class WorkOrderInfoVo {
     private BigDecimal prodQty;
     private BigDecimal makeQty;
     private BigDecimal prodYield;
+    private BigDecimal coatingProdQty;
     private String workEquipmentCd;
     private String procStatus;
     private String procStatusName;
