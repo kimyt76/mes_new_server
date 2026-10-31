@@ -121,7 +121,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         Long workProcId = vo.getWorkProcId();
 
         // 1. 동일 공정 잠금 및 재고 상태 조회
-        WorkOrderInfoVo tranStatus = procCommonMapper.getCoatingTranStatus(workProcId);
+        WorkOrderInfoVo tranStatus = procCommonMapper.getTranStatus(workProcId);
 
         if (tranStatus == null) {
             throw new BusinessException("작업공정 정보가 없습니다.");

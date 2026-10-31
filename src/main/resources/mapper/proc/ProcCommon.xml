@@ -705,7 +705,7 @@
         where  a.work_proc_id =#{workProcId}
     </select>
 
-    <select id="getCoatingTranStatus">
+    <select id="getTranStatus">
         SELECT
             work_proc_id AS workProcId
              ,in_tran_id   AS inTranId

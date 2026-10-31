@@ -138,5 +138,5 @@ public interface ProcCommonMapper {
 
     List<ProcUseInfoVo> getProdUseWorkProcIdList(Long workProcId);
 
-    WorkOrderInfoVo getCoatingTranStatus(Long workProcId);
+    WorkOrderInfoVo getTranStatus(Long workProcId);
 }
