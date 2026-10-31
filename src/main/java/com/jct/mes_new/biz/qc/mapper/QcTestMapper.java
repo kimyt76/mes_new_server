@@ -74,4 +74,6 @@ public interface QcTestMapper {
     int insertQcTestTypeMethod(QcTestTypeMethodVo item);
 
     List<QcTestTypeMethodVo> getQcTestTypeMethodList(Long qcTestId);
+
+    void updateQcTestQty(QcTestVo qcTestVo);
 }
