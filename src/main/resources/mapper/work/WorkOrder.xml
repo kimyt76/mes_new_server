@@ -49,6 +49,9 @@
         <if test="clientName != null and clientName != ''">
             AND b.client_Name LIKE '%' + #{clientName} + '%'
         </if>
+        <if test="itemName != null and itemName != ''">
+            AND c.item_Name LIKE '%' + #{itemName} + '%'
+        </if>
         <if test="managerId != null and managerId != ''">
             AND d.user_id = #{managerId}
         </if>
@@ -286,9 +289,12 @@
                  ,c.po_no
                  ,a.prod_date
                  ,a.proc_order_date
-               --  ,isnull((select (isnull(use_qty, 0)+ isnull(work_Bad_Qty, 0)+ isnull(bad_Qty, 0))
-               --           from tb_prod_info where work_proc_id = a.work_proc_id ), 0) as useQty
                  ,a.prod_yield
+                 ,a.etc
+                 ,a.memo
+                 ,a.in_tran_id
+                 ,a.out_tran_id
+                 ,x.coating_prod_Qty
         from   TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
@@ -298,6 +304,17 @@
                 on d.equipment_cd = a.work_equipment_Cd
                 left join tb_users w
                 on w.user_id = a.manager_id
+                left join (
+                    select SUM(prod_Qty) as coating_prod_Qty
+                         ,work_proc_id
+                    from   tb_work_record
+                    group by work_proc_id
+                ) x
+              on x.work_proc_id  =  (select work_proc_id
+                                     from   TB_WORK_ORDER_PROC
+                                     where  proc_cd = 'PRC003'
+                                       and  work_batch_id = a.work_batch_id
+                                    )
         where  a.work_proc_id = #{workProcId}
     </select>
 
@@ -392,15 +409,25 @@
 
     <update id="updateCancelWorkOrderProc">
         update TB_WORK_ORDER_PROC
-        set proc_status = '99'
-            ,end_yn  ='Y'
+        set     proc_status = '99'
+               ,end_yn   ='Y'
         where work_proc_id = #{workProcId}
     </update>
     <update id="updateCancelWorkOrderBatch">
         update TB_WORK_ORDER_BATCH
-        set   batch_status = '99'
+        set    batch_status = '99'
         where work_batch_id = (
              select work_batch_id from TB_WORK_ORDER_PROC where work_proc_id = #{workProcId}
             )
+    </update>
+
+    <update id="updateProdQty">
+        update TB_WORK_ORDER_PROC
+        set     prod_qty = #{prodQty}
+               ,use_qty  = #{useQty}
+               ,prod_yield = #{prodYield}
+              ,upd_id   = #{userId}
+              ,upd_dt   = getDate()
+        where work_proc_id = #{workProcId}
     </update>
 </mapper>
