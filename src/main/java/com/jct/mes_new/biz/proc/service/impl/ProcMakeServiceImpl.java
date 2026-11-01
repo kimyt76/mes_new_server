@@ -212,13 +212,19 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         }
 
         //공정시간  여과포 신규 생성
-        MakeEtcVo makeEtcVo = new MakeEtcVo();
-        makeEtcVo.setWorkProcId(vo.getWorkProcId());
-        makeEtcVo.setUserId(userId);
-        if( procMakeMapper.insertMakeEtcInfo(makeEtcVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_CREATED);
-        }
+        int makeEtcCnt = procMakeMapper.getMakeEtcCnt(vo.getWorkProcId());
 
+        MakeEtcVo makeEtcVo = new MakeEtcVo();
+
+        if(makeEtcCnt > 0 ) {
+            makeEtcVo.setWorkProcId(vo.getWorkProcId());
+            makeEtcVo.setMaker(userId);
+            makeEtcVo.setUserId(userId);
+        }else{
+            if( procMakeMapper.insertMakeEtcInfo(makeEtcVo) <= 0) {
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
+            }
+        }
         return "제조작업 시작하세요";
     }
 
