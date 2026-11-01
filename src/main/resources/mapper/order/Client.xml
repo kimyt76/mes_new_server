@@ -41,6 +41,8 @@
                 ,ad.location
                 ,isnull(a.manager_rank, a.manager_rank2)  AS managerRank
                 ,a.client_id AS clientId
+                ,a.customer_cd AS customerCd
+                ,a.client_cd AS clientCd
             FROM tb_client_mst a
                 LEFT JOIN tb_client_deal d1
                 ON d1.client_id = a.client_id
@@ -111,6 +113,8 @@
                  ,a.manager_rank
                  ,a.manager_rank2
                  ,a.client_id
+                 ,a.customer_cd AS customerCd
+                 ,a.client_cd AS clientCd
                  ,isnull(a.first_trade_Date, (select min(contract_date) from tb_contract_mst where client_id = a.client_id)) as first_trade_Date
         from  tb_client_mst	 a
         where  a.client_id = #{clientId}
@@ -183,7 +187,7 @@
         SET    business_no       = #{businessNo}
               ,client_name       = #{clientName}
               ,client_cd         = #{businessNo}
-              ,customer_cd       = #{clientName}
+              ,customer_cd       = #{businessNo}
               ,client_type       = #{clientType}
               ,client_type_name  = #{clientTypeName}
               ,trade_type        = #{tradeType}
@@ -210,8 +214,6 @@
               ,upd_dt            = GETDATE()
         WHERE client_id = #{clientId};
     </update>
-
-
 
     <select id="getClientApprovalList">
         SELECT   client_approval_id AS clientApprovalId
@@ -394,7 +396,7 @@
         VALUES
             ( #{clientId}
             ,#{businessManagerName}
-            ,#{regDate}
+            ,#{regDate, jdbcType=DATE}
             ,#{brandName}
             ,#{deptName}
             ,#{managerName}
@@ -412,7 +414,7 @@
     <update id="updateClientManager">
         UPDATE tb_client_manager
         SET    business_manager_name = #{businessManagerName}
-              ,reg_date              = #{regDate}
+              ,reg_date              = #{regDate, jdbcType=DATE}
               ,brand_name            = #{brandName}
               ,dept_name             = #{deptName}
               ,manager_name          = #{managerName}
@@ -436,8 +438,6 @@
             #{id}
         </foreach>
     </delete>
-
-
 
     <select id="getClientAddressList">
         SELECT client_address_id   AS clientAddressId
@@ -494,7 +494,6 @@
         </foreach>
     </delete>
 
-
     <select id="getClientHistoryList">
         SELECT client_history_id       AS clientHistoryId
              ,client_id        AS clientId
@@ -523,7 +522,7 @@
         VALUES
             (   #{clientId}
                 ,#{managerName}
-                ,#{changeDate}
+                ,#{changeDate, jdbcType=DATE}
                 ,#{historyContents}
                 ,#{orderDist}
                 ,#{userId}
@@ -533,7 +532,7 @@
     <update id="updateClientHistory">
         UPDATE tb_client_history
         SET manager_name     = #{managerName}
-          ,change_date      = #{changeDate}
+          ,change_date      = #{changeDate, jdbcType=DATE}
           ,history_contents = #{historyContents}
           ,order_dist       = #{orderDist}
           ,upd_id           = #{userId}
@@ -548,7 +547,6 @@
             #{id}
         </foreach>
     </delete>
-
 
 
 </mapper>
