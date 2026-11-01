@@ -688,7 +688,7 @@
 
     <select id="getProdUseWorkProcIdList">
         select b.prod_info_id
-             ,b.use_qty
+             ,isnull(b.use_qty, 0)+ isnull(b.work_Bad_Qty, 0)+ isnull(b.bad_qty, 0) as use_qty
              ,b.test_no
              ,b.lot_no
              ,b.item_cd

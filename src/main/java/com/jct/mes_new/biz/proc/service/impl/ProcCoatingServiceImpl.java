@@ -149,6 +149,23 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         workOrder.setProdYield(prodYield);
         workOrderMapper.updateProdQty(workOrder);
 
+        //배치 업데이트
+        ProcCommonVo procCommonVo = new ProcCommonVo();
+        procCommonVo.setWorkBatchId(vo.getWorkBatchId());
+        procCommonVo.setBatchStatus(vo.getBatchStatus());
+        procCommonVo.setWorkProcId(vo.getWorkProcId());
+        procCommonVo.setProcStatus(vo.getProcStatus());
+        procCommonVo.setUserId(userId);
+
+        if (procCommonMapper.updateBatchStatus(procCommonVo) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+        //proc 업데이트
+        if (procCommonMapper.updateProcStatus(procCommonVo) <= 0) {
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+
+        /**************************** 재고 연결 정보 체크*****************************************************/
         Long inTranId = tranStatus.getInTranId();
         Long outTranId = tranStatus.getOutTranId();
 
@@ -177,35 +194,18 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
             );
         }
 
-        //배치 업데이트
-        ProcCommonVo procCommonVo = new ProcCommonVo();
-        procCommonVo.setWorkBatchId(vo.getWorkBatchId());
-        procCommonVo.setBatchStatus(vo.getBatchStatus());
-        procCommonVo.setWorkProcId(vo.getWorkProcId());
-        procCommonVo.setProcStatus(vo.getProcStatus());
-        procCommonVo.setUserId(userId);
-
-        if (procCommonMapper.updateBatchStatus(procCommonVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-        //proc 업데이트
-        if (procCommonMapper.updateProcStatus(procCommonVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-
-        //수정건
+        //공정 완료후 수정건일때 만 타야함
         if (workOrder.getInTranId() != null) {
             procCommonService.updateReworkInfo(workOrder);
             return "수정되었습니다.";
         }
-
+        /**************************** 재고 연결 정보 체크*****************************************************/
         //벌크 제품 입고 는 무조건 구역별 현장창고로
         TranVo invMst = new TranVo();
 
         invMst.setTranDate(LocalDate.now());
         invMst.setTranTypeCd("B");
         invMst.setAreaCd(workOrder.getAreaCd());
-        invMst.setTarStorageCd(workOrder.getStorageCd());
         String storageCd = "";
         if ("A001".equals(workOrder.getAreaCd())) {
             storageCd = "WS005";
@@ -215,6 +215,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
             storageCd = "WS005";
         }
         invMst.setSrcStorageCd(storageCd);
+        invMst.setTarStorageCd(workOrder.getStorageCd());
         invMst.setManagerId(workOrder.getManagerId());
         invMst.setPoNo(workOrder.getPoNo());
         invMst.setEndYn("Y");
