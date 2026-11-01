@@ -26,6 +26,8 @@ import java.util.Map;
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     private final PurchaseOrderMapper purchaseOrderMapper;
+    private final PurchaseMapper purchaseMapper;
+
 
     public List<PurchaseOrderVo.PurchaseOrderListVo> getPurchaseOrderList(PurchaseOrderVo vo){
         if( "M1".equals(vo.getItemTypeCd())) {
@@ -137,24 +139,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
     
     /**
-     * 구매 입력 후 발주품목 업데이트
-     * @param purOrderItemId
-     * @param userId
-     * @return
-     */
-    public int updateInYn(Long purOrderItemId, String userId){
-        int cnt = purchaseOrderMapper.updateInYn(purOrderItemId, userId);
-        if ( cnt <=0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-
-        return cnt;
-    }
-
-
-
-
-    /**
      *  이건 메일용
      */
     public PurchaseOrderRequestVo getPurchaseOrderInfoMail(Map<String, Object> map){
@@ -178,13 +162,20 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         purchaseOrderMapper.updateMailYn(purOrderId);
     }
 
-    public String updatePurchaseOrderItemEndYn(PurchaseOrderItemVo vo){
+    public String updatePurOrderItemEndYn(PurchaseOrderItemVo vo){
         String userId = UserUtil.getUserId();
 
         vo.setUserId(userId);
-        purchaseOrderMapper.updatePurchaseOrderItemEndYn(vo);
+        //발주품목 종결 여부 변경
+        purchaseOrderMapper.updatePurOrderItemEndYn(vo);
+
+        //발주품목과 연결된 입고품목 in_yn 변경
+        if(purchaseOrderMapper.updateInYn(vo.getPurOrderItemId(), vo.getInYn(), userId) <= 0){
+            throw new BusinessException(ErrorCode.FAIL_UPDATED);
+        }
+        Long purOrderId = purchaseMapper.getPurOrderIdByPurItemId(vo.getPurOrderItemId());
         //원료는 각각리스트라 해당 종료 후  나머지도 종료가 있는지 확인해서 마스터 endYn 에 종료  해줘야 함
-        this.updatePurchaseOrderEndYn(vo.purOrderId, userId);
+        this.updatePurchaseOrderEndYn(purOrderId, userId);
 
         return "수정되었습니다.";
     }

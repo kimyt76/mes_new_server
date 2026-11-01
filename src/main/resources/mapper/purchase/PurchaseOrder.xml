@@ -12,7 +12,7 @@
                 ,dbo.getStorageName(a.storage_cd) as storageName
                 ,b.qty
                 ,b.spec
-                ,case when b.in_yn ='Y' then b.qty else 0 end  as inQty
+                ,isnull(c.qty, 0) as inQty
                 ,b.supply_price
                 ,b.in_price
                 ,b.vat_price
@@ -29,6 +29,8 @@
         from    tb_pur_order_mst a
                 inner join tb_pur_order_item b
                 on a.pur_order_id = b.pur_order_id
+                left join tb_pur_item c
+                on c.pur_order_item_id = b.pur_order_item_id
         where  1=1
         <if test="strDate != null">
           and   a.pur_order_date between #{strDate} and #{endDate}
@@ -385,7 +387,8 @@
 
     <update id="updateInYn">
         update tb_pur_order_item
-        set  in_yn ='Y'
+        set  in_yn =#{inYn}
+            ,item_end_yn = #{inYn}
             ,upd_id = #{userId}
             ,upd_dt = getdate()
         where pur_order_item_id = #{purOrderItemId}
@@ -393,22 +396,26 @@
 
     <update id="updatePurchaseOrderEndYn">
         UPDATE tb_pur_order_mst
-        SET    end_yn = 'Y'
-              ,upd_id = #{userId}
-              ,upd_dt = getDate()
-        FROM tb_pur_order_mst m
-            JOIN (
-                SELECT pur_order_id
-                FROM   tb_pur_order_item
-                GROUP BY pur_order_id
-                HAVING COUNT(*) = COUNT(CASE WHEN in_yn = 'Y' THEN 1 END)
-            ) i ON m.pur_order_id = i.pur_order_id
-         where  m.pur_order_id = #{purOrderId}
+        SET end_yn = CASE WHEN EXISTS (
+                             SELECT 1
+                             FROM tb_pur_order_item
+                             WHERE pur_order_id = #{purOrderId}
+                         )
+                         AND NOT EXISTS (
+                             SELECT 1
+                             FROM tb_pur_order_item
+                             WHERE pur_order_id = #{purOrderId}
+                               AND ISNULL(in_yn, 'N') != 'Y'
+                         )   THEN 'Y' ELSE 'N' END,
+            upd_id = #{userId},
+            upd_dt = GETDATE()
+        WHERE pur_order_id = #{purOrderId}
     </update>
 
-    <update id="updatePurchaseOrderItemEndYn">
+    <update id="updatePurOrderItemEndYn">
         UPDATE tb_pur_order_item
-        SET    item_end_yn = 'Y'
+        SET    item_end_yn = #{itemEndYn}
+              ,in_yn      =  #{inYn}
               ,upd_id = #{userId}
               ,upd_dt = getDate()
         where  pur_order_item_id = #{purOrderItemId}
@@ -421,5 +428,10 @@
         where  pur_order_id = #{purOrderId}
     </update>
 
+    <select id="getPurOrderItemIds">
+        select pur_order_item_id
+        from   tb_pur_order_item
+        where  pur_order_id = #{purOrderId}
+    </select>
 
 </mapper>

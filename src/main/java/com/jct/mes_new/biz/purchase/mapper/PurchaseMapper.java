@@ -64,4 +64,10 @@ public interface PurchaseMapper {
     void deleteInvTranTestNo(String testNo);
     void deleteTranItemList(Long purId);
     void deleteTranMst(Long purId);
+
+    BigDecimal getTotalInQty(Long purOrderItemId);
+
+    Long getPurOrderIdByTestNo(String testNo);
+
+    Long getPurOrderIdByPurItemId(Long purItemId);
 }

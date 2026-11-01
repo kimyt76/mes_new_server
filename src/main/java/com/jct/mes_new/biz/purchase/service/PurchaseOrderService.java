@@ -58,11 +58,7 @@ public interface PurchaseOrderService {
      * @return
      */
     void updatePurchaseOrderEndYn(Long purOrderId, String userId);
-
-    int updateInYn(Long purOrderItemId, String userId);
-
-
-    String updatePurchaseOrderItemEndYn(PurchaseOrderItemVo vo);
+    String updatePurOrderItemEndYn(PurchaseOrderItemVo vo);
     String updatePurchaseOrderM2EndYn(PurchaseOrderVo vo);
 }
 

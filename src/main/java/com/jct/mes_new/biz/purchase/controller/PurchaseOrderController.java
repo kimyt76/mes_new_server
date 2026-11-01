@@ -108,9 +108,9 @@ public class PurchaseOrderController {
      * @param vo
      * @return
      */
-    @PostMapping("/updatePurchaseOrderItemEndYn")
-    public ResponseEntity<ApiResponse<Void>> updatePurchaseOrderItemEndYn(@RequestBody PurchaseOrderItemVo vo) {
-        String result = purchaseOrderService.updatePurchaseOrderItemEndYn(vo);
+    @PostMapping("/updatePurOrderItemEndYn")
+    public ResponseEntity<ApiResponse<Void>> updatePurOrderItemEndYn(@RequestBody PurchaseOrderItemVo vo) {
+        String result = purchaseOrderService.updatePurOrderItemEndYn(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
     }
 

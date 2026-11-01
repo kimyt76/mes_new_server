@@ -21,5 +21,6 @@ public class PurchaseOrderItemVo {
     public String itemMailYn;
     public String itemPrintYn;
     public String itemEndYn;
+    public String itemInYn;
     public String userId;
 }

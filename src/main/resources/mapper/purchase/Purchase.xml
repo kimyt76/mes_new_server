@@ -102,9 +102,12 @@
                  ,a.pur_order_item_id
                  ,b.tran_item_id
                  ,b.tran_id
+                 ,p.pur_order_id
         from     tb_pur_item a
                  left outer join tb_inv_tran_item b
                  on b.pur_item_id = a.pur_item_id
+                 left join tb_pur_order_item p
+                 on p.pur_order_item_id = a.pur_order_item_id
         where   a.pur_id = #{purId}
     </select>
 
@@ -179,6 +182,7 @@
         UPDATE  tb_pur_item
         SET      spec         = #{spec}
                 ,qty          = #{qty}
+                ,in_price     = #{inPrice}
                 ,supply_price = #{supplyPrice}
                 ,vat_price    = #{vatPrice}
                 ,lot_no       = #{lotNo}
@@ -272,7 +276,7 @@
     </select>
 
     <select id="getPurchaseItemInfo">
-        select *
+        select qty as orderQty
         from   tb_pur_order_item
         where  pur_order_item_id = #{purOrderItemId}
     </select>
@@ -296,4 +300,23 @@
         delete from tb_inv_tran_mst where pur_id = #{purId}
     </delete>
 
+    <select id="getTotalInQty">
+        SELECT ISNULL(SUM(qty), 0)
+        FROM  tb_pur_item
+        WHERE pur_order_item_id = #{purOrderItemId}
+    </select>
+
+    <select id="getPurOrderIdByTestNo">
+        select pur_order_id
+        from   tb_pur_order_item
+        where  pur_order_item_id = (select pur_order_item_id
+                                    from tb_pur_item
+                                    where test_no = #{testNo})
+    </select>
+
+    <select id="getPurOrderIdByPurItemId">
+        select pur_id
+        from tb_pur_item
+        where pur_order_item_id = #{purOrderItemId}
+    </select>
 </mapper>
