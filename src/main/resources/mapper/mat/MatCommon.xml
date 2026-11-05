@@ -38,7 +38,7 @@
             <foreach collection="list" item="item" separator="union all">
                 select  b.item_cd,
                         case when c.item_type_cd = 'M1' then sum(b.real_content) * #{item.qty} / 100
-                            else sum(b.qty) * #{item.qty} / 100 end as reqQty
+                            else sum(b.qty) * #{item.qty} / a.qty end as reqQty
                 from    tb_bom_mst a
                         join tb_bom_recipe b
                         on a.bom_id = b.bom_id
@@ -48,7 +48,7 @@
                 where a.default_yn = 'Y'
                 and a.bom_id = #{item.bomId}
                 and b.item_cd not in ('JRW00215', 'JRMSC00011')
-                group by b.item_cd, c.item_type_cd
+                group by b.item_cd, c.item_type_cd, a.qty
             </foreach>
             ) x
             group by x.item_cd
