@@ -61,9 +61,7 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         procCommonVo.setBatchStatus(vo.getBatchStatus());
         procCommonVo.setUserId(userId);
 
-        if ( procCommonMapper.updateBatchStatus(procCommonVo) <= 0 ) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(procCommonVo);
         //충전에 제조 테스트 번호 추가
         //testNo 추출
         String prefix = CodeUtil.createTestNo(LocalDate.now(), vo.getAreaCd(), "M6");
@@ -175,9 +173,7 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         procCommonVo.setProcStatus(vo.getProcStatus());
         procCommonVo.setUserId(userId);
 
-        if( procCommonMapper.updateBatchStatus(procCommonVo)  <= 0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(procCommonVo);
         //proc 업데이트
         if( procCommonMapper.updateProcStatus(procCommonVo)  <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);

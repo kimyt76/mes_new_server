@@ -4,66 +4,89 @@
 <mapper namespace="com.jct.mes_new.biz.proc.mapper.ProcCommonMapper">
 <!--    각 공정별 리스트 공통 -->
     <select id="getProcList">
-        select   CONCAT(CONVERT(varchar(10),c.work_order_date,23),' - ',c.seq)  AS workOrderDateSeq
-                ,dbo.getCommonName('area', c.area_cd) as areaName
-                ,b.po_no
-                ,a.proc_order_date
-                ,b.make_No
-                ,b.lot_no
-                ,a.item_cd
-                ,d.item_name
-                ,a.order_qty
-                ,dbo.getCommonName('BATCH_STATUS', b.batch_status) as batchStatusName
-                ,dbo.getCommonName('PROC_STATUS', a.proc_status) as procStatusName
-                ,t.client_name
-                ,c.area_cd
-                ,a.proc_cd
-                ,a.proc_status
-                ,b.batch_status
-                ,c.work_order_id
-                ,b.work_batch_id
-                ,a.work_proc_id
-                ,mv.move_status
-        from   TB_WORK_ORDER_PROC a
-                inner join TB_WORK_ORDER_BATCH b
-                on b.work_batch_id = a.work_batch_id
-                inner join TB_WORK_ORDER_MST c
-                on b.work_order_id = c.work_order_id
-                inner join tb_item_mst d
-                on d.item_cd = a.item_cd
-                left join tb_client_mst t
-                on t.client_id =c.client_id
-                OUTER APPLY (
-                    SELECT TOP 1
-                            ISNULL(NULLIF(f.code_nm, ''), '미요청') AS move_status
-                    FROM tb_move_stock_proc_map e
-                            LEFT JOIN tb_common_code f
-                            ON f.code = e.move_status
-                            AND f.com_type_cd = 'MOVE_STATUS'
-                    WHERE e.work_proc_id = a.work_proc_id
-                    ORDER BY e.reg_dt DESC, e.move_stock_proc_id DESC
-                ) mv
-        where  a.proc_cd = #{procCd}
+        SELECT
+        CONCAT(CONVERT(varchar(10), c.work_order_date, 23), ' - ', c.seq) AS workOrderDateSeq
+        ,dbo.getCommonName('area', c.area_cd) AS areaName
+        ,b.po_no
+        ,a.proc_order_date
+        ,b.make_no
+        ,b.lot_no
+        ,a.item_cd
+        ,d.item_name
+        ,a.order_qty
+
+        -- VIEW에서 계산한 배치 상태명
+        ,dbo.getCommonName(
+        'BATCH_STATUS',
+        COALESCE(v.batch_status, b.batch_status)
+        ) AS batchStatusName
+
+        ,dbo.getCommonName('PROC_STATUS', a.proc_status) AS procStatusName
+        ,t.client_name
+        ,c.area_cd
+        ,a.proc_cd
+        ,a.proc_status
+
+        -- 기존 DB에 저장된 배치 상태
+        ,b.batch_status AS old_batch_status
+
+        -- 공정 순서에 따라 계산한 배치 상태
+        ,COALESCE(v.batch_status, b.batch_status) AS batch_status
+
+        ,c.work_order_id
+        ,b.work_batch_id
+        ,a.work_proc_id
+        ,mv.move_status
+
+        FROM TB_WORK_ORDER_PROC a
+
+        INNER JOIN TB_WORK_ORDER_BATCH b
+        ON b.work_batch_id = a.work_batch_id
+
+        -- 상태 일치 여부와 관계없이 VIEW 연결
+        LEFT JOIN dbo.vw_work_batch_status v
+        ON v.work_batch_id = b.work_batch_id
+
+        INNER JOIN TB_WORK_ORDER_MST c
+        ON b.work_order_id = c.work_order_id
+
+        INNER JOIN tb_item_mst d
+        ON d.item_cd = a.item_cd
+
+        LEFT JOIN tb_client_mst t
+        ON t.client_id = c.client_id
+
+        OUTER APPLY (
+        SELECT TOP 1
+        ISNULL(NULLIF(f.code_nm, ''), '미요청') AS move_status
+        FROM tb_move_stock_proc_map e
+        LEFT JOIN tb_common_code f
+        ON f.code = e.move_status
+        AND f.com_type_cd = 'MOVE_STATUS'
+        WHERE e.work_proc_id = a.work_proc_id
+        ORDER BY e.reg_dt DESC, e.move_stock_proc_id DESC
+        ) mv
+        WHERE a.proc_cd = #{procCd}
         <if test="strDate != null and strDate != ''">
-            AND a.proc_order_date between #{strDate} and #{endDate}
+            AND a.proc_order_date BETWEEN #{strDate} AND #{endDate}
         </if>
         <if test="areaCd != null and areaCd != ''">
             AND c.area_cd = #{areaCd}
         </if>
         <if test="itemCd != null and itemCd != ''">
-            and  a.item_cd = #{itemCd}
+            AND a.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            and  d.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
+            AND d.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="procStatus != null and procStatus != '' and procStatus != 'ALL'">
-            and  a.proc_status = #{procStatus}
+            AND a.proc_status = #{procStatus}
         </if>
         <if test="clientName != null and clientName != ''">
-            and  t.client_name LIKE '%' + #{clientName} + '%'
+            AND t.client_name LIKE '%' + #{clientName} + '%'
         </if>
         <if test="makeNo != null and makeNo != ''">
-            and  b.make_no LIKE '%' + #{makeNo} + '%'
+            AND b.make_no LIKE '%' + #{makeNo} + '%'
         </if>
         ORDER BY c.work_order_date DESC, c.seq DESC
     </select>
@@ -102,11 +125,11 @@
     </update>
 
     <update id="updateBatchStatus">
-        update TB_WORK_ORDER_BATCH
-        set    batch_status = #{batchStatus}
-              ,upd_id       = #{userId}
-              ,upd_dt       = getdate()
-        where  work_batch_id = #{workBatchId}
+        UPDATE TB_WORK_ORDER_BATCH
+        SET    batch_status = #{batchStatus}
+              ,upd_id          = #{userId}
+              ,upd_dt          = GETDATE()
+        WHERE work_batch_id = #{workBatchId}
     </update>
 
     <update id="updateProcEtc">
@@ -259,7 +282,7 @@
              ,a.packing_spec_value
              ,a.packing_spec_unit
              ,a.unit
-             ,b.req_qty
+             ,isnull(b.req_qty, a.req_qty) as req_qty
              ,b.use_qty
              ,b.bad_qty
              ,b.work_bad_qty
@@ -275,6 +298,8 @@
                       ,a.work_proc_id
                       ,a.work_order_id
                       ,c.item_cd
+                      ,case when d.item_type_cd in ('M2', 'M7')  then a.order_qty*c.qty/b.qty
+                            else a.order_qty*c.qty/b.qty end req_qty
                       ,e.mat_name
                       ,e.spec_info
                       ,e.ex_appearance
@@ -643,15 +668,17 @@
     </select>
 
     <select id="getStatusEndCheck">
-        select  b.batch_status
-             ,a.proc_status
-             ,a.work_proc_id
-             ,a.work_batch_id
-             ,a.work_order_id
-        from   TB_WORK_ORDER_PROC a
-                   join TB_WORK_ORDER_BATCH b
-                        on a.work_batch_id = b.work_batch_id
-        where  a.work_proc_id = #{workProcId}
+        SELECT  ISNULL(v.batch_status, '00') AS batch_status
+                 ,a.proc_status
+                 ,a.work_proc_id
+                 ,a.work_batch_id
+                 ,a.work_order_id
+        FROM TB_WORK_ORDER_PROC a
+                 INNER JOIN TB_WORK_ORDER_BATCH b
+                            ON a.work_batch_id = b.work_batch_id
+                 LEFT JOIN dbo.vw_work_batch_status v
+                           ON a.work_batch_id = v.work_batch_id
+        WHERE a.work_proc_id = #{workProcId}
     </select>
 
     <select id="getProdUseQty">
@@ -716,4 +743,12 @@
 
     </select>
 
+    <update id="updateProcQtyInit">
+        update TB_WORK_ORDER_PROC
+        set    use_qty   = 0
+              ,prod_qty  = 0
+              ,upd_id    = #{userId}
+              ,upd_dt    = getDate()
+        where work_proc_id = #{workProcId}
+    </update>
 </mapper>

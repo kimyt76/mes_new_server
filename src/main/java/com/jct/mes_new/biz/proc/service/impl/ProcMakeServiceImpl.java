@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.proc.service.impl;
 import com.jct.mes_new.biz.base.vo.ItemVo;
 import com.jct.mes_new.biz.lab.mapper.BomMapper;
 import com.jct.mes_new.biz.lab.vo.BomProcVo;
+import com.jct.mes_new.biz.mobile.mapper.MobileMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcCommonMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcMakeMapper;
 import com.jct.mes_new.biz.proc.mapper.ProcWeighMapper;
@@ -54,6 +55,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
     private final BomMapper bomMapper;
     private final TranMapper tranMapper;
     private final ProcWeighMapper procWeighMapper;
+    private final MobileMapper mobileMapper;
 
     /**
      * 제조 상세 조회
@@ -166,9 +168,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         procCommonVo.setWorkBatchId(vo.getWorkBatchId());
         procCommonVo.setBatchStatus(vo.getBatchStatus());
         procCommonVo.setUserId(userId);
-        if(procCommonMapper.updateBatchStatus(procCommonVo) <= 0){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(procCommonVo);
 
         WorkOrderInfoVo workOrderInfo = workOrderMapper.getWorkOrderProcInfo(vo.getProcCd(), vo.getWorkProcId());
 
@@ -212,19 +212,25 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         }
 
         //공정시간  여과포 신규 생성
-        int makeEtcCnt = procMakeMapper.getMakeEtcCnt(vo.getWorkProcId());
-
         MakeEtcVo makeEtcVo = new MakeEtcVo();
+        makeEtcVo.setWorkProcId(vo.getWorkProcId());
+        makeEtcVo.setMaker(userId);
+        makeEtcVo.setUserId(userId);
 
-        if(makeEtcCnt > 0 ) {
-            makeEtcVo.setWorkProcId(vo.getWorkProcId());
-            makeEtcVo.setMaker(userId);
-            makeEtcVo.setUserId(userId);
+        int cnt = procMakeMapper.getMakeEtcCnt(vo.getWorkProcId());
+
+        if ( cnt > 0) {
+            ProcMakeVo makeVo = new ProcMakeVo();
+            makeVo.setWorkProcId(vo.getWorkProcId());
+            makeVo.setMaker(userId);
+            mobileMapper.updateMakeEtcMaker(vo);
+
         }else{
             if( procMakeMapper.insertMakeEtcInfo(makeEtcVo) <= 0) {
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
         }
+
         return "제조작업 시작하세요";
     }
 
@@ -265,10 +271,6 @@ public class ProcMakeServiceImpl implements ProcMakeService {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
-        if ( itemTestMapper.updateQty(vo.getTestNo(), vo.getProdQty(), userId) <=0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
-
         ItemTestVo item = itemTestMapper.getItemTestNoInfo(vo.getTestNo());
 
         //재고 상세
@@ -301,9 +303,14 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         comVo.setWorkBatchId(vo.getWorkBatchId());
         comVo.setBatchStatus(vo.getBatchStatus());
         comVo.setUserId(userId);
-        if ( procCommonMapper.updateBatchStatus(comVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(comVo);
+
+        //품질검사 요청 제조량
+        QcTestVo qcTest = new QcTestVo();
+        qcTest.setTestNo(vo.getTestNo());
+        qcTest.setReqQty(vo.getProdQty());
+        qcTest.setUserId(userId);
+        qcTestMapper.updateQcTestQty(qcTest);
 
         //시험번호 제조량 업데이트
         itemTestMapper.updateQty(workOrder.getTestNo(), vo.getProdQty(), userId);

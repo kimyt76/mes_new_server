@@ -106,9 +106,7 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         if (procCommonMapper.updateProcStatus(vo) <= 0 ){
             throw new BusinessException(ErrorCode.FAIL_UPDATED);
         }
-        if (procCommonMapper.updateBatchStatus(vo) <= 0 ){
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(vo);
         return "수정되었습니다.";
     }
 
@@ -328,18 +326,15 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         List<ProcUseInfoVo> useList = procCommonMapper.getProdUseWorkProcIdList(vo.getWorkProcId());
         if (!useList.isEmpty()) {
             for(ProcUseInfoVo useInfo : useList){
-                log.info("========================useInfo========= : " + useInfo);
                 tranItemVo2.setUserId(userId);
                 tranItemVo2.setQty(useInfo.getUseQty());
                 tranItemVo2.setTestNo(useInfo.getTestNo());
                 tranItemVo2.setTranId(vo.getOutTranId());
                 //tranItemVo2.setItemName(useInfo.getItemName());
                 //tranItemVo2.setLotNo(useInfo.getLotNo());
-
                 tranMapper.updateTranItemQty(tranItemVo2);
             }
         }
-
         vo.setTranYn("Y");
         procCommonMapper.updateProcCompleteTranYn(vo);
     }

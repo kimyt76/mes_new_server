@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class ProcMakeVo {
@@ -20,6 +21,7 @@ public class ProcMakeVo {
     private String poNo;
     private String workOrderDateSeq;
     private String itemCd;
+    private String phase;
     private String itemName;
     private String makeNo;
     private String lotNo;
@@ -28,19 +30,25 @@ public class ProcMakeVo {
     private BigDecimal prodQty;
     private BigDecimal prodYield;
     private BigDecimal makeQty;
+    private BigDecimal weighQty;
     private String batchStatus;
     private String procStatus;
     private String areaCd;
     private String storageCd;
     private String storageName;
     private String etc;
+    private String maker;
+    private String confirmer;
     private String memo;
     private String clientCd;
+    private String customerCd;
     private String clientId;
     private String clientName;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate prodDate;    //칭량일
+
+    private LocalDateTime makeTime;
 
     private Long inTranId;
     private Long outTranId;
@@ -51,6 +59,7 @@ public class ProcMakeVo {
     private String workEquipmentCd;
     private String managerId;
     private String makeYn;
+    private String weighYn;
 
 
     private String userId;

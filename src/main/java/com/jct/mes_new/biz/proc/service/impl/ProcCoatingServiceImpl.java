@@ -49,9 +49,8 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         procCommonVo.setBatchStatus(vo.getBatchStatus());
         procCommonVo.setUserId(userId);
 
-        if (procCommonMapper.updateBatchStatus(procCommonVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(procCommonVo);
+
         //코팅에 제조 테스트 번호 추가
         //testNo 추출
         String prefix = CodeUtil.createTestNo(LocalDate.now(), vo.getAreaCd(), "M5");
@@ -157,13 +156,9 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         procCommonVo.setProcStatus(vo.getProcStatus());
         procCommonVo.setUserId(userId);
 
-        if (procCommonMapper.updateBatchStatus(procCommonVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateBatchStatus(procCommonVo);
         //proc 업데이트
-        if (procCommonMapper.updateProcStatus(procCommonVo) <= 0) {
-            throw new BusinessException(ErrorCode.FAIL_UPDATED);
-        }
+        procCommonMapper.updateProcStatus(procCommonVo);
 
         /**************************** 재고 연결 정보 체크*****************************************************/
         Long inTranId = tranStatus.getInTranId();

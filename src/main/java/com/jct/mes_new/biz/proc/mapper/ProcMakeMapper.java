@@ -46,4 +46,6 @@ public interface ProcMakeMapper {
     int updateWeighTranEndYn(@Param("tranId") Long tranId, String userId);
 
     Long getWeighOutTranId(Long workBatchId);
+
+    int getMakeEtcCnt(Long workProcId);
 }

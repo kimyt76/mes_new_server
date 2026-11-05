@@ -73,7 +73,7 @@
 
     <update id="startProcWeigh">
         update TB_WORK_ORDER_PROC
-        set    proc_status      = #{procStatus}
+        set    proc_status      = '11'
               ,prod_date        = isnull(CAST(#{prodDate} AS date), CONVERT(date, GETDATE()))
               ,storage_cd       = #{storageCd}
               ,work_start_time  = getdate()
@@ -99,6 +99,16 @@
               , weigh_yn   =#{weighYn}
               , weigher    =#{weigher}
               , confirmer  =#{confirmer}
+              , upd_id     =#{userId}
+              ,upd_dt      = getDate()
+        where weigh_id     = #{weighId}
+    </update>
+
+    <update id="updateWeighInfo">
+        update tb_weigh_info
+        set     weigh_qty   =#{weighQty}
+              , test_no    =#{testNo}
+              , weigh_yn   =#{weighYn}
               , upd_id     =#{userId}
               ,upd_dt      = getDate()
         where weigh_id     = #{weighId}
@@ -169,42 +179,16 @@
     </select>
 
     <select id="getWeighCloseList">
-        WITH stock AS (
-            SELECT  item_cd
-                    ,area_cd
-                    ,SUM(CASE WHEN tran_date  <![CDATA[ < ]]> #{strDate} THEN qty ELSE 0 END) AS baseQty
-                    ,SUM(CASE WHEN tran_date BETWEEN #{strDate} AND #{endDate} AND tran_type_cd = 'A' THEN qty ELSE 0 END) AS asQty
-                    ,SUM(CASE WHEN tran_date BETWEEN #{strDate} AND #{endDate} AND tran_type_cd = 'E' THEN qty ELSE 0 END) AS makeQty
-                    ,SUM(CASE WHEN tran_date BETWEEN #{strDate} AND #{endDate} AND tran_type_cd = 'Q' THEN qty ELSE 0 END) AS qsQty
-                    ,SUM(CASE WHEN tran_date BETWEEN #{strDate} AND #{endDate} AND tran_type_cd = 'T' THEN qty ELSE 0 END) AS tsQty
-                    ,SUM(CASE WHEN tran_date BETWEEN #{strDate} AND #{endDate} AND tran_type_cd = 'R' THEN qty ELSE 0 END) AS rsQty
-                    ,SUM(CASE WHEN tran_date BETWEEN #{strDate} AND #{endDate} AND tran_type_cd IN ('P', 'S', 'V', 'W', 'X', 'U') THEN qty ELSE 0 END) AS etcQty
-            FROM vw_inv_stock_tran
-            WHERE item_type_cd = #{itemTypeCd}
-            AND   area_cd = #{areaCd}
-            AND   tran_date <![CDATA[ <= ]]> #{endDate}
-            GROUP BY item_cd, area_cd
+        SELECT *
+        FROM dbo.fn_get_stock_closing(
+             #{searchType}
+            ,#{stdDate}
+            ,#{areaCd}
+            ,#{itemTypeCd}
+            ,#{itemCd}
+            ,#{itemName}
         )
-        SELECT  a.item_cd
-                ,a.item_name
-                ,ISNULL(s.baseQty, 0)  AS baseQty
-                ,ISNULL(s.asQty, 0)   AS asQty
-                ,ISNULL(s.makeQty, 0) AS makeQty
-                ,ISNULL(s.qsQty, 0)   AS qsQty
-                ,ISNULL(s.tsQty, 0)   AS tsQty
-                ,ISNULL(s.rsQty, 0)   AS rsQty
-                ,ISNULL(s.etcQty, 0)  AS etcQty
-                ,ISNULL(s.baseQty, 0)+ISNULL(s.asQty, 0)+ISNULL(s.makeQty, 0)+ISNULL(s.qsQty, 0)+ISNULL(s.tsQty, 0)+ISNULL(s.rsQty, 0)+ISNULL(s.etcQty, 0) as  qty
-        FROM    tb_item_mst a
-                inner JOIN stock s
-                ON s.item_cd = a.item_cd
-        WHERE a.item_type_cd = #{itemTypeCd}
-        <if test="itemCd != null and itemCd != ''">
-            AND a.item_cd LIKE '%' + #{itemCd} + '%'
-        </if>
-        <if test="itemName != null and itemName != ''">
-            AND a.item_name LIKE '%' + #{itemName} + '%'
-        </if>
+        ORDER BY item_cd
     </select>
 
     <select id="getItemCloseList">
@@ -216,7 +200,7 @@
                  ,c.make_no
                  ,b.item_cd
                  ,m.item_name
-        from    vw_inv_stock_tran a
+        from    vw_inv_stock_movement a
                 left join TB_WORK_ORDER_PROC b
                 on b.out_tran_id = a.tran_id
                 left join TB_WORK_ORDER_BATCH c
@@ -229,10 +213,15 @@
                 left join tb_item_mst m
                 on m.item_cd = b.item_cd
         where  a.tran_type_cd not in ('L', 'J')
+          and  a.tran_status in ('C', 'E')
           and  a.item_cd = #{itemCd}
           and  a.tran_date between #{strDate} and #{endDate}
     </select>
 
-
+    <update id="updateBagWeigh">
+        update tb_weigh_info
+        set    bag_weight = #{bagWeight}
+        where weigh_id = #{weighId}
+    </update>
 
 </mapper>

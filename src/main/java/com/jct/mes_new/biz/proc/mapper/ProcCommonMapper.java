@@ -139,4 +139,6 @@ public interface ProcCommonMapper {
     List<ProcUseInfoVo> getProdUseWorkProcIdList(Long workProcId);
 
     WorkOrderInfoVo getTranStatus(Long workProcId);
+
+    void updateProcQtyInit(Long workProcId);
 }
