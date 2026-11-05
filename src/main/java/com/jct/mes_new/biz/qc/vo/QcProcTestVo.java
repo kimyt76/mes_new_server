@@ -50,6 +50,7 @@ public class QcProcTestVo {
     private String cappingRange;
     private String essenceStd;
     private String workFlow;
+    private String chargingQtys;
 
     private String userId;
 

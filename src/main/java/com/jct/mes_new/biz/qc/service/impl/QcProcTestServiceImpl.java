@@ -12,8 +12,11 @@ import com.jct.mes_new.config.util.ComUtil;
 import com.jct.mes_new.config.util.ExcelStyleUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -241,7 +244,7 @@ public class QcProcTestServiceImpl implements QcProcTestService {
         String qcType = mst.getQcTestType();
 
         if (qcType == null || qcType.isBlank()) {throw new Exception("공정검사 타입이 없습니다.");}
-
+log.info("==================================qcType=================================== : " + qcType);
         switch (qcType) {
             case "A":
                 return getExcelTypeA(mst);
@@ -511,7 +514,7 @@ public class QcProcTestServiceImpl implements QcProcTestService {
                 Sheet sheet1 = workbook.getSheet("Sheet1");
                 if (sheet1 == null) throw new Exception("엑셀 템플릿 Sheet1이 없습니다.");
                 //품목코드, 문서번호(JQP12-01), 문서버전(Rev.01), 제품명, 고객사, 제조일자, 제조번호, 표시량, 로트인쇄, 검사자
-                String[] sheet1Info = {"AH1", "AH3", "AH4", "F6", "AH6", "F7", "T7", "AH7", "F8", "AH8"};
+                String[] sheet1Info = {"AD1", "AD3", "AD4", "F6", "AD6", "F7", "R7", "AD7", "F8", "AD8"};
 
                 for (int i = 0; i < sheet1Info.length; i++ ) {
                     ExcelStyleUtil.getCellRef(sheet1,sheet1Info[i]).setCellValue(infoData[i]);
@@ -550,8 +553,8 @@ public class QcProcTestServiceImpl implements QcProcTestService {
                         chargingItem != null&& chargingItem.getWorkEndTime() != null
                                 ? sdf.format(chargingItem.getWorkEndTime()): "";
 
-                ExcelStyleUtil.getCellRef(sheet1,"Q17").setCellValue(chargingStartTime);
-                ExcelStyleUtil.getCellRef(sheet1,"X17").setCellValue(chargingEndTime);
+                ExcelStyleUtil.getCellRef(sheet1,"Q18").setCellValue(chargingStartTime);
+                ExcelStyleUtil.getCellRef(sheet1,"X18").setCellValue(chargingEndTime);
 
                 int chargingRow = 20;
 
@@ -561,9 +564,10 @@ public class QcProcTestServiceImpl implements QcProcTestService {
                     ExcelStyleUtil.getCellRef(sheet1,"Z" + chargingRow).setCellValue(getMethodResult(item.getTestResult()));
                     chargingRow++;
                 }
-
-                //충전지시량 AD27
-                ExcelStyleUtil.getCellRef(sheet1, "AD28").setCellValue(chargingItem != null ? ComUtil.nvl(chargingItem.getOrderQty()) : "");
+                log.info("===============================chargingItem====================== : " + chargingItem);
+log.info("===============================chargingItem.getChargingCnt()====================== : " + chargingItem.getChargingCnt());
+                //충전지시량 AD28
+                ExcelStyleUtil.getCellRef(sheet1, "AD28").setCellValue(chargingItem != null ? ComUtil.nvl(chargingItem.getChargingCnt()) : "");
 
                 //todo 중량검사 15개
                 // 검사시간, 수량, 검사결과 "□ 적합 □ 부적합", "■ 적합 □ 부적합", "□ 적합 ■ 부적합"
@@ -714,6 +718,12 @@ public class QcProcTestServiceImpl implements QcProcTestService {
             }
             Workbook workbook = ExcelStyleUtil.createWorkbook(excelStream);
 
+            log.info("Apache POI Version : {}",
+                    org.apache.poi.Version.getVersion());
+
+            log.info("Workbook Type : {}",
+                    workbook.getClass().getName());
+
             try {
                 /*
                  * ======================================
@@ -777,10 +787,10 @@ public class QcProcTestServiceImpl implements QcProcTestService {
 
                 int idx1 = 12;
 
-                for (QcProcMethodVo item : (coatingList == null ? java.util.Collections.<QcProcMethodVo>emptyList() : coatingList)){
-                    ExcelStyleUtil.getCellRef(sheet1, "C" + idx1).setCellValue(item.getTestMethod());
-                    ExcelStyleUtil.getCellRef(sheet1, "O" + idx1).setCellValue(item.getTestItem());
-                    ExcelStyleUtil.getCellRef(sheet1,"Z" + idx1).setCellValue(getMethodResult(item.getTestResult()));
+                for (QcProcMethodVo item : coatingList) {
+                    ExcelStyleUtil.getCellRef(sheet1, "C" + idx1).setCellValue(ComUtil.nvl(item.getTestMethod()));
+                    ExcelStyleUtil.getCellRef(sheet1, "O" + idx1).setCellValue(ComUtil.nvl(item.getTestItem()));
+                    ExcelStyleUtil.getCellRef(sheet1, "Z" + idx1).setCellValue(getMethodResult(item.getTestResult()));
                     idx1++;
                 }
                 /*
@@ -809,7 +819,7 @@ public class QcProcTestServiceImpl implements QcProcTestService {
                 }
 
                 //충전지시량 AD27
-                ExcelStyleUtil.getCellRef(sheet1, "AD27").setCellValue(chargingItem != null ? ComUtil.nvl(chargingItem.getOrderQty()) : "");
+                ExcelStyleUtil.getCellRef(sheet1, "AD27").setCellValue(chargingItem != null ? ComUtil.nvl(chargingItem.getChargingCnt()) : "");
 
                 //todo 중량검사 15개
                 // 검사시간, 수량, 검사결과 "□ 적합 □ 부적합", "■ 적합 □ 부적합", "□ 적합 ■ 부적합"
@@ -864,7 +874,7 @@ public class QcProcTestServiceImpl implements QcProcTestService {
                 ExcelStyleUtil.getCellRef(sheet1,"Q48").setCellValue(packingStartTime);
                 ExcelStyleUtil.getCellRef(sheet1,"X48").setCellValue(packingEndTime);
 
-                int packingRow = 51;
+                int packingRow = 50;
 
                 for (QcProcMethodVo item : (packingMethods == null ? java.util.Collections.<QcProcMethodVo>emptyList() : packingMethods)) {
                     ExcelStyleUtil.getCellRef(sheet1,"C" + packingRow).setCellValue(ComUtil.nvl(item.getTestMethod()));
@@ -977,6 +987,31 @@ public class QcProcTestServiceImpl implements QcProcTestService {
                     //검사겳과
                     ExcelStyleUtil.getCellRef(sheet3, "AC" + idx5).setCellValue(getPassResult(items.getPassYn(),false));
                     idx5++;
+                }
+
+                log.info("========== EXCEL FINAL CHECK ==========");
+
+                for (int r = 12; r <= 17; r++) {
+
+                    Row row = sheet1.getRow(r - 1);
+
+                    if (row == null) continue;
+
+                    log.info("ROW={} HEIGHT={} HIDDEN={}",
+                            r,
+                            row.getHeightInPoints(),
+                            row.getZeroHeight());
+
+                    for (String col : new String[]{"A", "C", "O", "Z"}) {
+
+                        Cell cell = ExcelStyleUtil.getCellRef(sheet1, col + r);
+
+                        log.info("CELL={}{} VALUE={} STYLE={}",
+                                col,
+                                r,
+                                cell.toString(),
+                                cell.getCellStyle().getIndex());
+                    }
                 }
 
                 /*

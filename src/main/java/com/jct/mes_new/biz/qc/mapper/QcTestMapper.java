@@ -5,6 +5,7 @@ import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -76,4 +77,6 @@ public interface QcTestMapper {
     List<QcTestTypeMethodVo> getQcTestTypeMethodList(Long qcTestId);
 
     void updateQcTestQty(QcTestVo qcTestVo);
+
+    void updateReqQty(String testNo, BigDecimal prodQty, String userId);
 }
