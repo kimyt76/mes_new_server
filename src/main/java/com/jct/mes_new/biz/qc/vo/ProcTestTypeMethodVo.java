@@ -13,5 +13,9 @@ public class ProcTestTypeMethodVo {
     private String testTiming;
     private String testTime;
     private String orderDist;
+
+    private String testResult;
+
     private String userId;
+
 }
