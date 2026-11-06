@@ -186,7 +186,7 @@ public class ProcMakeServiceImpl implements ProcMakeService {
         itemTestVo.setItemName(workOrderInfo.getItemName());
         itemTestVo.setMakeNo(workOrderInfo.getMakeNo());
         itemTestVo.setLotNo(workOrderInfo.getLotNo());
-        itemTestVo.setCustomerCd(workOrderInfo.getClientId());
+        itemTestVo.setCustomerCd(workOrderInfo.getCustomerCd());
         itemTestVo.setQty(BigDecimal.ZERO);
         itemTestVo.setExpiryDate(expiryDate);
         itemTestVo.setShelfLife(shelfLife);

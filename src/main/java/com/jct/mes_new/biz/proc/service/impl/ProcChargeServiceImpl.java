@@ -91,7 +91,7 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         itemTestVo.setLotNo(workOrderInfo.getLotNo());
         itemTestVo.setMakeNo(workOrderInfo.getMakeNo());
         itemTestVo.setQty(workOrderInfo.getOrderQty());
-        itemTestVo.setCustomerCd(workOrderInfo.getClientId());
+        itemTestVo.setCustomerCd(workOrderInfo.getCustomerCd());
         itemTestVo.setExpiryDate(expiryDate);
         itemTestVo.setShelfLife(shelfLife);
         itemTestVo.setTestState("REQ");
@@ -306,6 +306,16 @@ public class ProcChargeServiceImpl implements ProcChargeService {
         //작업완료 시간 및 재고이동 완료 업데이트
         workOrder.setTranYn("Y");
         procCommonMapper.updateProcCompleteTranYn(workOrder);
+
+        //품질검사 요청 제조량
+        QcTestVo qcTest = new QcTestVo();
+        qcTest.setTestNo(workOrder.getTestNo());
+        qcTest.setReqQty(procUseInfoVo.getProdQty());
+        qcTest.setUserId(userId);
+        qcTestMapper.updateQcTestQty(qcTest);
+
+        //시험번호 제조량 업데이트
+        itemTestMapper.updateQty(workOrder.getTestNo(), procUseInfoVo.getProdQty(), userId);
 
         return  "저장되었습니다.";
     }

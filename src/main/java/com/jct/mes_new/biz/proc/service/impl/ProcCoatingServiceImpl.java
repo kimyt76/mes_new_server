@@ -80,7 +80,7 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         itemTestVo.setLotNo(workOrderInfo.getLotNo());
         itemTestVo.setMakeNo(workOrderInfo.getMakeNo());
         itemTestVo.setQty(workOrderInfo.getOrderQty());
-        itemTestVo.setCustomerCd(workOrderInfo.getClientId());
+        itemTestVo.setCustomerCd(workOrderInfo.getCustomerCd());
         itemTestVo.setExpiryDate(expiryDate);
         itemTestVo.setShelfLife(shelfLife);
         itemTestVo.setTestState("END");
@@ -288,6 +288,9 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
         //작업완료 시간 및 재고이동 완료 업데이트
         workOrder.setTranYn("Y");
         procCommonMapper.updateProcCompleteTranYn(workOrder);
+
+        //시험번호 제조량 업데이트
+        itemTestMapper.updateQty(workOrder.getTestNo(), procUseInfoVo.getProdQty(), userId);
 
         return "저장되었습니다.";
     }
