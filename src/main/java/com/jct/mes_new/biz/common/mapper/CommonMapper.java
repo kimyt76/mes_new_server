@@ -20,4 +20,6 @@ public interface CommonMapper {
     int saveCommonInfo(CommonVo commonVo);
 
     int getNextSeq(String tb, String cd, String date);
+
+
 }
