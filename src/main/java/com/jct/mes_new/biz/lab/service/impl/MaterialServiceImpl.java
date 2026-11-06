@@ -34,13 +34,16 @@ public class MaterialServiceImpl implements MaterialService {
     public MaterialRequestVo getMaterialInfo(String itemCd) {
         MaterialRequestVo vo = new MaterialRequestVo();
 
-        vo.setItemInfo( itemMapper.getItemInfo(itemCd) );
-        vo.setMaterialInfo(materialMapper.getMaterialInfo(itemCd));
-        vo.setMaterialList(materialMapper.getMaterialList(itemCd));
-        vo.setHistoryList( materialMapper.getHistoryList(itemCd));
+        vo.setItemInfo(itemMapper.getItemInfo(itemCd));
 
-        if (vo.getMaterialInfo().getAttachFileId() != null ) {
-            vo.setFileList( fileHandlerMapper.getAttachFileList(vo.getMaterialInfo().getAttachFileId()));
+        MaterialVo materialInfo = materialMapper.getMaterialInfo(itemCd);
+
+        vo.setMaterialInfo(materialInfo);
+        vo.setMaterialList(materialMapper.getMaterialList(itemCd));
+        vo.setHistoryList(materialMapper.getHistoryList(itemCd));
+
+        if (materialInfo != null && materialInfo.getAttachFileId() != null) {
+            vo.setFileList(fileHandlerMapper.getAttachFileList(materialInfo.getAttachFileId()));
         }
         return vo;
     }
