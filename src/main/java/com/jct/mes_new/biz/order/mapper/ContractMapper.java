@@ -41,4 +41,8 @@ public interface ContractMapper {
     List<WorkOrderInfoVo> getMatWorkOrder(WorkOrderInfoVo vo);
 
     List<Map<String, Object>> getRequiredQuantityList(OrderPlanVo vo);
+
+    void deleteContractItem(String contractId);
+
+    void deleteContractMst(String contractId);
 }

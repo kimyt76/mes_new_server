@@ -19,6 +19,7 @@ public class ContractVo {
     private Long clientId;  /**/
     private String clientName;  /**/
     private String clientCd;  /**/
+    private String customerCd;  /**/
     private String managerId;  /**/
     private String managerName;
     private String vatType; /*거래유형   과세, 비과세*/

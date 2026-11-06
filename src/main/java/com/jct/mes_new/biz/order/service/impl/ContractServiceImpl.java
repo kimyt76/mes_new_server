@@ -154,7 +154,7 @@ public class ContractServiceImpl implements ContractService {
         List<OrderPlanTypeVo> orderPlanTypeList = vo.getOrderPlanTypeList();
         List<Long> ids = vo.getDeleteOrderPlanIds();
 
-        if ( ids.size() > 0 ) {
+        if ( !ids.isEmpty() ) {
             contractMapper.deleteOrderPlanTypeList(ids);
         }
 
@@ -198,6 +198,16 @@ public class ContractServiceImpl implements ContractService {
         map.put("orderStockList", contractMapper.getRequiredQuantityList(vo));
 
         return map;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public  String deleteContract(String contractId){
+
+        //상세부터 삭제
+        contractMapper.deleteContractItem(contractId);
+        contractMapper.deleteContractMst(contractId);
+
+        return "삭제되었습니다";
     }
 
 

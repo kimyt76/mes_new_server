@@ -47,6 +47,12 @@ public class ContractController {
     }
 
 
+    @GetMapping("/deleteContract/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteContract(@PathVariable("id") String contractId) {
+        String msg = contractService.deleteContract(contractId);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.deleted")));
+    }
+
     @PostMapping(value = "/updateContractInfo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
     public ResponseEntity<ApiResponse<Map<String, String>>> updateContractInfo(
                                                     @RequestPart("request")

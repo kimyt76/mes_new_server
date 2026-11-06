@@ -16,6 +16,7 @@
                 ,a.client_id
                 ,c.client_name
                 ,c.client_cd
+                ,c.customer_cd
                 ,e.member_nm as manager_name
                 ,d1.code_nm as prodType
                 ,d.code_nm as orderType
@@ -88,7 +89,8 @@
               ,a.attach_file_id
               ,a.manager_id
               ,a.client_id
-              ,a.client_no
+              ,a.client_cd
+              ,a.customer_cd
               ,a.vat_type
               ,a.contract_id
               ,a.set_Yn
@@ -101,7 +103,7 @@
              ,a.item_cd
              ,b.item_name
              ,b.spec
-             ,d.code as prod_type
+             ,a.prod_type
              ,a.order_type
              ,a.qty
              ,a.unit_price
@@ -117,9 +119,9 @@
         from  tb_contract_item a
               inner join tb_item_mst b
               on b.item_cd = a.item_cd
-              left join tb_common_code d
-              on b.item_grp2 = d.code
-              and d.com_type_cd = 'ITEM_GRP2'
+            --  left join tb_common_code d
+            --  on b.item_grp2 = d.code
+            --  and d.com_type_cd = 'ITEM_GRP2'
         where a.contract_id = #{contractId}
     </select>
 
@@ -128,7 +130,8 @@
              contract_date
             ,seq
             ,client_id
-            ,client_no
+            ,client_cd
+            ,customer_cd
             ,manager_id
             ,vat_type
             ,attach_file_id
@@ -140,7 +143,8 @@
                 #{contractDate}
                ,#{seq}
                ,#{clientId}
-               ,#{clientNo}
+               ,#{clientCd}
+               ,#{customerCd}
                ,#{managerId}
                ,#{vatType}
                ,#{attachFileId}
@@ -160,7 +164,8 @@
         UPDATE tb_contract_mst
         SET    manager_id   = #{managerId}
               ,client_id    = #{clientId}
-              ,client_no    = #{clientNo}
+              ,client_cd    = #{clientCd}
+              ,customer_cd  = #{customerCd}
               ,vat_type     = #{vatType}
               ,set_yn       = #{setYn}
               ,etc          = #{etc}
@@ -171,7 +176,7 @@
 
     <insert id="insertContractItem">
         INSERT INTO tb_contract_item (
-            contract_id, po_no, item_cd, order_type, qty, unit_price, supply_price, vat_price, degree, delivery_req_date, status_type, etc,  order_dist,reg_id,upd_id
+            contract_id, po_no, item_cd, prod_type, order_type, qty, unit_price, supply_price, vat_price, degree, delivery_req_date, status_type, etc,  order_dist,reg_id,upd_id
         )
         VALUES (
                 #{contractId}
@@ -182,6 +187,7 @@
                          )
                 )
                ,#{itemCd}
+               ,#{prodType}
                ,#{orderType}
                ,#{qty}
                ,#{unitPrice}
@@ -199,7 +205,8 @@
 
     <update id="updateContractItem">
         UPDATE tb_contract_item
-        SET    order_type   = #{orderType}
+        SET    prod_type    = #{prodType}
+              ,order_type   = #{orderType}
               ,delivery_req_date = #{deliveryReqDate}
               ,qty          = #{qty}
               ,unit_price   = #{unitPrice}
@@ -728,27 +735,51 @@
     </select>
 
     <select id="getRequiredQuantityList">
-        select dbo.getCommonName('item_Type_cd', i.item_type_cd ) as itemTypeName
-             ,id.mat_Name as matName
-             ,case when i.item_type_cd = 'M1' then b.real_content
-                   else b.qty end as requiredQuantity
-             ,case when i.item_type_cd = 'M1' then b.real_content * ci.qty / 100
-                   else b.qty * ci.qty / 100 end as reqQty
-             ,case when i.item_type_cd = 'M1' and i.item_grp1 = 'RWM02' then '사급'
-                   when i.item_type_cd in ('M2', 'M7')and i.item_grp1 = 'RWM04' then '사급'
-                   when i.item_type_cd in ('M2', 'M7')and i.item_grp1 = 'RWM03' then '자급' end orderType
-        from   tb_contract_item ci
-                   join tb_bom_mst a
-                        on ci.item_cd = a.item_cd
-                   join tb_bom_recipe b
-                        on a.bom_id = b.bom_id
-                   join tb_item_mst i
-                        on i.item_cd = b.item_cd
-                   join tb_item_detail id
-                        on id.item_cd = i.item_cd
-        where  a.default_yn ='Y'
-          and    a.item_cd = #{itemCd}
-          and    i.item_type_cd in ('M1', 'M2', 'M7')
+        SELECT    dbo.getCommonName('item_Type_cd', i.item_type_cd) AS itemTypeName
+                 ,d.mat_name AS matName
+                 , case when i.item_type_cd = 'M1' then sum(b.real_content) / 1000
+                        else sum(b.qty) / 1000 end as reqQty
+                 ,CEILING(
+                    CASE WHEN i.item_type_cd = 'M1'
+                            THEN SUM(b.real_content) * c.qty / 1000.0
+                        ELSE SUM(b.qty) * c.qty / 1000.0
+                        END
+                  ) AS requiredQuantity
+                 ,CASE WHEN i.item_type_cd = 'M1' AND i.item_grp1 = 'RWM02' THEN '사급'
+                       WHEN i.item_type_cd IN ('M2', 'M7') AND i.item_grp1 = 'RWM04' THEN '사급'
+                       WHEN i.item_type_cd IN ('M2', 'M7') AND i.item_grp1 = 'RWM03' THEN '자급' END AS orderType
+        FROM tb_bom_mst a
+                 JOIN tb_bom_recipe b
+                      ON a.bom_id = b.bom_id
+                 JOIN tb_item_mst i
+                      ON i.item_cd = b.item_cd
+                 JOIN tb_item_detail d
+                      ON d.item_cd = i.item_cd
+                 CROSS JOIN tb_contract_item c
+                CROSS APPLY (
+                        SELECT CASE
+                            WHEN i.item_type_cd = 'M1' THEN b.real_content
+                            ELSE b.qty
+                        END AS requiredQuantity
+                    ) r
+        WHERE a.default_yn = 'Y'
+          AND a.item_cd = #{itemCd}
+          AND i.item_type_cd IN ('M1', 'M2', 'M7')
+          AND c.po_no = #{poNo}
+        GROUP BY
+                 i.item_cd
+                ,i.item_type_cd
+                ,i.item_grp1
+                ,d.mat_name
+                ,c.qty
+        ORDER BY d.mat_name
     </select>
+
+    <delete id="deleteContractItem">
+        delete from tb_contract_item where contract_id = #{contractId}
+    </delete>
+    <delete id="deleteContractMst">
+        delete from tb_contract_mst where contract_id = #{contractId}
+    </delete>
 
 </mapper>

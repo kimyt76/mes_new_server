@@ -29,4 +29,6 @@ public interface ContractService {
     List<WorkOrderInfoVo> getMatWorkOrder(WorkOrderInfoVo vo);
 
     Map<String, Object> getRequiredQuantityList(OrderPlanVo vo);
+
+    String deleteContract(String contractId);
 }
