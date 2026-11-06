@@ -153,9 +153,11 @@ public class PurchaseServiceImpl implements PurchaseService {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
 
-        // 7. 발주서 입고상태 및 자동종결 처리
-        for (Long purOrderId : purOrderIds) {
-            this.updatePurchaseOrderComplete(purOrderId, userId);
+        // 7. 발주서가 연결된 경우에만 입고상태 및 자동종결 처리
+        if (!purOrderIds.isEmpty()) {
+            for (Long purOrderId : purOrderIds) {
+                this.updatePurchaseOrderComplete(purOrderId, userId);
+            }
         }
 
         return purId;
