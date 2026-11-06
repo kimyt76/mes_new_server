@@ -14,6 +14,7 @@ public class MaterialVo {
 
     private String itemName;
     private String ingredientName;
+    private String functionNm;
 
     private String userId;
 }
