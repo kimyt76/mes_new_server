@@ -39,7 +39,7 @@
             and  a.item_cd like '%' + #{itemCd} + '%'
             </if>
             <if test="itemName != null and itemName != ''">
-            and  a.item_name like '%' + #{itemName} + '%'
+            and  a.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
             </if>
             <if test="useYn != null and useYn != ''">
             and  a.use_yn = #{useYn}
@@ -68,6 +68,7 @@
               ,case when isnull(a.ITEM_GRP1, 'RWM03')  = 'RWM03' then '자사' else '사급' end as order_type
               ,case when b.item_condition is NULL then '실온'
                     else isnull(dbo.getCommonName('CONDITION_CD', ltrim(rtrim(b.item_condition))), b.item_condition) end  item_condition_name
+              ,a.customer_cd
         from   tb_item_mst a
                left outer join tb_item_detail b
                on b.item_cd = a.item_cd
@@ -154,6 +155,7 @@
     <update id="updateItemInfo">
         update tb_item_mst
         set  item_name = #{itemName}
+            ,item_type_cd = #{itemTypeCd}
             ,unit=#{unit}
             ,spec=#{spec}
             ,item_grp1=#{itemGrp1}
