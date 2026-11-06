@@ -796,4 +796,25 @@ public class ExcelStyleUtil {
         style.setFont(font);
     }
 
+    /**
+     * 기존 셀 서식을 유지하면서 자동 줄바꿈 적용
+     */
+    public static void setCellWrap(
+            Sheet sheet,
+            String cellRef
+    ) {
+        Cell cell = getCellRef(sheet, cellRef);
+
+        Workbook wb = sheet.getWorkbook();
+
+        CellStyle style = wb.createCellStyle();
+        style.cloneStyleFrom(cell.getCellStyle());
+
+        style.setWrapText(true);
+        style.setAlignment(HorizontalAlignment.LEFT);
+        style.setVerticalAlignment(VerticalAlignment.TOP);
+
+        cell.setCellStyle(style);
+    }
+
 }
