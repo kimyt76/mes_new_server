@@ -12,14 +12,24 @@ public class TranLedgerVo {
     private LocalDate strDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate tranDate;
+
+    private String stdDate;
+    private String searchType;
 
     private String itemGrp1;
+    private String areaCd;
     private String orderType;
     private String itemTypeCd;
     private String itemTypeName;
     private String itemCd;
     private String itemName;
     private String customerName;
+    private String makeNo;
+    private String storageName;
+    private String testNo;
+    private String tranTypeName;
 
     private BigDecimal asQty;   //입고
     private BigDecimal esQty;   //출고
@@ -32,9 +42,12 @@ public class TranLedgerVo {
     private BigDecimal wsQty;   //계정변경
     private BigDecimal xsQty;   //매출조정
     private BigDecimal usQty;   //사용조정
-    private BigDecimal basicQty;   //기초재고
+    private BigDecimal qty;   //현재고
+    private BigDecimal makeQty;   //제조사용량
+    private BigDecimal baseQty;   //기초재고
     private BigDecimal finalQty;   //기말재고
-    private BigDecimal basicAmt;   //기초금액
+    private BigDecimal minQty;   //하루전 재고
+    private BigDecimal baseAmt;   //기초금액
     private BigDecimal finalAmt;   //기말재고
     private BigDecimal inPrice;   //단가
     private BigDecimal asAmt;   //입고금액
