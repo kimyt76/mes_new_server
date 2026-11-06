@@ -75,9 +75,13 @@
                 ) as banCountry
                ,a.new_dtl_id
                ,a.new_material_cd
+               ,co.code_nm as functionNm
         from   tb_new_material_detail a
                inner join tb_ingredient_mst b
                on b.ingredient_code = a.ingredient_code
+               left join tb_common_code co
+                on co.com_type_cd = 'fn_Cd'
+                and co.code = b.function_cd
         where  a.new_material_cd = #{newMaterialCd}
     </select>
 

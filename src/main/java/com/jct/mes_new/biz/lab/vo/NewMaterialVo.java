@@ -16,6 +16,7 @@ public class NewMaterialVo {
     private String customerCd;
     private String customerName;
     private String mtrName;
+    private String functionNm;
 
     private BigInteger rowNum;
     private String regName;
