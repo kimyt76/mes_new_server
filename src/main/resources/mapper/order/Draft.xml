@@ -19,7 +19,7 @@
         AND a.client_name LIKE '%' + #{clientName} + '%'
         </if>
         <if test='itemName != "" and itemName != null'>
-            AND a.item_name LIKE '%' + #{itemName} + '%'
+            AND a.item_name LIKE CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
         </if>
         <if test='drafter != "" and drafter != null'>
             AND b.member_nm LIKE '%' + #{drafter} + '%'
