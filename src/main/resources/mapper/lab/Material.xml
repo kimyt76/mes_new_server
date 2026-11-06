@@ -38,7 +38,7 @@
             and  a.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            and  a.item_name like '%' + #{itemName} + '%'
+            and  a.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
     </select>
 
@@ -72,9 +72,13 @@
                       AND check_yn = 'Y'
                 ) as banCountry
                ,b.mapping_id
+               ,co.code_nm as functionNm
         from   tb_material_mapping b
                left outer join tb_ingredient_mst c
                on c.ingredient_code = b.ingredient_code
+               left join tb_common_code co
+                on co.com_type_cd = 'fn_Cd'
+               and co.code = c.function_cd
         where  b.item_cd = #{itemCd}
     </select>
 

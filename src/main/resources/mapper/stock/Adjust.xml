@@ -43,7 +43,7 @@
             and b.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            and b.item_name like '%' + #{itemName} + '%'
+            and b.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         group by a.tran_date, a.seq, c.code_nm, d.storage_name, u.member_nm,a.manager_id, a.etc, a.tran_type_cd, a.src_storage_cd, a.tran_id
         order by a.tran_date desc, a.seq desc
@@ -99,7 +99,7 @@
         set    qty = #{qty}
               ,upd_id = #{userId}
               ,upd_dt = getdate()
-        where  tran_id = #{tranId}
+        where  tran_item_id = #{tranItemId}
     </update>
 
 

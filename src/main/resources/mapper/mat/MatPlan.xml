@@ -43,7 +43,7 @@
             and  a.item_cd = #{itemCd}
         </if>
         <if test="itemName != null and itemName != ''">
-            and  b.item_name LIKE '%' + #{itemName} + '%'
+            and  b.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test="endYn == 'N'">
             AND (ISNULL(a.mat_Instr_Qty,0) - ISNULL(c.mat_Comp_Qty, 0)) > 0
