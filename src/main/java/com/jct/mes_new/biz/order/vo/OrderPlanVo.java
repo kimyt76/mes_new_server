@@ -13,6 +13,7 @@ public class OrderPlanVo {
     private String prodType;
     private String clientName;
     private String managerId;
+    private String managerName;
     private String itemCd;
     private String itemName;
     private String qty;
