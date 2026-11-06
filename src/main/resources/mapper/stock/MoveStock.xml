@@ -44,7 +44,7 @@
             AND c.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            AND c.item_name LIKE '%' + #{itemName} + '%'
+            AND c.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         GROUP BY a.move_stock_date, a.seq, d.storage_name, e.storage_name, f.member_nm ,a.move_status,a.move_stock_id, a.confirm_status
         ORDER BY a.move_stock_date desc, a.seq desc

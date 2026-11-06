@@ -19,6 +19,7 @@
                 ,f.member_nm as manager_name
                 ,a.move_status
                 ,a.move_stock_id
+                ,a.confirm_status
         from  tb_move_stock_mst a
                 left join tb_move_req_item b
                 on a.move_stock_id = b.move_stock_id
@@ -48,9 +49,9 @@
             AND c.item_cd LIKE '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            AND c.item_name LIKE '%' + #{itemName} + '%'
+            AND c.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
-        GROUP BY a.move_stock_date, a.seq, d.storage_name, e.storage_name, f.member_nm ,a.move_status,a.move_stock_id, a.memo
+        GROUP BY a.move_stock_date, a.seq, d.storage_name, e.storage_name, f.member_nm ,a.move_status,a.move_stock_id, a.memo, a.confirm_status
         ORDER BY a.move_stock_date desc, a.seq desc
     </select>
 
@@ -91,22 +92,45 @@
     </select>
 
     <select id="getMoveReqStockList" >
-        select  a.test_no
-               ,(select tran_date
-                 from  tb_inv_tran_mst x
-                 where x.tran_id in (  select tran_id
-                                       from tb_inv_tran_item b
-                                       where b.item_cd = a.item_cd
-                                       and   b.test_no = a.test_no
-                                    )
-                 and   x.tran_type_cd ='A') as tran_date
-                ,sum(a.qty) as qty
-        from   vw_inv_stock_tran a
-        where  1=1
-          and    a.area_cd = #{areaCd}
-          and    a.item_cd = #{itemCd}
-          and    a.storage_cd = #{storageCd}
-        group by a.test_no, a.item_cd
+        WITH STOCK AS (
+            SELECT
+                s.test_no
+                 ,SUM(ISNULL(s.qty, 0)) AS qty
+            FROM dbo.fn_get_stock(
+                         COALESCE(
+                                 TRY_CAST(NULLIF(CAST(#{stdDate} AS NVARCHAR(20)), '') AS DATE),
+                                 CAST(GETDATE() AS DATE)
+                         )
+                     ,#{areaCd}
+                     ,#{storageCd}
+                     ,NULL
+                     ,#{itemCd}
+                     ,NULL
+                     ,'TEST'
+                     ,NULL
+                 ) s
+            GROUP BY s.test_no
+        ),
+             IN_DATE AS (
+                 SELECT
+                     b.test_no
+                      ,MIN(a.tran_date) AS tran_date
+                 FROM tb_inv_tran_item b
+                          INNER JOIN tb_inv_tran_mst a
+                                     ON a.tran_id = b.tran_id
+                 WHERE a.tran_type_cd = 'A'
+                   AND a.area_cd = #{areaCd}
+                   AND b.item_cd = #{itemCd}
+                 GROUP BY b.test_no
+             )
+        SELECT
+            s.test_no
+             ,d.tran_date
+             ,s.qty
+        FROM STOCK s
+                 LEFT JOIN IN_DATE d
+                           ON d.test_no = s.test_no
+        ORDER BY d.tran_date;
     </select>
 
     <select id="getMoveReqProcList">
