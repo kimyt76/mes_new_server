@@ -27,6 +27,7 @@
                 ,a.seq               AS seq
                 ,a.area_cd           AS areaCd
                 ,a.client_id         AS clientId
+                ,a.customer_cd       AS customerCd
                 ,a.manager_id        AS managerId
                 ,a.delivery_date     AS deliveryDate
                 ,a.item_cd           AS itemCd
@@ -122,19 +123,16 @@
          void insertWorkOrderMst(WorkOrderVo vo);
          void updateWorkOrderMst(WorkOrderVo vo);
          ========================================================= -->
-    <insert id="insertWorkOrderMst"
-            parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo"
-            useGeneratedKeys="true"
-            keyProperty="workOrderId">
+    <insert id="insertWorkOrderMst" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo" useGeneratedKeys="true" keyProperty="workOrderId">
         INSERT INTO dbo.TB_WORK_ORDER_MST
         (
-            work_order_date, seq, area_cd, client_id, manager_id,
+            work_order_date, seq, area_cd, client_id, customer_cd, manager_id,
             delivery_qty, delivery_date, item_cd, po_no,
             reg_id, upd_id
         )
         VALUES
             (
-            #{workOrderDate}, #{seq}, #{areaCd}, #{clientId}, #{managerId},
+            #{workOrderDate}, #{seq}, #{areaCd}, #{clientId}, #{customerCd}, #{managerId},
             #{deliveryQty}, #{deliveryDate}, #{itemCd}, #{poNo},
             #{userId}, #{userId}
             )
@@ -146,6 +144,7 @@
             seq             = #{seq},
             area_cd         = #{areaCd},
             client_id       = #{clientId},
+            customer_cd     = #{customerCd},
             manager_id      = #{managerId},
             delivery_qty    = #{deliveryQty},
             delivery_date   = #{deliveryDate},
@@ -247,13 +246,6 @@
         </foreach>
     </delete>
 
-    <update id="updateBatchStatus">
-        update TB_WORK_ORDER_BATCH
-        set    batch_status = #{batchStatus}
-              ,prod_Date    = #{prodDate}
-        where  work_batch_id = #{workBatchId}
-    </update>
-
     <select id="getWorkOrderProcInfo">
         select    CONCAT(CONVERT(varchar(10),c.work_order_date,23),' - ',c.seq) AS workOrderDateSeq
                  ,dbo.getCommonName('area', c.area_cd) as area_name
@@ -273,6 +265,7 @@
                  ,a.storage_cd
                  ,c.manager_id
                  ,c.client_id
+                 ,c.customer_cd
                  ,b.batch_status
                  ,a.proc_status
                  ,a.work_proc_id
@@ -317,7 +310,6 @@
                                     )
         where  a.work_proc_id = #{workProcId}
     </select>
-
 
     <select id="getWorkOrderProgressList">
         SELECT  a.po_no,
@@ -430,4 +422,18 @@
               ,upd_dt   = getDate()
         where work_proc_id = #{workProcId}
     </update>
+
+    <select id="getWeighWorkProcId">
+        SELECT TOP (1) work_proc_id
+        FROM TB_WORK_ORDER_PROC
+        WHERE work_batch_id = (
+            SELECT work_batch_id
+            FROM TB_WORK_ORDER_PROC
+            WHERE work_proc_id = #{workProcId}
+        )
+          AND proc_cd = 'PRC001'
+          AND (proc_status IS NULL OR proc_status <![CDATA[ <> ]]> '99')
+        ORDER BY work_proc_id DESC
+    </select>
+
 </mapper>

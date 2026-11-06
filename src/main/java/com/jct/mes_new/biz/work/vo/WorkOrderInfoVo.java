@@ -29,6 +29,7 @@ public class WorkOrderInfoVo {
     private String areaName;
     private String clientId;
     private String clientCd;
+    private String customerCd;
     private String clientName;
     private String managerId;
     private String managerName;

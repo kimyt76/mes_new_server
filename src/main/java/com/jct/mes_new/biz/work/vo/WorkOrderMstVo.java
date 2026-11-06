@@ -19,6 +19,7 @@ public class WorkOrderMstVo {
     private String areaName;
     private String clientId;
     private String clientName;
+    private String customerCd;
     private String managerId;
     private String managerName;
     private BigDecimal deliveryQty;

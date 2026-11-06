@@ -53,4 +53,5 @@ public interface WorkOrderMapper {
 
     void updateProdQty(WorkOrderInfoVo vo);
 
+    Long getWeighWorkProcId(Long workProcId);
 }
