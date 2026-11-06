@@ -33,22 +33,32 @@
 
     <select id="getWorkOrderItems">
         select  b.make_no
-               ,i.item_name
-               ,a.order_qty
-               ,a.work_proc_id
-               ,(select proc_status from  TB_WORK_ORDER_PROC where proc_cd = 'PRC002' and work_batch_id  = a.work_batch_id) as proc_status
-               ,a.work_batch_id
+                ,i.item_name
+                ,a.order_qty
+                ,aa.work_proc_id
+                ,(select proc_status from  TB_WORK_ORDER_PROC where proc_cd = 'PRC002' and work_batch_id  = a.work_batch_id) as proc_status
+                ,a.work_batch_id
         from   TB_WORK_ORDER_PROC a
-               join TB_WORK_ORDER_BATCH b
+                join TB_WORK_ORDER_BATCH b
                 on a.work_batch_id = b.work_batch_id
-                and b.batch_status = #{batchStatus}
-               join TB_WORK_ORDER_MST c
+                join TB_WORK_ORDER_MST c
                 on c.work_order_id = a.work_order_id
-               join tb_item_mst i
+                join tb_item_mst i
                 on i.item_cd = a.item_cd
+                LEFT join  TB_WORK_ORDER_PROC  aa
+                on aa.work_batch_id = a.work_batch_id
+                and aa.proc_cd = 'PRC001'
+                and aa.proc_status != '99'
         where  a.proc_order_date between  #{strDate} and #{endDate}
-          and  a.proc_cd = #{procCd}
+          and  a.proc_cd = 'PRC002'
           and  c.area_cd = #{areaCd}
+          and  a.proc_status = '00'
+          AND EXISTS (
+                SELECT 1
+                FROM dbo.vw_work_batch_status v
+                WHERE v.work_batch_id = a.work_batch_id
+                AND v.batch_status = '12'
+            )
         order by a.proc_order_date desc , b.work_batch_id desc
     </select>
 
@@ -93,7 +103,7 @@
           and    c.item_cd like '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-          and    i.item_name like '%' + #{itemName} + '%'
+          and    i.item_name like CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
         </if>
     </select>
 
@@ -152,15 +162,24 @@
         select COUNT(*) as cnt from tb_make_etc where work_proc_id = #{workProcId}
     </select>
 
-    <insert id="insertMakeEtc">
+    <insert id="insertMakeEtcMaker">
         insert into tb_make_etc
         (work_proc_id, item_cd, maker, reg_id ,upd_id )
         values
         (#{workProcId}, #{itemCd}, #{maker}, #{userId} , #{userId} )
     </insert>
-    <update id="updateMakeEtc">
+
+    <update id="updateMakeEtcMaker">
         update tb_make_etc
-        set    maker = #{maker}
+        set    maker = #{userId}
+              ,upd_id = #{userId}
+              ,upd_dt = getDate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <update id="updateMakeEtcConfirmer">
+        update tb_make_etc
+        set    confirmer = #{maker}
               ,upd_id = #{userId}
               ,upd_dt = getDate()
         where  work_proc_id = #{workProcId}

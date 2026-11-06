@@ -36,7 +36,7 @@
                 on f.customer_cd = a.customer_cd
         where   1=1
         <if test='itemName != "" and itemName != null'>
-            AND b.item_name LIKE '%' + #{itemName} + '%'
+            AND b.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
         <if test='managerName != "" and managerName != null'>
             AND e.member_nm LIKE '%' + #{managerName} + '%'

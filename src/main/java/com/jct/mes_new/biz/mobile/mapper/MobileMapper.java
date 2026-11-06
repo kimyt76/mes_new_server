@@ -24,7 +24,9 @@ public interface MobileMapper {
 
     int getMakeEtc(Long workProcId);
 
-    void insertMakeEtc(ProcMakeVo vo);
+    void insertMakeEtcMaker(ProcMakeVo vo);
 
-    void updateMakeEtc(ProcMakeVo vo);
+    void updateMakeEtcMaker(ProcMakeVo vo);
+
+    void updateMakeEtcConfirmer(ProcMakeVo vo);
 }

@@ -93,14 +93,18 @@ public class MobileServiceImpl implements MobileService {
 
 
     public Long startWorkOrderItem(ProcMakeVo vo) {
+        String userId = UserUtil.getUserId();
+
         //일단 조회
         ProcMakeVo matVo = mobileMapper.getWorkOrderProc(vo.getWorkProcId());
-
         matVo.setWorkEquipmentCd(vo.getWorkEquipmentCd());
         matVo.setBatchStatus("21");
         matVo.setProcStatus("21");
 
         String msg = procMakeServiceImpl.startProcMake(matVo);
+        vo.setUserId(userId);
+        vo.setWorkProcId(matVo.getWorkProcId());
+        mobileMapper.updateMakeEtcMaker(vo);
 
         return vo.getWorkProcId();
     }
@@ -111,18 +115,6 @@ public class MobileServiceImpl implements MobileService {
         //제조 work_proc 조회   vo.getWorkProcId()  이건 칭량  id임
         ProcMakeVo matVo = mobileMapper.getWorkOrderProc(vo.getWorkProcId());
 
-        vo.setUserId(UserUtil.getUserId());
-        vo.setItemCd(matVo.getItemCd());
-        //제조id matVo.getWorkProcId()
-        //작업자 등록
-        int cnt =  mobileMapper.getMakeEtc(matVo.getWorkProcId());
-
-        if (cnt > 0 ) {
-            mobileMapper.updateMakeEtc(vo);
-        }else{
-            mobileMapper.insertMakeEtc(vo);
-        }
-
         //공정 및 재고 등록
         matVo.setProcCd("PRC002");
         matVo.setBatchStatus("22");
@@ -130,6 +122,12 @@ public class MobileServiceImpl implements MobileService {
         matVo.setProdQty(vo.getProdQty());
 
         Long tranId = procMakeServiceImpl.completeMake(matVo);
+
+        vo.setUserId(UserUtil.getUserId());
+        vo.setItemCd(matVo.getItemCd());
+        vo.setWorkProcId(matVo.getWorkProcId());
+        //작업자 등록
+        mobileMapper.updateMakeEtcConfirmer(vo);
 
         return tranId;
     }

@@ -30,6 +30,7 @@
               ,a.weigh_id
               ,a.work_proc_id
               ,a.work_batch_id
+              ,a.order_qty
         from   tb_weigh_info a
         where  a.work_proc_id =  #{workProcId}
 
@@ -72,6 +73,7 @@
         update tb_weigh_info
         set    maker       = #{maker}
               ,make_Qty    = #{makeQty}
+              ,make_yn     = #{makeYn}
               ,upd_id      = #{userId}
               ,upd_dt      = getDate()
         where  weigh_id    = #{weighId}
@@ -272,6 +274,20 @@
               ,upd_id      = #{userId}
               ,upd_dt      = getdate()
         where  tran_id     = #{tranId}
-
     </update>
+
+    <update id="updateMakeEtcMobile">
+        update tb_make_etc
+        set    maker     = #{maker}
+              ,confirmer = #{confirmer}
+              ,upd_id    = #{userId}
+              ,upd_dt    = getDate()
+        where  work_proc_id = #{workProcId}
+    </update>
+
+    <select id="getMakeEtcCnt">
+        select count(*) as cnt
+        from  tb_make_etc
+        where  work_proc_id = #{workProcId}
+    </select>
 </mapper>
