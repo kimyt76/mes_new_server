@@ -33,7 +33,13 @@
         <if test="useYn != null and useYn != ''">
           and   a.use_yn = #{useYn}
         </if>
-        order by a.storage_name
+        ORDER BY
+        CASE
+        WHEN area_cd = 'A001' THEN 1  -- 시흥공장
+        WHEN area_cd = 'A002' THEN 2  -- 안산공장
+        ELSE 3                       -- 기타 창고
+        END,
+        storage_cd
     </select>
 
     <select id="getStorageInfo">
