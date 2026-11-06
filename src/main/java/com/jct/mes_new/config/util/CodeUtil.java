@@ -28,7 +28,7 @@ public class CodeUtil {
             case "M4" -> "7";
             case "M5" -> "5";
             case "M6" -> "6";
-            case "M7" -> "8";
+            case "M7" -> "2";
             default -> throw new IllegalArgumentException("잘못된 itemTypeCd: " + itemTypeCd);
         };
     }
