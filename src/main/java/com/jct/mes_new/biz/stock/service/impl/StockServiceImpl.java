@@ -129,109 +129,236 @@ public class StockServiceImpl implements StockService {
 
         Map<String, StockVo> pivotMap = new LinkedHashMap<>();
 
+        // 1. 창고 목록 조회
         StorageVo storageVo = new StorageVo();
-        storageVo.setAreaCd(vo.getAreaCd());
 
-        // 창고 목록 조회
-        List<StorageVo> storageList = storageMapper.getStorageList(storageVo);
+        // 전체 조회일 경우 공장 조건 제거
+        String areaCd = vo.getAreaCd();
 
-        // 창고별 재고 수량 조회
-        List<StockVo> stockList;
+        storageVo.setAreaCd(
+                areaCd == null || "ALL".equals(areaCd)
+                        ? null
+                        : areaCd
+        );
 
-        stockList = stockMapper.getStockItemList(vo);
+        List<StorageVo> storageList =
+                storageMapper.getStorageList(storageVo);
 
-        // 품목별 / 시험번호별 피벗 데이터 생성
+        // =====================================================
+        // 2. 창고 표시 순서 정렬
+        //    A001 : 시흥공장
+        //    A002 : 안산공장
+        //    기타 : 나머지 창고
+        // =====================================================
+        storageList.sort(
+                Comparator
+                        .comparingInt((StorageVo storage) -> {
+
+                            String cd = storage.getAreaCd();
+
+                            if ("A001".equals(cd)) {
+                                return 1;
+                            }
+
+                            if ("A002".equals(cd)) {
+                                return 2;
+                            }
+
+                            return 3;
+                        })
+                        .thenComparing(
+                                StorageVo::getStorageCd,
+                                Comparator.nullsLast(
+                                        String::compareTo
+                                )
+                        )
+        );
+
+        // 3. 창고별 재고 수량 조회
+        //    재고 + 발주입고예정 + 안전재고 통합 SQL
+        List<StockVo> stockList =
+                stockMapper.getStockItemList(vo);
+
+        boolean isTest = "TEST".equals(vo.getType());
+
+        // 4. 품목별 / 시험번호별 피벗 데이터 생성
         for (StockVo row : stockList) {
-            String itemCd = row.getItemCd() == null? "": row.getItemCd().trim();
-            String testNo = row.getTestNo() == null? "": row.getTestNo().trim();
-            String mapKey = itemCd;
 
-            if ("TEST".equals(vo.getType())) {
-                mapKey = row.getItemCd() + "_" + row.getTestNo();
-            }
+            String itemCd = row.getItemCd() == null
+                    ? ""
+                    : row.getItemCd().trim();
 
-            StockVo pivot = pivotMap.computeIfAbsent(mapKey, key -> {
-                StockVo stockVo = new StockVo();
+            String testNo = row.getTestNo() == null
+                    ? ""
+                    : row.getTestNo().trim();
 
-                stockVo.setItemCd(row.getItemCd());
-                stockVo.setItemName(row.getItemName());
-                stockVo.setItemTypeCd(row.getItemTypeCd());
-                stockVo.setTestNo(row.getTestNo());
+            String storageCd = row.getStorageCd();
 
-                stockVo.setInReQty(nvl(row.getInReQty()));
-                stockVo.setSafeStockQty(nvl(row.getSafeStockQty()));
-                stockVo.setTotQty(BigDecimal.ZERO);
-                stockVo.setStorageQtyMap(new LinkedHashMap<>());
+            // ITEM : 품목코드별
+            // TEST : 품목코드 + 시험번호별
+            String mapKey = isTest
+                    ? itemCd + "\u001F" + testNo
+                    : itemCd;
 
-                return stockVo;
-            });
+            StockVo pivot = pivotMap.computeIfAbsent(
+                    mapKey,
+                    key -> {
 
+                        StockVo stockVo = new StockVo();
+
+                        stockVo.setItemCd(row.getItemCd());
+                        stockVo.setItemName(row.getItemName());
+                        stockVo.setItemTypeCd(row.getItemTypeCd());
+
+                        stockVo.setTestNo(
+                                isTest ? row.getTestNo() : null
+                        );
+
+                        // 통합 SQL에서 조회한 값
+                        stockVo.setInReQty(
+                                nvl(row.getInReQty())
+                        );
+
+                        stockVo.setSafeStockQty(
+                                nvl(row.getSafeStockQty())
+                        );
+
+                        stockVo.setTotQty(BigDecimal.ZERO);
+
+                        stockVo.setStorageQtyMap(
+                                new LinkedHashMap<>()
+                        );
+
+                        return stockVo;
+                    }
+            );
+
+            // 5. 창고별 재고 수량 누적
             BigDecimal qty = nvl(row.getQty());
 
-            pivot.getStorageQtyMap().put(row.getStorageCd(), qty);
-            pivot.setTotQty(nvl(pivot.getTotQty()).add(qty));
-        }
-        // 창고별 세로 합계 계산
-        Map<String, BigDecimal> storageTotalMap = new LinkedHashMap<>();
+            if (storageCd != null
+                    && !storageCd.trim().isEmpty()) {
 
-        for (StorageVo storage : storageList) {
-            storageTotalMap.put(storage.getStorageCd(), BigDecimal.ZERO);
-        }
-
-        for (StockVo stockVo : pivotMap.values()) {
-            for (Map.Entry<String, BigDecimal> entry : stockVo.getStorageQtyMap().entrySet()) {
-                String storageCd = entry.getKey();
-                BigDecimal qty = (BigDecimal) nvl(entry.getValue());
-
-                storageTotalMap.put(
-                        storageCd,
-                        nvl(storageTotalMap.get(storageCd)).add(qty)
+                pivot.getStorageQtyMap().merge(
+                        storageCd.trim(),
+                        qty,
+                        BigDecimal::add
                 );
             }
-        }
-        // 세로 합계가 0이 아닌 창고만 남김
-        List<StorageVo> filteredStorageList = storageList.stream()
-                .filter(storage -> {
-                    BigDecimal total = nvl(storageTotalMap.get(storage.getStorageCd()));
-                    return total.compareTo(BigDecimal.ZERO) != 0;
-                })
-                .toList();
 
-        // 프론트 동적 컬럼 생성
-        List<Map<String, String>> dynamicColumns = new ArrayList<>();
+            // 6. 전체 재고 합계
+            pivot.setTotQty(
+                    nvl(pivot.getTotQty()).add(qty)
+            );
+        }
+
+        // =====================================================
+        // 7. 실제 재고가 존재하는 창고만 표시
+        //    정렬된 storageList를 사용하므로 순서 유지
+        // =====================================================
+        List<StorageVo> filteredStorageList =
+                storageList.stream()
+                        .filter(storage -> {
+
+                            String storageCd = storage.getStorageCd();
+
+                            if (storageCd == null) {
+                                return false;
+                            }
+
+                            return pivotMap.values().stream()
+                                    .anyMatch(stockVo -> {
+
+                                        BigDecimal qty = nvl(
+                                                stockVo.getStorageQtyMap()
+                                                        .get(storageCd.trim())
+                                        );
+
+                                        return qty.compareTo(
+                                                BigDecimal.ZERO
+                                        ) != 0;
+                                    });
+                        })
+                        .collect(Collectors.toList());
+
+        // =====================================================
+        // 8. 프론트 동적 창고 컬럼 생성
+        //    시흥 -> 안산 -> 기타 순서 적용
+        // =====================================================
+        List<Map<String, String>> dynamicColumns =
+                new ArrayList<>();
 
         for (StorageVo storage : filteredStorageList) {
-            Map<String, String> col = new LinkedHashMap<>();
-            col.put("field", storage.getStorageCd());
-            col.put("header", storage.getStorageName());
+
+            Map<String, String> col =
+                    new LinkedHashMap<>();
+
+            col.put(
+                    "field",
+                    storage.getStorageCd().trim()
+            );
+
+            col.put(
+                    "header",
+                    storage.getStorageName()
+            );
+
             dynamicColumns.add(col);
         }
-        // 프론트에서 data[col.field]로 바로 접근 가능하도록 rows 펼치기
-        List<Map<String, Object>> rows = new ArrayList<>();
+
+        // 9. Vue DataTable에서 사용할 rows 생성
+        List<Map<String, Object>> rows =
+                new ArrayList<>();
 
         for (StockVo stockVo : pivotMap.values()) {
-            Map<String, Object> rowMap = new LinkedHashMap<>();
 
+            Map<String, Object> rowMap =
+                    new LinkedHashMap<>();
+
+            // 기본 품목 정보
             rowMap.put("itemCd", stockVo.getItemCd());
             rowMap.put("itemName", stockVo.getItemName());
             rowMap.put("itemTypeCd", stockVo.getItemTypeCd());
             rowMap.put("testNo", stockVo.getTestNo());
 
-            rowMap.put("inReQty", nvl(stockVo.getInReQty()));
-            rowMap.put("totQty", nvl(stockVo.getTotQty()));
-            rowMap.put("safeStockQty", nvl(stockVo.getSafeStockQty()));
+            // 발주 입고예정 / 안전재고
+            rowMap.put(
+                    "inReQty",
+                    nvl(stockVo.getInReQty())
+            );
 
+            rowMap.put(
+                    "safeStockQty",
+                    nvl(stockVo.getSafeStockQty())
+            );
+
+            // 창고별 재고
             for (StorageVo storage : filteredStorageList) {
-                String storageCd = storage.getStorageCd();
-                BigDecimal qty = (BigDecimal) stockVo.getStorageQtyMap().get(storageCd);
 
-                rowMap.put(storageCd, nvl(qty));
+                String storageCd =
+                        storage.getStorageCd().trim();
+
+                BigDecimal qty = nvl(
+                        stockVo.getStorageQtyMap()
+                                .get(storageCd)
+                );
+
+                rowMap.put(storageCd, qty);
             }
+
+            // 전체 재고 합계
+            rowMap.put(
+                    "totQty",
+                    nvl(stockVo.getTotQty())
+            );
 
             rows.add(rowMap);
         }
 
-        Map<String, Object> result = new LinkedHashMap<>();
+        // 10. 최종 반환
+        Map<String, Object> result =
+                new LinkedHashMap<>();
+
         result.put("dynamicColumns", dynamicColumns);
         result.put("rows", rows);
 
@@ -245,12 +372,14 @@ public class StockServiceImpl implements StockService {
 
 
 
+
     public StockHistResponseVo getStockItemHistList(StockVo vo) {
 
         StockHistResponseVo response = new StockHistResponseVo();
 
-        // 1. area별 창고 조회
-        List<Map<String, Object>> storageList = storageMapper.getAreaStorageList(vo.getAreaCd());
+        // 1. 공장별 창고 조회
+        List<Map<String, Object>> storageList =
+                storageMapper.getAreaStorageList(vo.getAreaCd());
 
         if (storageList == null || storageList.isEmpty()) {
             response.setStorageList(Collections.emptyList());
@@ -258,20 +387,22 @@ public class StockServiceImpl implements StockService {
             return response;
         }
 
-        // 2. 창고코드 목록 추출
+        // 2. 창고코드 목록
         List<String> storageCodes = storageList.stream()
-                .map(s -> String.valueOf(s.get("storageCd")))
+                .map(s -> normalizeKey(s.get("storageCd")))
                 .collect(Collectors.toList());
 
-        // 3. 재고 조회 파라미터 구성
+        Set<String> storageCodeSet = new LinkedHashSet<>(storageCodes);
+
+        // 3. 재고 조회 파라미터
         Map<String, Object> param = new HashMap<>();
         param.put("itemCd", vo.getItemCd());
         param.put("areaCd", vo.getAreaCd());
         param.put("storageCodes", storageCodes);
 
-        // 4. 창고별 재고 조회
-        // 동적 컬럼이므로 Map 형태가 가장 안정적
-        List<Map<String, Object>> stockList = stockMapper.getStockList(param);
+        // 4. 재고 조회 (세로 데이터)
+        List<Map<String, Object>> stockList =
+                stockMapper.getStockList(param);
 
         if (stockList == null || stockList.isEmpty()) {
             response.setStorageList(Collections.emptyList());
@@ -279,57 +410,134 @@ public class StockServiceImpl implements StockService {
             return response;
         }
 
-        // 5. 창고코드 대문자 기준으로 합계 누적
-        Map<String, BigDecimal> storageSumMap = new HashMap<>();
-        for (String storageCd : storageCodes) {
-            storageSumMap.put(normalizeKey(storageCd), BigDecimal.ZERO);
-        }
+        // 5. 시험번호별 가로 데이터 변환
+        Map<String, Map<String, Object>> stockMap = new LinkedHashMap<>();
 
         for (Map<String, Object> row : stockList) {
-            for (String storageCd : storageCodes) {
-                String normalizedCd = normalizeKey(storageCd);
-                BigDecimal qty = toBigDecimal(findValueIgnoreCase(row, storageCd));
-                storageSumMap.put(normalizedCd, storageSumMap.get(normalizedCd).add(qty));
+
+            String itemCd = String.valueOf(
+                    findValueIgnoreCase(row, "itemCd")
+            );
+
+            String testNo = String.valueOf(
+                    findValueIgnoreCase(row, "testNo")
+            );
+
+            String storageCd = normalizeKey(
+                    findValueIgnoreCase(row, "storageCd")
+            );
+
+            BigDecimal qty = toBigDecimal(
+                    findValueIgnoreCase(row, "qty")
+            );
+
+            // 창고 마스터에 없는 창고는 제외
+            if (!storageCodeSet.contains(storageCd)) {
+                continue;
+            }
+
+            // 품목 + 시험번호 기준으로 묶기
+            String key = itemCd + "|" + testNo;
+
+            Map<String, Object> dest = stockMap.get(key);
+
+            if (dest == null) {
+
+                dest = new LinkedHashMap<>();
+
+                dest.put("itemCd", itemCd);
+                dest.put("testNo", testNo);
+                dest.put("inDate", findValueIgnoreCase(row, "inDate"));
+                dest.put("expiryDate", findValueIgnoreCase(row, "expiryDate"));
+                dest.put("totQty", BigDecimal.ZERO);
+
+                // 창고별 수량 초기화
+                for (String cd : storageCodeSet) {
+                    dest.put(cd, BigDecimal.ZERO);
+                }
+
+                stockMap.put(key, dest);
+            }
+
+            // 6. 창고별 수량 누적
+            BigDecimal oldQty = toBigDecimal(dest.get(storageCd));
+
+            dest.put(storageCd, oldQty.add(qty));
+
+            // 7. 시험번호별 총재고 누적
+            BigDecimal oldTotal = toBigDecimal(dest.get("totQty"));
+
+            dest.put("totQty", oldTotal.add(qty));
+        }
+
+        // 8. 시험번호별 총재고가 양수인 데이터만 유지
+        List<Map<String, Object>> validRows = stockMap.values()
+                .stream()
+                .filter(row ->
+                        toBigDecimal(row.get("totQty"))
+                                .compareTo(BigDecimal.ZERO) > 0
+                )
+                .collect(Collectors.toList());
+
+        // 9. 실제 재고가 존재하는 창고 추출
+        // 서로 다른 시험번호의 양수/음수가 상쇄되어도
+        // 개별 시험번호에 재고가 있으면 창고 표시
+        Set<String> activeStorageSet = new HashSet<>();
+
+        for (Map<String, Object> row : validRows) {
+
+            for (String storageCd : storageCodeSet) {
+
+                BigDecimal qty = toBigDecimal(row.get(storageCd));
+
+                if (qty.compareTo(BigDecimal.ZERO) != 0) {
+                    activeStorageSet.add(storageCd);
+                }
             }
         }
-        // 6. 세로 전체 합계가 0이 아닌 창고만 남김
+
+        // 10. 표시할 창고만 유지
         List<Map<String, Object>> filteredStorageList = storageList.stream()
-                .filter(storage -> {
-                    String storageCd = normalizeKey(storage.get("storageCd"));
-                    BigDecimal sum = storageSumMap.getOrDefault(storageCd, BigDecimal.ZERO);
-                    return sum.compareTo(BigDecimal.ZERO) != 0;
-                })
+                .filter(storage ->
+                        activeStorageSet.contains(
+                                normalizeKey(storage.get("storageCd"))
+                        )
+                )
                 .collect(Collectors.toList());
-        // 7. 남길 창고코드 Set
-        Set<String> remainStorageSet = filteredStorageList.stream()
-                .map(s -> normalizeKey(s.get("storageCd")))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        // 8. row 가공
+
+        // 11. 최종 가로 데이터 구성
         List<Map<String, Object>> filteredStockList = new ArrayList<>();
 
-        for (int i = 0; i < stockList.size(); i++) {
-            Map<String, Object> src = stockList.get(i);
+        int no = 1;
+
+        for (Map<String, Object> src : validRows) {
+
             Map<String, Object> dest = new LinkedHashMap<>();
 
-            dest.put("no", i + 1);
-            dest.put("itemCd", findValueIgnoreCase(src, "itemCd"));
-            dest.put("testNo", findValueIgnoreCase(src, "testNo"));
-            dest.put("inDate", findValueIgnoreCase(src, "inDate"));
-            dest.put("expiryDate", findValueIgnoreCase(src, "expiryDate"));
-            dest.put("totQty", nvl(findValueIgnoreCase(src, "totQty"), BigDecimal.ZERO));
+            dest.put("no", no++);
+            dest.put("itemCd", src.get("itemCd"));
+            dest.put("testNo", src.get("testNo"));
+            dest.put("inDate", src.get("inDate"));
+            dest.put("expiryDate", src.get("expiryDate"));
+            dest.put("totQty", src.get("totQty"));
 
-            for (String storageCd : remainStorageSet) {
-                dest.put(storageCd, toBigDecimal(findValueIgnoreCase(src, storageCd)));
+            for (Map<String, Object> storage : filteredStorageList) {
+
+                String storageCd = normalizeKey(storage.get("storageCd"));
+
+                dest.put(storageCd, src.get(storageCd));
             }
 
             filteredStockList.add(dest);
         }
 
+        // 12. 응답
         response.setStorageList(filteredStorageList);
         response.setStockItemHistList(filteredStockList);
 
         return response;
     }
+
 
     private String normalizeKey(Object value) {
         return String.valueOf(value == null ? "" : value).toUpperCase();
