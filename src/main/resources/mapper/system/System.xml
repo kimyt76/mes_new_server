@@ -167,13 +167,15 @@
     </insert>
 
     <select id="getGrpMenuList">
-        SELECT    menu_id
-                 ,menu_name as grp_menu_name
-                 ,sort_order
-            FROM tb_menu_mst
-            WHERE menu_level = 2
-              AND use_yn = 'Y'
-            ORDER BY menu_id, sort_order
+        SELECT b.menu_id
+             , b.menu_name AS grp_menu_name
+             , b.sort_order
+        FROM tb_menu_mst b
+             LEFT JOIN tb_menu_mst a
+             ON b.parent_id = a.menu_id
+        WHERE b.menu_level = 2
+          AND b.use_yn = 'Y'
+        ORDER BY a.sort_order, b.sort_order, b.menu_id
     </select>
 
     <select id="getMenuAuthList">
