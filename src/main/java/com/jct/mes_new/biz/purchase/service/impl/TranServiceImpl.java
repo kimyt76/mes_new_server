@@ -76,7 +76,7 @@ public class TranServiceImpl implements TranService {
         // 2. 삭제 처리
         List<Long> deletedItemIds = vo.getDeleteTranItems();
         if (deletedItemIds != null && !deletedItemIds.isEmpty()) {
-            tranMapper.deleteItemList(tranId,deletedItemIds);
+            tranMapper.deleteInvTrnaItemList(tranId,deletedItemIds);
         }
         //3. 발주 품목 처리
         List<TranItemVo> itemList = vo.getTranItemList();
@@ -110,7 +110,7 @@ public class TranServiceImpl implements TranService {
     public void deleteTranInfo(Long purId) {
         Long tranId = tranMapper.getTranId(purId);
 
-        tranMapper.deleteTranItem(tranId);
+        tranMapper.deleteAllTranItem(tranId);
         tranMapper.deleteTranMst(tranId);
     }
 

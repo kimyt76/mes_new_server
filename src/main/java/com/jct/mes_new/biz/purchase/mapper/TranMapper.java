@@ -3,7 +3,9 @@ package com.jct.mes_new.biz.purchase.mapper;
 import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -14,7 +16,7 @@ public interface TranMapper {
 
     /* 수정*/
     int updateTranMst(TranVo mst);
-    void deleteItemList(Long tranId, List<Long> deletedItemIds);
+    void deleteInvTrnaItemList(Long tranId, List<Long> deletedItemIds);
     int insertTranItem(TranItemVo item);
     int updateTranItem(TranItemVo item);
 
@@ -34,4 +36,6 @@ public interface TranMapper {
 
 
     void deleteTranItem(Long tranItemId);
+
+    void updateTranItemQty(TranItemVo vo);
 }
