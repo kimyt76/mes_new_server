@@ -15,4 +15,6 @@ public class MatMonitoringVo {
    private String itemName;
    private BigDecimal prodQty;
    private Long workProcId;
+   private String makeNo;
+   private String procStatus;
 }
