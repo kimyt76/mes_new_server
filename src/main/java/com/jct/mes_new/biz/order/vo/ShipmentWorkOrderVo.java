@@ -16,12 +16,15 @@ public class ShipmentWorkOrderVo {
     private String itemCd;
     private String itemName;
     private String lotNo;
+    private String customerCd;
+    private String customerName;
     private String makeNo;
     private BigDecimal stockQty;
+    private BigDecimal qty;
     private BigDecimal pallet;
     private String storageCd;
     private String storageName;
-    private String passState;
+    private String qcStatus;
     private String passStateName;
     private String procCd;
     private String procStatus;

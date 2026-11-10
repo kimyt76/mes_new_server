@@ -68,9 +68,9 @@
             left JOIN item_summary s
             ON s.shipment_id = a.shipment_id
             LEFT JOIN tb_client_mst c
-            ON c.client_id = a.client_id
+            ON c.customer_cd = a.customer_cd
             LEFT JOIN tb_client_Manager c1
-            ON c1.client_id = a.client_id
+            ON c.client_id = c1.client_id
             and c1.order_dist = 1
             left join tb_common_code c2
             on c2.code = a.shipment_status
@@ -108,7 +108,7 @@
                     INNER JOIN tb_item_mst xi
                     ON xi.item_cd = x.item_cd
                 WHERE x.shipment_id = a.shipment_id
-                AND xi.item_name LIKE CONCAT('%', #{itemName}, '%')
+                AND xi.item_name LIKE '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
             )
         </if>
         <if test="deliveryManagerName != null and deliveryManagerName != ''">
@@ -124,7 +124,7 @@
                  ,a.seq
                  ,a.shipment_req_date
                  ,a.shipment_time
-                 ,a.client_id
+                 ,a.customer_cd
                  ,b.client_name
                  ,a.delivery_location
                  ,a.delivery_address
@@ -140,7 +140,7 @@
                  ,c.lotCnt
         from     tb_shipment_mst a
                  left join tb_client_mst b
-                 on b.client_id = a.client_id
+                 on b.customer_cd = a.customer_cd
                  left join (
                     select  COUNT(lot_no) as lotCnt
                          ,shipment_id
@@ -168,9 +168,12 @@
                  ,a.shipment_id
                  ,a.item_type_cd
                  ,'' as etc
+                 ,t.pass_state as qc_status
         from   tb_shipment_item a
                    join tb_item_mst b
                         on b.item_cd = a.item_cd
+                   join tb_item_test_no  t
+                        on t.test_no = a.test_no
         where  shipment_id = #{shipmentId}
         ORDER BY a.shipment_item_id
     </select>
@@ -181,7 +184,7 @@
             ,seq
             ,shipment_req_date
             ,shipment_time
-            ,client_id
+            ,customer_cd
             ,delivery_location
             ,delivery_address
             ,delivery_manager_name
@@ -199,7 +202,7 @@
                ,#{seq}
                ,#{shipmentReqDate}
                ,#{shipmentTime}
-               ,#{clientId}
+               ,#{customerCd}
                ,#{deliveryLocation}
                ,#{deliveryAddress}
                ,#{deliveryManagerName}
@@ -219,7 +222,7 @@
         UPDATE tb_shipment_mst
         SET    shipment_req_date      = #{shipmentReqDate}
               ,shipment_time          = #{shipmentTime}
-              ,client_id              = #{clientId}
+              ,customer_cd            = #{customerCd}
               ,delivery_location      = #{deliveryLocation}
               ,delivery_address       = #{deliveryAddress}
               ,delivery_manager_name  = #{deliveryManagerName}
@@ -250,6 +253,7 @@
              ,test_no
              ,order_dist
              ,storage_cd
+             ,work_proc_id
              ,reg_id
              ,upd_id
         )
@@ -267,6 +271,7 @@
                ,#{testNo}
                ,#{orderDist}
                ,#{storageCd}
+               ,#{workProcId}
                ,#{userId}
                ,#{userId}
                )
@@ -281,75 +286,74 @@
     </update>
 
     <select id="getWorkOrderItemList">
-        select   ROW_NUMBER() OVER (ORDER BY po_no, work_proc_id, storage_cd ) AS row_id
-                , q.*
-        from  (
-            select    a.po_no
-                     ,d.code_nm as item_type_name
-                     ,a.item_cd
-                     ,c.item_type_cd
-                     ,c.item_name
-                     ,b.lot_no
-                     ,b.make_no
-                     ,sum(e.qty) as stock_qty
-                     ,sum(0) as pallet
-                     ,d1.code_nm as passStateName
-                     ,f.storage_name
-                     ,f.storage_cd
-                     ,a.work_proc_id
-                     ,t.pass_state as qc_status
-                     ,a.test_no
-            from    TB_WORK_ORDER_PROC a
-                    inner join TB_WORK_ORDER_BATCH b
-                    on b.work_batch_id = a.work_batch_id
-                    inner join tb_item_mst c
-                    on c.item_cd = a.item_cd
-                    LEFT join tb_item_test_no t
-                    on t.test_no = a.test_no
-                    left join tb_common_code d
-                    on d.code = c.item_type_cd
-                    and d.com_type_cd = 'item_type_cd'
-                    left join tb_common_code d1
-                    on d1.code = t.pass_state
-                    and d1.com_type_cd = 'pass_state'
-                    left join vw_inv_stock_tran e
-                    on e.item_cd = a.item_cd
-                    left join tb_storage_mst f
-                    on f.storage_cd = e.storage_cd
-            where  a.proc_cd = #{procCd}
-              and  a.proc_status = #{procStatus}
-            <if test="poNo != null and poNo != ''">
-                and  a.po_no like  '%' + #{poNo} + '%'
-            </if>
-            <if test="itemCd != null and itemCd != ''">
-                and  c.item_cd like  '%' + #{itemCd} + '%'
-            </if>
-            <if test="itemName != null and itemName != ''">
-                and  c.item_name like '%' + #{itemName} + '%'
-            </if>
-              and NOT EXISTS (
-                    SELECT 1
-                    FROM    tb_shipment_item x
-                            join tb_shipment_mst m
-                            on m.shipment_id = x.shipment_id
-                    WHERE   x.po_no = a.po_no
-                      and   x.work_proc_id = a.work_proc_id
-                      AND   m.shipment_yn ='N'
-                )
-            group by a.po_no
-                   ,d.code_nm
-                   ,a.item_cd
-                   ,c.item_name
-                   ,b.lot_no
-                   ,b.make_no
-                   ,d1.code_nm
-                   ,f.storage_name
-                   ,f.storage_cd
-                   ,a.work_proc_id
-                   ,t.pass_state
-                   ,a.test_no
-                   ,c.item_type_cd
-            ) q
+        with shipment_qty as (
+            select   b.po_no
+                    ,b.test_no
+                    ,sum(isnull(b.qty, 0))  as qty
+            from   tb_shipment_mst a
+                    join tb_shipment_item b
+                    on a.shipment_id = b.shipment_id
+            where  a.shipment_yn ='N'
+            group  by  b.po_no, b.test_no
+        ),
+        stock_qty as (
+            select  s.item_cd
+                    ,s.test_no
+                    ,sum(s.qty) as qty
+                    ,s.storage_cd
+            FROM dbo.fn_get_stock(
+                    CAST(null AS DATE)
+                    ,NULL
+                    ,NULL
+                    ,'M0'
+                    ,#{itemCd}
+                    ,#{itemName}
+                    ,'TEST'
+                    ,NULL
+                ) s
+            group by s.item_cd ,s.test_no ,s.storage_cd
+        )
+        select  b.po_no
+                ,'M0'  as item_type_cd
+                ,a.item_cd
+                ,i.item_name
+                ,b.lot_no
+                ,b.make_no
+                ,a.test_no
+                ,ISNULL(s.qty, 0)  as stock_qty
+                ,ISNULL(s.qty, 0) - ISNULL(q.qty, 0  ) as qty
+                ,dbo.getStorageName(s.storage_cd) as storage_name
+                ,t.pass_state  as qcStatus
+                ,a.work_batch_id
+                ,a.work_proc_id
+        from   TB_WORK_ORDER_PROC a
+                join TB_WORK_ORDER_BATCH b
+                on b.work_batch_id = a.work_batch_id
+                join TB_WORK_ORDER_MST m
+                on a.work_order_id = m.work_order_id
+                join tb_item_mst i
+                on i.item_cd = a.item_cd
+                join tb_item_test_no t
+                on t.test_no = a.test_no
+                left join shipment_qty q
+                on q.test_no = a.test_no
+                left join stock_qty s
+                on s.item_cd = a.item_cd
+                and s.test_no = a.test_no
+        where  a.proc_cd = 'PRC005'
+        and    a.proc_status = '52'
+        <if test="customerCd != null and customerCd != ''">
+            and  m.customer_cd = #{customerCd}
+        </if>
+        <if test="poNo != null and poNo != ''">
+            and  a.po_no like  '%' + #{poNo} + '%'
+        </if>
+        <if test="itemCd != null and itemCd != ''">
+            and  c.item_cd like  '%' + #{itemCd} + '%'
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and  c.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
+        </if>
     </select>
 
     <delete id="deleteShipmentMst">
@@ -367,15 +371,13 @@
         </foreach>
     </delete>
 
-    <insert id="insertShipmentInvTran">
-        insert into tb_shipment_inv_tran
-        (shipment_item_id, tran_id, reg_id)
-        values
-        (#{tranId}, #{tranId}, #{userId})
-    </insert>
-
     <update id="updatePrintYn">
         update tb_shipment_mst set print_yn ='Y' where shipment_id = #{shipmentId}
     </update>
 
+    <update id="updateShipmentItemByTranId">
+        update tb_shipment_item
+        set    tran_id = #{tranId}
+        where  shipment_item_id = #{shipmentItemId}
+    </update>
 </mapper>

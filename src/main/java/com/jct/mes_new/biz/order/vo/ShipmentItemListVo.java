@@ -13,6 +13,7 @@ public class ShipmentItemListVo {
     private Long shipmentItemId;
     private Long shipmentId;
     private Long workProcId;
+    private Long tranId;
     private String poNo;
     private String itemCd;
     private String itemTypeCd;

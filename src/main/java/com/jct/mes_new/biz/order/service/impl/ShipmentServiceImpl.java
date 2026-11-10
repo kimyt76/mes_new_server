@@ -186,17 +186,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     private void processShipmentInventory(Long shipmentId, String userId) {
-        /*
-         * 이미 재고처리된 출고인지 확인
-         *
-         * 수정에서도 이 메서드를 호출할 것이기 때문에
-         * 반드시 중복방지가 필요함
-         */
-//        int exists = shipmentMapper.countShipmentInventoryTran(shipmentId);
-//
-//        if (exists > 0) {
-//            return;
-//        }
+
         ShipmentVo mst = shipmentMapper.getShipmentInfo(shipmentId);
         /*
          * 출고 상세 조회
@@ -206,44 +196,12 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (itemList == null || itemList.isEmpty()) {
             throw new BusinessException(ErrorCode.FAIL_CREATED);
         }
-        /*
-         * storage_cd 기준 그룹핑
-         *
-         * WH01
-         *   ITEM-A
-         *   ITEM-B
-         *
-         * WH02
-         *   ITEM-C
 
-        for (ShipmentItemListVo item : itemList) {
-            log.info(
-                    "shipmentItemId={}, itemCd={}, storageCd={}",
-                    item.getShipmentItemId(),
-                    item.getItemCd(),
-                    item.getStorageCd()
-            );
-        }
-         */
-        Map<String, List<ShipmentItemListVo>> storageGroup = itemList.stream()
-                        .collect(Collectors.groupingBy(
-                                ShipmentItemListVo::getStorageCd
-                        ));
-        /*
-         * 창고별 재고 트랜잭션 생성
-         */
-        for (Map.Entry<String, List<ShipmentItemListVo>> entry : storageGroup.entrySet()) {
-            String storageCd = entry.getKey();
-            List<ShipmentItemListVo> storageItems =entry.getValue();
-            /*
-             * 1. 재고 transaction master 생성
-             */
+        for ( ShipmentItemListVo item : itemList ) {
+            //재고 마스터
             TranVo tranMst = new TranVo();
 
-            StorageVo storageVo =  storageMapper.getStorageInfo(storageCd);
-
             String shipmentStatus = mst.getShipmentStatus();
-
             String tranTypeCd = shipmentStatus == null ? null :
                     switch (shipmentStatus) {
                         case "SA", "MS", "FC" -> "F";
@@ -251,17 +209,19 @@ public class ShipmentServiceImpl implements ShipmentService {
                         case "PN"             -> "P";
                         default               -> null;
                     };
-
             String tarStorageCd = shipmentStatus == null ? null :
                 switch (mst.getShipmentStatus()) {
                 case "SA", "MS", "FC" -> "WC001";
                 case "MV", "FS"       -> "WC002";
                 default               -> null;
             };
+
+            StorageVo storageVo =  storageMapper.getStorageInfo(item.getStorageCd());
+
             tranMst.setTranTypeCd(tranTypeCd); // 출고 코드
             tranMst.setTranDate(LocalDate.now());
             tranMst.setCustomerCd(mst.getClientId());
-            tranMst.setSrcStorageCd(storageCd);
+            tranMst.setSrcStorageCd(item.getStorageCd());
             tranMst.setTarStorageCd(tarStorageCd);
             tranMst.setAreaCd(storageVo.getAreaCd());
             tranMst.setTranStatus("C");
@@ -269,63 +229,41 @@ public class ShipmentServiceImpl implements ShipmentService {
             tranMst.setUserId(userId);
 
             // 필요하면 출고번호 연결용 정보
-            // tranMst.setRemark("출고번호 : " + shipmentId);
+//            // tranMst.setRemark("출고번호 : " + shipmentId);
             if (tranMapper.insertTranMst(tranMst) <= 0) {
                 throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
 
+            //재고 품목
             Long tranId = tranMst.getTranId();
             /*
-             * 2. 해당 창고의 상세 재고처리
+             * 재고 transaction 상세
              */
-            for (ShipmentItemListVo shipmentItem : storageItems) {
-                /*
-                 * 재고 transaction 상세
-                 */
-                TranItemVo tranItem = new TranItemVo();
+            TranItemVo tranItem = new TranItemVo();
 
-                tranItem.setTranId(tranId);
-                tranItem.setItemCd(shipmentItem.getItemCd());
-                tranItem.setItemName(shipmentItem.getItemName());
-                tranItem.setItemTypeCd(shipmentItem.getItemTypeCd());
-                tranItem.setQty(shipmentItem.getQty());
-                tranItem.setLotNo(shipmentItem.getLotNo());
-                tranItem.setMakeNo(shipmentItem.getMakeNo());
-                tranItem.setTestNo(shipmentItem.getTestNo());
-                tranItem.setQcStatus(shipmentItem.getQcStatus());
-                tranItem.setInYn("Y");
-                /*
-                 * 출고이므로 - 수량
-                 *
-                 * 현재 재고 VIEW가
-                 * SUM(qty) 방식이라면 음수로 저장하는 구조가 편함
+            tranItem.setTranId(tranId);
+            tranItem.setItemCd(item.getItemCd());
+            tranItem.setItemName(item.getItemName());
+            tranItem.setItemTypeCd(item.getItemTypeCd());
+            tranItem.setQty(item.getQty());
+            tranItem.setLotNo(item.getLotNo());
+            tranItem.setMakeNo(item.getMakeNo());
+            tranItem.setTestNo(item.getTestNo());
+            tranItem.setQcStatus(item.getQcStatus());
+            tranItem.setInYn("Y");
+            tranItem.setUserId(userId);
 
-                tranItem.setQty(shipmentItem.getQty().negate());
-                 */
-                tranItem.setUserId(userId);
-
-                if (tranMapper.insertTranItem(tranItem) <= 0) {
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
-                }
-
-                /*
-                 * 3. shipment_item ↔ tran_id 연결
-                 */
-                ShipmentInvTranVo relation = new ShipmentInvTranVo();
-
-                relation.setShipmentItemId(shipmentItem.getShipmentItemId());
-                relation.setTranId(tranId);
-                relation.setUserId(userId);
-
-                if (shipmentMapper.insertShipmentInvTran(relation) <= 0) {
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
-                }
+            if (tranMapper.insertTranItem(tranItem) <= 0) {
+                throw new BusinessException(ErrorCode.FAIL_CREATED);
             }
+
+            item.setTranId(tranId);
+            item.setUserId(userId);
+            shipmentMapper.updateShipmentItemByTranId(item);
         }
     }
 
     public byte[] printTransactionStatement(Long shipmentId) {
-
         // =========================================================
         // 1. DB 조회 - 본사정보
         // =========================================================
@@ -342,7 +280,6 @@ public class ShipmentServiceImpl implements ShipmentService {
                     "거래명세서 데이터가 없습니다. shipmentId=" + shipmentId
             );
         }
-
         // =========================================================
         // 3. DB 조회 - 출고 품목
         // =========================================================
@@ -351,7 +288,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (items == null) {
             items = new ArrayList<>();
         }
-
         // =========================================================
         // 4. 수량 합계
         // =========================================================
@@ -382,7 +318,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         for (ShipmentItemListVo item : items) {
             item.setShipmentReqDate(shipmentReqDate);
         }
-
         // =========================================================
         // 6. Jasper 출력용 리스트 생성
         //
@@ -575,40 +510,13 @@ public class ShipmentServiceImpl implements ShipmentService {
         // ---------------------------------------------------------
         // 상단 - 공급자(본사) 정보
         // ---------------------------------------------------------
-        params.put(
-                "companyName",
-                nvl(master.getCustomerName())
-        );
-
-        params.put(
-                "bizNo",
-                nvl(master.getBusinessNo())
-        );
-
-        params.put(
-                "ceoName",
-                nvl(master.getPresident())
-        );
-
-        params.put(
-                "bizType",
-                ""
-        );
-
-        params.put(
-                "bizItem",
-                ""
-        );
-
-        params.put(
-                "address",
-                nvl(master.getAddress())
-        );
-
-        params.put(
-                "tel",
-                nvl(master.getTel())
-        );
+        params.put("companyName", nvl(master.getCustomerName()));
+        params.put("bizNo", nvl(master.getBusinessNo()));
+        params.put("ceoName", nvl(master.getPresident()));
+        params.put("bizType", "");
+        params.put("bizItem", "");
+        params.put("address", nvl(master.getAddress()));
+        params.put("tel", nvl(master.getTel()));
 
         // ---------------------------------------------------------
         // 고객사명
@@ -645,7 +553,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         // 13. 하단 - 연락처
         // =========================================================
         params.put("deliveryContact",  nvl(shipmentMst.getDeliveryTelno()) );
-
         // 예:
         // params.put(
         //         "deliveryContact",
@@ -665,40 +572,23 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         try {
             if (sealResource.exists()) {
-
-                params.put(
-                        "sealImagePath",
-                        sealResource.getURL().toString()
-                );
-
+                params.put("sealImagePath", sealResource.getURL().toString() );
             } else {
-
-                params.put(
-                        "sealImagePath",
-                        null
-                );
+                params.put("sealImagePath", null);
             }
-
             // =====================================================
             // 16. JRXML 파일
             // =====================================================
-            ClassPathResource jrxmlResource =
-                    new ClassPathResource(
-                            "report/TransactionStatement.jrxml"
-                    );
+            ClassPathResource jrxmlResource = new ClassPathResource("report/TransactionStatement.jrxml");
 
             try (
-                    InputStream jrxml =
-                            jrxmlResource.getInputStream()
-            ) {
+                    InputStream jrxml = jrxmlResource.getInputStream()
+                ) {
 
                 // =================================================
                 // 17. JRXML 컴파일
                 // =================================================
-                JasperReport jasperReport =
-                        JasperCompileManager.compileReport(
-                                jrxml
-                        );
+                JasperReport jasperReport = JasperCompileManager.compileReport(jrxml);
 
                 // =================================================
                 // 18. Jasper Detail DataSource
@@ -706,43 +596,25 @@ public class ShipmentServiceImpl implements ShipmentService {
                 // 중요:
                 // 기존 items가 아니라 printItems를 넘김
                 // =================================================
-                JRBeanCollectionDataSource dataSource =
-                        new JRBeanCollectionDataSource(
-                                printItems
-                        );
+                JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(printItems);
 
                 // =================================================
                 // 19. Jasper Report 생성
                 // =================================================
-                JasperPrint jasperPrint =
-                        JasperFillManager.fillReport(
-                                jasperReport,
-                                params,
-                                dataSource
-                        );
+                JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource);
 
                 // =================================================
                 // 20. 출력 여부 업데이트
                 // =================================================
-                shipmentMapper.updatePrintYn(
-                        shipmentId
-                );
+                shipmentMapper.updatePrintYn(shipmentId);
 
                 // =================================================
                 // 21. PDF byte[] 반환
                 // =================================================
-                return JasperExportManager
-                        .exportReportToPdf(
-                                jasperPrint
-                        );
+                return JasperExportManager.exportReportToPdf(jasperPrint);
             }
-
         } catch (Exception e) {
-
-            throw new RuntimeException(
-                    "거래명세서 PDF 생성 중 오류가 발생했습니다.",
-                    e
-            );
+            throw new RuntimeException("거래명세서 PDF 생성 중 오류가 발생했습니다.", e);
         }
     }
 

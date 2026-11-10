@@ -19,6 +19,7 @@ public class ShipmentVo {
     private LocalDate shipmentReqDate;     /* 출고요정일*/
     private String shipmentTime;
     private String clientId;
+    private String customerCd;
     private String deliveryLocation;
     private String deliveryAddress;
     private String deliveryManagerName;
