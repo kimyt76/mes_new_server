@@ -278,13 +278,16 @@
         생산일자
         ========================================================= */
         work_date AS (
-        SELECT  po_no
-                ,MIN( CASE WHEN proc_cd = 'PRC001' THEN prod_date END ) AS weigh_prod_date
-                ,MIN( CASE WHEN proc_cd = 'PRC002' THEN prod_date END ) AS mat_prod_date
-                ,MIN( CASE WHEN proc_cd = 'PRC005' THEN prod_date END ) AS packing_prod_date
-        FROM TB_WORK_ORDER_PROC
-        WHERE proc_cd IN ( 'PRC001' ,'PRC002' ,'PRC005' )
-        GROUP BY po_no
+            SELECT   po_no
+                    ,MIN(CASE WHEN proc_cd = 'PRC001' THEN prod_date END) AS weigh_prod_date
+                    ,MIN(CASE WHEN proc_cd = 'PRC002' THEN prod_date END) AS mat_prod_date
+                    ,MIN(CASE WHEN proc_cd = 'PRC005' THEN prod_date END) AS packing_prod_date
+            FROM TB_WORK_ORDER_PROC
+            WHERE
+                (proc_cd = 'PRC001' AND proc_status = '12')
+                OR (proc_cd = 'PRC002' AND proc_status = '22')
+                OR (proc_cd = 'PRC005' AND proc_status = '52')
+            GROUP BY po_no
         ),
         /* =========================================================
         칭량 LOT 수
