@@ -416,6 +416,7 @@
     <update id="updateProdUseQty">
         update TB_WORK_ORDER_PROC
         set    prod_qty     = #{prodQty}
+              ,use_qty      = #{useQty}
               ,prod_yield   = #{prodYield}
               ,upd_id       = #{userId}
               ,upd_dt       = getdate()
