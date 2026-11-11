@@ -800,13 +800,16 @@ public class QcTestServiceImpl implements QcTestService {
             int size = (mod == 0) ? 0 : JOURNAL_LINE_CNT - mod;
 
             for (int i = 0; i < size; i++) {
+                // 행 생성
                 ExcelStyleUtil.getRow(sheet, rowNo).setHeight(rowHeight);
-                // 병합 보장
+                // A:B, C:F, G:J, K:S 병합
                 mergeJournalRow(sheet, rowNo);
-
+                // 셀 스타일 적용
                 for (int j = 0; j < 19; j++) {
                     ExcelStyleUtil.getStyleCell(sheet, rowNo, j, cellStyleList.get(j)).setCellValue("");
                 }
+                // 다음 행으로 이동 (기존 코드에서 누락)
+                rowNo++;
             }
 
             byte[] excelContent = ExcelStyleUtil.toByteArray(workbook);
