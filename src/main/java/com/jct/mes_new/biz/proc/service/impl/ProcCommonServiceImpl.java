@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -175,7 +176,7 @@ public class ProcCommonServiceImpl implements ProcCommonService {
         String userId = UserUtil.getUserId();
         Long workProcId = recordList.get(0).getWorkProcId();
         String itemCd = recordList.get(0).getItemCd();
-        BigDecimal yieldRate = BigDecimal.ZERO;
+        BigDecimal prodYield = BigDecimal.ZERO;
         BigDecimal useQty = BigDecimal.ZERO;
         BigDecimal prodQty = BigDecimal.ZERO;
 
@@ -196,16 +197,20 @@ public class ProcCommonServiceImpl implements ProcCommonService {
             prodQty = prodQty.add(record.getProdQty());
         }
 
-        WorkOrderInfoVo workOrderInfoVo = new WorkOrderInfoVo();
+        WorkOrderInfoVo workOrderInfoVo = workOrderMapper.getWorkOrderProcInfo("", workProcId);
         ItemVo itemVo = itemMapper.getItemInfo(itemCd);
-        BigDecimal theoryNumber = (itemVo.getTheoryProdNumber1() != null && !itemVo.getTheoryProdNumber1().equals(BigDecimal.ZERO))?
-                itemVo.getTheoryProdNumber1() : BigDecimal.ONE;
+//        BigDecimal theoryNumber = (itemVo.getTheoryProdNumber1() != null && !itemVo.getTheoryProdNumber1().equals(BigDecimal.ZERO))?
+//                itemVo.getTheoryProdNumber1() : BigDecimal.ONE;
 
-        yieldRate = prodQty.divide(useQty.multiply(theoryNumber), 6, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100));
+        prodYield = prodQty
+                    .divide(workOrderInfoVo.getOrderQty(), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP);
 
         workOrderInfoVo.setWorkProcId( workProcId );
-        workOrderInfoVo.setProdQty( prodQty );
-        workOrderInfoVo.setProdYield( yieldRate );
+        workOrderInfoVo.setUseQty(useQty);
+        workOrderInfoVo.setProdQty(prodQty);
+        workOrderInfoVo.setProdYield(prodYield);
         workOrderInfoVo.setUserId(userId);
 
         //proc에 생산량 업데이트
