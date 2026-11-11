@@ -31,82 +31,8 @@
     </select>
 
     <select id="getItemStockList">
-        with bom_qty as (
-            select  x.item_cd
-                   ,sum(x.reqQty) as reqQty
-            from (
-            <foreach collection="list" item="item" separator="union all">
-                select  b.item_cd,
-                        case when c.item_type_cd = 'M1' then sum(b.real_content) * #{item.qty} / 100
-                            else sum(b.qty) * #{item.qty} / a.qty end as reqQty
-                from    tb_bom_mst a
-                        join tb_bom_recipe b
-                        on a.bom_id = b.bom_id
-                        join tb_item_mst c
-                        on c.item_cd = b.item_cd
-                        and  c.item_type_cd in ('M1', 'M2', 'M7')
-                where a.default_yn = 'Y'
-                and a.bom_id = #{item.bomId}
-                and b.item_cd not in ('JRW00215', 'JRMSC00011')
-                group by b.item_cd, c.item_type_cd, a.qty
-            </foreach>
-            ) x
-            group by x.item_cd
-        ),
-        stock_qty AS (
-                SELECT s.item_cd
-                ,sum(s.qty) as qty
-                FROM  dbo.fn_get_stock(
-                            COALESCE(
-                            TRY_CAST(NULLIF(CAST(NULL AS NVARCHAR(20)), '') AS DATE),
-                            CAST(GETDATE() AS DATE)
-                            )    -- 재고 기준일
-                            ,null                -- 공장 (NULL: 전체)
-                            ,NULL                     -- 창고 (NULL: 전체)
-                            ,NULL            -- 품목구분
-                            ,NULL                -- 품목코드
-                            ,NULL              -- 품목명
-                            ,'ITEM'                  -- ITEM / TEST
-                            ,NULL                     -- 거래유형 (전체)
-                        ) s
-                GROUP BY s.item_cd
-        )
-        SELECT  b.item_cd AS itemCd
-                ,c.code_nm AS itemTypeName
-                ,b.item_name AS itemName
-                ,b.spec
-                ,ISNULL(f.qty, 0) AS realStockQty
-                ,ISNULL(a.reqQty, 0) AS reqQty
-                ,ISNULL(f.qty, 0) - ISNULL(a.reqQty, 0) AS differenceQty
-                ,ISNULL(g.reserveStockQty, 0) AS reserveStockQty
-                ,e.customer_name AS customerName
-                ,e.customer_cd AS customerCd
-                ,e.customer_manager AS customerManager
-                ,d.code_nm AS orderType
-                ,ISNULL(b.in_price, 0) AS inPrice
-                ,b.item_type_cd AS itemTypeCd
-        FROM    bom_qty a
-                INNER JOIN tb_item_mst b
-                ON b.item_cd = a.item_cd
-                INNER JOIN tb_common_code c
-                ON c.code = b.item_type_cd
-                AND c.com_type_cd = 'item_Type_cd'
-                LEFT JOIN tb_common_code d
-                ON d.code = b.item_grp1
-                AND d.com_type_cd = 'ITEM_GRP1'
-                LEFT JOIN tb_customer e
-                ON e.customer_cd = b.customer_cd
-                LEFT JOIN stock_qty f
-                ON f.item_cd = a.item_cd
-                LEFT JOIN (
-                    SELECT  item_cd
-                            ,SUM(qty) AS reserveStockQty
-                    FROM tb_pur_order_item
-                    WHERE in_yn = 'N'
-                    GROUP BY item_cd
-                ) g
-        ON g.item_cd = a.item_cd
-        ORDER BY e.customer_name DESC
+        EXEC dbo.usp_get_bom_material_list
+            @bomList = #{bomListJson, javaType=String, jdbcType=NVARCHAR}
     </select>
 
 </mapper>

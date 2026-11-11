@@ -9,7 +9,9 @@ import java.util.Map;
 
 @Mapper
 public interface MatCommonMapper {
-    List<Map<String, Object>> getItemStockList(@Param("list") List<BomVo> mapList, @Param("itemTypeCd") String itemTypeCd);
+    List<Map<String, Object>> getItemStockList(
+            @Param("bomListJson") String bomListJson
+    );
 
     List<BomVo> getItemsBomList(@Param("list") List<Map<String, Object>> mapList);
 }
