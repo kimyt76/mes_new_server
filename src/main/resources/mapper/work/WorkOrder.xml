@@ -78,6 +78,7 @@
                 ,a.delivery_date     AS deliveryDate
                 ,dbo.getClientName(a.client_id ) AS clientName
                 ,a.client_id         AS clientId
+                ,a.customer_cd       AS customerCd
                 ,a.po_no             AS poNo
         FROM    dbo.TB_WORK_ORDER_MST a
         WHERE   a.work_order_id = #{workOrderId}
@@ -202,15 +203,9 @@
 
     <update id="updateWorkOrderProc" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Item">
         UPDATE dbo.TB_WORK_ORDER_PROC
-        SET
-            work_batch_id   = #{workBatchId},
-            po_no           = #{poNo},
-            proc_cd         = #{procCd},
-            item_cd         = #{itemCd},
+        SET item_cd         = #{itemCd},
             proc_order_date = #{procOrderDate},
             order_qty       = #{orderQty},
-            proc_status     = #{procStatus},
-            work_order_id   = #{workOrderId},
             storage_cd      = #{storageCd},
             memo            = #{memo},
             etc             = #{etc},
@@ -288,6 +283,7 @@
                  ,a.in_tran_id
                  ,a.out_tran_id
                  ,x.coating_prod_Qty
+                 ,a.use_qty
         from   TB_WORK_ORDER_PROC a
                 inner join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id

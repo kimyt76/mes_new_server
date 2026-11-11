@@ -80,9 +80,9 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         for (WorkOrderVo.Batch b : vo.getBatches()) {
             b.setUserId(userId);
             b.setWorkOrderId(vo.getWorkOrderId());
-            b.setBatchStatus("00");
 
             if (b.getWorkBatchId() == null) {
+                b.setBatchStatus("00");
                 workOrderMapper.insertWorkOrderBatch(b); // useGeneratedKeys -> workBatchId 채워짐
             } else {
                 workOrderMapper.updateWorkOrderBatch(b);
@@ -95,9 +95,9 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                 i.setWorkBatchId(b.getWorkBatchId());
                 i.setWorkOrderId(vo.getWorkOrderId());
                 i.setUserId(userId);
-                i.setProcStatus("00");
 
                 if (i.getWorkProcId() == null) {
+                    i.setProcStatus("00");
                     workOrderMapper.insertWorkOrderProc(i); // useGeneratedKeys -> workProcId 채워짐
                 } else {
                     workOrderMapper.updateWorkOrderProc(i);
