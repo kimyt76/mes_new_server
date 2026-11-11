@@ -14,7 +14,7 @@ public class CodeUtil {
         return switch (areaCd) {
             case "A001" -> "1";
             case "A002" -> "2";
-            case "A003" -> "1";
+            case "A009" -> "1";
             default -> throw new IllegalArgumentException("잘못된 areaCd: " + areaCd);
         };
     }
