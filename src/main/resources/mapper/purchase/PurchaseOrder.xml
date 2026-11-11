@@ -51,10 +51,10 @@
           and   dbo.getCustomerName(a.customer_cd)  like '%' + #{customerName} + '%'
         </if>
         <if test="inYn != null and inYn != ''">
-          and   b.in_yn = #{inYn}
+          and    isnull(b.in_yn, 'N') = #{inYn}
         </if>
         <if test="itemEndYn != null and itemEndYn != ''">
-          and   b.item_end_yn = #{itemEndYn}
+            and   isnull(b.item_end_yn, 'N') = #{itemEndYn}
         </if>
         <if test="endYn != null and endYn != ''">
           and   a.end_yn = #{endYn}
