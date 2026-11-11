@@ -103,7 +103,7 @@
                          )
                      ,#{areaCd}
                      ,#{storageCd}
-                     ,NULL
+                     ,#{itemTypeCd}
                      ,#{itemCd}
                      ,NULL
                      ,'TEST'
