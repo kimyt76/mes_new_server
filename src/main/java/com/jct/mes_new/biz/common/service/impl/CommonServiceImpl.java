@@ -11,6 +11,9 @@ import com.jct.mes_new.biz.common.vo.ReqPrinting;
 import com.jct.mes_new.biz.qc.service.ItemTestService;
 import com.jct.mes_new.biz.qc.service.impl.ItemTestServiceImpl;
 import com.jct.mes_new.biz.qc.vo.ItemTestVo;
+import com.jct.mes_new.biz.work.mapper.WorkOrderMapper;
+import com.jct.mes_new.biz.work.vo.WorkOrderInfoVo;
+import com.jct.mes_new.biz.work.vo.WorkOrderVo;
 import com.jct.mes_new.config.util.BarcodeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +46,7 @@ public class CommonServiceImpl implements CommonService {
     private final CommonMapper commonMapper;
     private final ItemServiceImpl itemServiceImpl;
     private final ItemTestServiceImpl itemTestServiceImpl;
+    private final WorkOrderMapper workOrderMapper;
 
     /**
      * 공통코드 전체 리스트 조회
@@ -172,7 +176,7 @@ public class CommonServiceImpl implements CommonService {
         qrCodeInfo.setBarcodeImage(this.createQrCodeImage(testNo));//바코드 이미지 생성.
 
         if("M0".equals(itemTypeCd)) {
-            qrCodeInfo.setChargingTestNo("222222222222");
+           qrCodeInfo.setChargingTestNo(this.getChargeTestNo(testNo));
         }
         List<QrCodeInfo> qrCodeInfoList = new ArrayList<>();
         qrCodeInfoList.add(qrCodeInfo);
@@ -193,6 +197,14 @@ public class CommonServiceImpl implements CommonService {
             result = null;
         }
         return result;
+    }
+
+    public String getChargeTestNo (String testNo) {
+        String prodCd = "PRC004";
+        WorkOrderInfoVo chargingItem = workOrderMapper.getChargeProcInfo(prodCd, testNo);
+        String result = chargingItem.getTestNo();
+
+        return (result != null && !result.equals("")) ? result : testNo;
     }
 
 }

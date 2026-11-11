@@ -432,4 +432,11 @@
         ORDER BY work_proc_id DESC
     </select>
 
+    <select id="getChargeProcInfo">
+        select *
+        from   TB_WORK_ORDER_PROC
+        where  proc_cd = #{procCd}
+        and    test_no = #{testNo}
+    </select>
+
 </mapper>
