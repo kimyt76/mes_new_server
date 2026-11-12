@@ -116,9 +116,32 @@
     </select>
 
     <select id="getQcTestTypeMethodList">
-        select *
-        from   tb_qc_test_type_method
-        where  qc_test_id = #{qcTestId}
+        SELECT    b.qc_test_type_method_id
+                 ,b.qc_test_id
+                 ,b.test_item
+                 ,b.test_method
+                 ,b.test_spec
+                 ,b.test_result
+                 ,b.test_date_string
+                 ,b.tester_name
+                 ,b.pass_state
+                 ,t.item_cd
+                 ,ISNULL(b.order_dist, e.order_dist) AS order_dist
+            FROM tb_qc_test_mst a
+                     JOIN tb_qc_test_type_method b
+                          ON a.qc_test_id = b.qc_test_id
+                     JOIN tb_item_test_no t
+                          ON t.test_no = a.test_no
+                    OUTER APPLY (
+                        SELECT TOP (1)
+                               x.order_dist
+                        FROM tb_test_type_method x
+                        WHERE x.item_cd = t.item_cd
+                          AND x.test_item = b.test_item
+                        ORDER BY x.order_dist
+                    ) e
+            WHERE a.qc_test_id = #{qcTestId}
+            ORDER BY ISNULL(b.order_dist, e.order_dist);
     </select>
 
     <insert id="insertQcTest">
