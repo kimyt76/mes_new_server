@@ -149,9 +149,16 @@ public class RealStockServiceImpl implements RealStockService {
 
     public String deleteRealStock(Long realStockMstId){
 
+        //재고부터 삭제 한다
+        RealStockVo mst = realStockMapper.getRealStockMst(realStockMstId);
+
+        if ( mst.getTranId() != null ){
+            tranMapper.deleteAllTranItem(mst.getTranId());
+            tranMapper.deleteTranMst(mst.getTranId());
+        }
+
         realStockMapper.deleteRealStockMst(realStockMstId);
         realStockMapper.deleteRealStockItem(realStockMstId);
-
 
         return "삭제되었습니다.";
     }
