@@ -54,7 +54,7 @@
                     ON s.item_cd = sf.item_cd
                     LEFT JOIN PUR_ORDER p
                     ON s.item_cd = p.item_cd
-                ORDER BY s.area_cd ,s.storage_cd
+                ORDER BY s.area_cd ,s.storage_cd, s.item_cd
             </when>
             <!-- ============================================
                  TEST: 시험번호별 재고조회
@@ -108,7 +108,7 @@
     <select id="getStockList" >
         select s.test_no as testNo
                 ,(
-                    select tran_date
+                    select min(tran_date)  as tran_date
                     from tb_inv_tran_mst
                     where tran_id in (
                     select tran_id from tb_inv_tran_item
@@ -227,6 +227,7 @@
         <if test="itemName != null and itemName != ''">
         AND b.item_name LIKE CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
         </if>
+        order by a.item_cd, a.test_no
     </select>
 
     <select id="getUseByM2List">
@@ -278,6 +279,7 @@
             AND b.item_name LIKE CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
         </if>
         group by a.item_cd, b.item_name, a.expiry_date, a.test_no, c.customer_name, a.create_date
+        order by a.item_cd, a.test_no
     </select>
 
     <select id="getTranLedger">
