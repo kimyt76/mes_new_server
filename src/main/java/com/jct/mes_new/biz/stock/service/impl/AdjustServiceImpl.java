@@ -44,6 +44,7 @@ public class AdjustServiceImpl implements AdjustService {
         AdjustVo mst = vo.getAdjustInfo();
         List<AdjustItemVo> adjustItemList = vo.getAdjustItemList();
         List<Long> deleteTranItemIds = vo.getDeleteTranItemIds();
+        Long tranId = mst.getTranId();
 
         if (deleteTranItemIds != null && !deleteTranItemIds.isEmpty() ) {
             for(Long tranItemId : deleteTranItemIds){
@@ -51,7 +52,7 @@ public class AdjustServiceImpl implements AdjustService {
             }
         }
 
-        if (mst.getTranId() == null) {
+        if (tranId == null) {
             mst.setUserId(userId);
             if ( adjustMapper.insertAdjustMst(mst) <= 0 ) {
                 throw new BusinessException(ErrorCode.CREATED);
@@ -66,6 +67,7 @@ public class AdjustServiceImpl implements AdjustService {
         }else{
             for(AdjustItemVo adjustItem : adjustItemList){
                 adjustItem.setUserId(userId);
+                adjustItem.setTranId(tranId);
                 if ( adjustItem.getTranItemId() == null ) {
                     if(adjustMapper.insertAdjustItemList(adjustItem) <= 0){
                         throw new BusinessException(ErrorCode.CREATED);
