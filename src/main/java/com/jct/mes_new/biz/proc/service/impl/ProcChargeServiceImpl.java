@@ -158,7 +158,7 @@ public class ProcChargeServiceImpl implements ProcChargeService {
                 && procUseInfoVo.getUseQty().compareTo(BigDecimal.ZERO) > 0) {
 
             prodYield = procUseInfoVo.getProdQty()
-                    .divide(procUseInfoVo.getUseQty(), 4, RoundingMode.HALF_UP)
+                    .divide(workOrder.getOrderQty(), 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100))
                     .setScale(2, RoundingMode.HALF_UP);
         }
