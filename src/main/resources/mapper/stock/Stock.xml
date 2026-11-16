@@ -204,29 +204,40 @@
     </select>
 
     <select id="getUseByM1List">
-        select   a.item_cd
-                ,b.item_name
-                ,a.expiry_date
+        WITH STOCK AS (
+                SELECT  s.area_cd
+                        ,s.storage_cd
+                        ,s.item_type_cd
+                        ,s.item_cd
+                        ,s.item_name
+                        ,s.test_no
+                        ,s.qty
+                FROM dbo.fn_get_stock(
+                CAST(#{stdDate} AS DATE)
+                    ,#{areaCd}
+                    ,NULL
+                    ,'M1'
+                    ,#{itemCd}
+                    ,#{itemName}
+                    ,'TEST'
+                    ,NULL
+                ) s
+        )
+        select  a.item_cd
+                ,i.item_name
                 ,a.test_no
+                ,a.expiry_date
                 ,DATEDIFF(DAY, #{stdDate}, a.expiry_date) AS remaining_day
                 ,c.storage_cd
                 ,c.qty
+
         from   tb_item_test_no a
-                inner join tb_item_mst b
-                on b.item_cd = a.item_cd
-                inner join vw_inv_stock_tran c
+                join tb_item_mst i
+                on i.item_cd = a.item_cd
+                left join STOCK c
                 on c.test_no = a.test_no
-        where  a.item_type_cd = 'M1'
+        where a.item_type_cd = 'M1'
         and    a.expiry_date between #{strDate} and #{endDate}
-        <if test="areaCd != null and areaCd != ''">
-        and    a.area_cd = #{areaCd}
-        </if>
-        <if test="itemCd != null and itemCd != ''">
-        AND a.item_cd LIKE '%' + #{itemCd} + '%'
-        </if>
-        <if test="itemName != null and itemName != ''">
-        AND b.item_name LIKE CONCAT('%', dbo.fn_LikeEscape(#{itemName}), '%')
-        </if>
         order by a.item_cd, a.test_no
     </select>
 
