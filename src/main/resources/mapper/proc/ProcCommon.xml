@@ -299,7 +299,7 @@
                       ,a.work_order_id
                       ,c.item_cd
                       ,case when d.item_type_cd in ('M2', 'M7')  then  CAST(CEILING(a.order_qty * c.qty * 1.0 / NULLIF(b.qty, 0))AS BIGINT)
-                            else a.order_qty*c.qty/b.qty end req_qty
+                            else a.order_qty*c.qty/NULLIF(b.qty, 0)end req_qty
                       ,e.mat_name
                       ,e.spec_info
                       ,e.ex_appearance
