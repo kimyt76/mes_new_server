@@ -81,12 +81,17 @@ public class MoveStockServiceImpl implements MoveStockService {
                 moveItemVo.setMoveStockId(mst.getMoveStockId());
                 moveItemVo.setUserId(userId);
 
-                if ( moveStockMapper.updateMoveStockItem(moveItemVo) <=0 ) {
-                    throw new BusinessException(ErrorCode.FAIL_CREATED);
+                if (moveItemVo.getMoveStockItemId() == null ){
+                    if ( moveStockMapper.insertMoveStockItem(moveItemVo) <=0 ) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
+                }else{
+                    if ( moveStockMapper.updateMoveStockItem(moveItemVo) <=0 ) {
+                        throw new BusinessException(ErrorCode.FAIL_CREATED);
+                    }
                 }
             }
         }
-
 
         return "저장되었습니다.";
     }
