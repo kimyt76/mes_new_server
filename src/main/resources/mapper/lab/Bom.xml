@@ -236,13 +236,15 @@
     </select>
 
     <select id="getItemBomList">
-        select   a.itemCd
-                ,a.item_name
-                ,a.bomVer
-                ,a.realContent
-                ,a.bomId
-                ,a.qty
-                ,a.recipeQty
+        select    a.re_item_cd
+                 ,dbo.getItemName(a.re_item_cd) as re_item_name
+                 ,a.bomVer
+                 ,a.realContent
+                 ,a.itemCd
+                 ,a.item_name
+                 ,a.bomId
+                 ,a.qty
+                 ,a.recipeQty
         from  (
             select  a.bom_id as bomId
                     ,dbo.getItemName(a.item_cd) as item_name
@@ -251,6 +253,7 @@
                     ,a.item_cd as itemCd
                     ,a.qty
                     ,b.qty as recipeQty
+                    ,b.item_cd as re_item_cd
             from   tb_bom_mst a
             inner join (
                 select bom_id, item_cd ,real_content, qty from tb_bom_recipe where item_cd = #{itemCd}
@@ -260,6 +263,7 @@
             and    (a.item_cd != '삭제' and a.item_cd is not null)
             ) a
         where  a.item_name is not null
+        order by a.bomId
     </select>
 
     <select id="getBomMatList">
