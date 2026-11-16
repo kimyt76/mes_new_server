@@ -175,8 +175,7 @@
 
     <update id="updateWorkOrderBatch" parameterType="com.jct.mes_new.biz.work.vo.WorkOrderVo$Batch">
         UPDATE dbo.TB_WORK_ORDER_BATCH
-        SET po_no   = #{poNo},
-            make_No  = #{makeNo},
+        SET make_No  = #{makeNo},
             lot_no  = #{lotNo},
             lot_no2 = #{lotNo2},
             upd_id  = #{userId},
@@ -206,7 +205,6 @@
         SET item_cd         = #{itemCd},
             proc_order_date = #{procOrderDate},
             order_qty       = #{orderQty},
-            storage_cd      = #{storageCd},
             memo            = #{memo},
             etc             = #{etc},
             upd_id          = #{userId},
