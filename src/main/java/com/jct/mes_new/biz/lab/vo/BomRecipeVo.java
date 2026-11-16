@@ -12,6 +12,7 @@ public class BomRecipeVo {
     private String bomId;
     private String phase;
     private String itemCd;
+    private String reItemCd;
     private String realItemName;
     private String realItemCd;
     private String stdItemCd;
@@ -24,6 +25,7 @@ public class BomRecipeVo {
     private BigDecimal recipeQty;
 
     private String itemName;
+    private String reItemName;
     private String bomVer;
     private String userId;
 }

@@ -49,11 +49,15 @@
                         ,s.qty
                         ,ISNULL(p.inReQty, 0) AS inReQty
                         ,ISNULL(sf.safeStockQty, 0) AS safeStockQty
+                        ,t.expiry_date
+                        ,t.create_date as purDate
                 FROM STOCK s
                     LEFT JOIN SAFE_STOCK sf
                     ON s.item_cd = sf.item_cd
                     LEFT JOIN PUR_ORDER p
                     ON s.item_cd = p.item_cd
+                    left join tb_item_test_no t
+                    on t.test_no  = s.test_no
                 ORDER BY s.area_cd ,s.storage_cd, s.item_cd
             </when>
             <!-- ============================================
@@ -70,7 +74,11 @@
                         ,s.qty
                         ,CAST(0 AS DECIMAL(28,6)) AS inReQty
                         ,CAST(0 AS DECIMAL(28,6)) AS safeStockQty
-                FROM STOCK s
+                        ,t.expiry_date
+                        ,t.create_date as purDate
+                FROM    STOCK s
+                        left join tb_item_test_no t
+                        on t.test_no = s.test_no
                 ORDER BY s.item_cd, s.test_no
             </otherwise>
         </choose>

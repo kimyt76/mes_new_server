@@ -25,6 +25,7 @@ public class StockVo {
     private String etc;
     private String endYn;
     private String type;
+    private String purDate;
 
     private BigDecimal qty;
     private BigDecimal stockQty;
