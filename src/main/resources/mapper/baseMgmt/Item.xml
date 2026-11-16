@@ -64,8 +64,9 @@
         select a.*
               ,b.*
               ,dbo.getCommonName('item_Type_cd', a.item_Type_cd) as itemTypeName
+              ,dbo.getCommonName('item_grp3', isnull(a.item_grp3, '')) as itemGrp3Name
               ,d.customer_name
-              ,case when isnull(a.ITEM_GRP1, 'RWM03')  = 'RWM03' then '자사' else '사급' end as order_type
+              ,dbo.getCommonName('item_grp1', isnull(a.ITEM_GRP1, '')) as itemGrp1Name
               ,case when b.item_condition is NULL then '실온'
                     else isnull(dbo.getCommonName('CONDITION_CD', ltrim(rtrim(b.item_condition))), b.item_condition) end  item_condition_name
               ,a.customer_cd
