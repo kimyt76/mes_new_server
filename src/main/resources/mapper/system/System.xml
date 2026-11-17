@@ -124,7 +124,7 @@
         (user_id,menu_id,read_yn,write_yn,reg_id,reg_dt)
         SELECT    #{userId}
                  ,m.menu_id
-                 ,'Y'
+                 ,'N'
                  ,'N'
                  ,'SYSTEM'
                  ,GETDATE()
