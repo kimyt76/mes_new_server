@@ -18,4 +18,6 @@ public interface ShipmentService {
     List<ShipmentWorkOrderVo> getWorkOrderItemList(ShipmentWorkOrderVo vo);
 
     byte[] printTransactionStatement(Long shipmentId);
+
+    String deleteShipment(ShipmentRequestVo vo);
 }

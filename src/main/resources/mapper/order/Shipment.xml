@@ -356,18 +356,25 @@
         </if>
     </select>
 
+    <delete id="deleteShipmentItem">
+        delete from tb_shipment_item
+        where  shipment_item_id = #{shipmentItemId}
+    </delete>
+
+
     <delete id="deleteShipmentMst">
         delete from tb_shipment_mst
         where  shipment_id in
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
+        <foreach collection="deleteShipmentIds" item="shipmentId" open="(" separator="," close=")">
+            #{shipmentId}
         </foreach>
     </delete>
-    <delete id="deleteShipmentItem">
+
+    <delete id="deleteShipmentItemList">
         delete from tb_shipment_item
         where  shipment_id in
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
+        <foreach collection="deleteShipmentIds" item="shipmentId" open="(" separator="," close=")">
+            #{shipmentId}
         </foreach>
     </delete>
 

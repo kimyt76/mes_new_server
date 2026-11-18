@@ -10,8 +10,8 @@ import java.util.List;
 public class ShipmentRequestVo {
     private ShipmentVo shipmentInfo;
     private List<ShipmentItemListVo> shipmentItemList;
-
     // 삭제된 상세 ID
+    private List<Long> deleteShipmentIds;
     private List<Long> deleteShipmentItemIds;
 
     private List<MultipartFile> newFiles;

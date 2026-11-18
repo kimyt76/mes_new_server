@@ -157,7 +157,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         // 4. 삭제 상세 처리
         if (vo.getDeleteShipmentItemIds() != null && !vo.getDeleteShipmentItemIds().isEmpty()) {
             for( Long id : vo.getDeleteShipmentItemIds() ){
-                shipmentMapper.deleteShipmentItemList(id);
+                shipmentMapper.deleteShipmentItem(id);
             }
         }
         // 5. 상세 추가 / 수정
@@ -262,6 +262,19 @@ public class ShipmentServiceImpl implements ShipmentService {
             shipmentMapper.updateShipmentItemByTranId(item);
         }
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public String deleteShipment(ShipmentRequestVo vo) {
+        List<Long> deleteShipmentIds = vo.getDeleteShipmentItemIds();
+
+        //item
+        shipmentMapper.deleteShipmentItemList(deleteShipmentIds);
+        //mst
+        shipmentMapper.deleteShipmentMst(deleteShipmentIds);
+
+        return "삭제되었습니다.";
+    }
+
 
     public byte[] printTransactionStatement(Long shipmentId) {
         // =========================================================

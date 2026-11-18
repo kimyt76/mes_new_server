@@ -9,7 +9,7 @@ import java.util.List;
 public interface ShipmentMapper {
     List<ShipmentVo> getShipmentList(ShipmentVo shipmentVo);
 
-    void deleteShipmentItemList(Long shipmentId);
+    void deleteShipmentItem(Long shipmentItemId);
 
     ShipmentVo getShipmentInfo(Long shipmentId);
 
@@ -27,4 +27,8 @@ public interface ShipmentMapper {
 
     void updatePrintYn(Long shipmentId);
     void updateShipmentItemByTranId(ShipmentItemListVo item);
+
+    void deleteShipmentItemList(List<Long> deleteShipmentIds);
+
+    void deleteShipmentMst(List<Long> deleteShipmentIds);
 }

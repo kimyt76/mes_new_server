@@ -36,7 +36,6 @@ public class ShipmentController {
         return shipmentService.getShipmentInfo(shipmentId);
     }
 
-
     @PostMapping("/getWorkOrderItemList")
     public List<ShipmentWorkOrderVo> getWorkOrderItemList(@RequestBody ShipmentWorkOrderVo vo) {
         return shipmentService.getWorkOrderItemList(vo);
@@ -52,7 +51,7 @@ public class ShipmentController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.created")));
     }
 
-    @PostMapping("updateShipmentInfo")
+    @PostMapping("/updateShipmentInfo")
     public ResponseEntity<?> updateShipmentInfo ( @RequestPart("request")
                                                       ShipmentRequestVo vo,
                                                   @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles
@@ -62,6 +61,12 @@ public class ShipmentController {
 
         String result = shipmentService.updateShipmentInfo(vo);
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.updated")));
+    }
+
+    @PostMapping("/deleteShipment")
+    public ResponseEntity<?> deleteShipment (@RequestBody ShipmentRequestVo vo ) throws Exception {
+        String result = shipmentService.deleteShipment(vo);
+        return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.deleted")));
     }
 
     @GetMapping("/printTransactionStatement/{shipmentId}")
