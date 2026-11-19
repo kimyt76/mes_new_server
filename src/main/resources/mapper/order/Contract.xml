@@ -27,7 +27,7 @@
                 ,b.unit_price
                 ,b.supply_price
                 ,b.delivery_req_date
-                ,0 as outQty
+                ,si.qty as outQty
                 ,d2.code_nm as statusTypeName
                 ,a.contract_id
         from   tb_contract_mst a
@@ -50,6 +50,16 @@
                 on e.user_id = a.manager_id
                 left join prod_result re
                 on re.po_no = b.po_no
+                left join (
+                    select  b.po_no
+                            ,sum(b.qty) as qty
+                    from    tb_shipment_mst a
+                            join tb_shipment_item b
+                            on a.shipment_id = b.shipment_id
+                    where a.shipment_yn ='Y'
+                    group by  po_no
+                ) si
+                on si.po_no = b.po_no
         where   1=1
         <if test="strDate != null ">
             and a.contract_date between #{strDate} and #{endDate}
