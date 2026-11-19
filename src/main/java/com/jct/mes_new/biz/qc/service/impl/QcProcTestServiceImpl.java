@@ -564,8 +564,7 @@ log.info("==================================qcType==============================
                     ExcelStyleUtil.getCellRef(sheet1,"Z" + chargingRow).setCellValue(getMethodResult(item.getTestResult()));
                     chargingRow++;
                 }
-                log.info("===============================chargingItem====================== : " + chargingItem);
-log.info("===============================chargingItem.getChargingCnt()====================== : " + chargingItem.getChargingCnt());
+
                 //충전지시량 AD28
                 ExcelStyleUtil.getCellRef(sheet1, "AD28").setCellValue(chargingItem != null ? ComUtil.nvl(chargingItem.getChargingCnt()) : "");
 
