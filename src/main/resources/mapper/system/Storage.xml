@@ -108,7 +108,7 @@
     </select>
 
     <select id="useCheck">
-        select coutn(storage_cd) cnt from tb_storage_mst where storage_cd = #{storageCd}
+        select count(storage_cd) cnt from tb_storage_mst where storage_cd = #{storageCd}
     </select>
 
 
