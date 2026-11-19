@@ -3,6 +3,7 @@ package com.jct.mes_new.biz.order.service.impl;
 import com.jct.mes_new.biz.base.service.CustomerService;
 import com.jct.mes_new.biz.base.vo.CustomerVo;
 import com.jct.mes_new.biz.common.mapper.FileHandlerMapper;
+import com.jct.mes_new.biz.common.vo.CommonVo;
 import com.jct.mes_new.biz.common.vo.FileVo;
 import com.jct.mes_new.biz.order.mapper.SaleMapper;
 import com.jct.mes_new.biz.order.mapper.ShipmentMapper;
@@ -11,6 +12,9 @@ import com.jct.mes_new.biz.order.vo.*;
 import com.jct.mes_new.biz.purchase.mapper.TranMapper;
 import com.jct.mes_new.biz.purchase.vo.TranItemVo;
 import com.jct.mes_new.biz.purchase.vo.TranVo;
+import com.jct.mes_new.biz.qc.vo.QcTestRequestVo;
+import com.jct.mes_new.biz.qc.vo.QcTestTypeMethodVo;
+import com.jct.mes_new.biz.qc.vo.QcTestVo;
 import com.jct.mes_new.biz.system.mapper.StorageMapper;
 import com.jct.mes_new.biz.system.vo.StorageVo;
 import com.jct.mes_new.config.common.CommonUtil;
@@ -19,10 +23,14 @@ import com.jct.mes_new.config.common.Snowflake;
 import com.jct.mes_new.config.common.UserUtil;
 import com.jct.mes_new.config.common.exception.BusinessException;
 import com.jct.mes_new.config.common.exception.ErrorCode;
+import com.jct.mes_new.config.util.CodeUtil;
+import com.jct.mes_new.config.util.ExcelStyleUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +38,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -649,6 +659,427 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         return new BigDecimal(String.valueOf(value));
     }
+
+
+    public byte[] downloadShipmentRecord(Long shipmentId) {
+
+        // 마스터 데이터
+        ShipmentVo mst = shipmentMapper.getShipmentInfo(shipmentId);
+
+        // 리스트 데이터
+        List<ShipmentItemListVo> shipmentItemList =
+                shipmentMapper.getShipmentItemList(shipmentId);
+
+        final int PAGE_ROW_COUNT = 30;  // 페이지당 30행
+        final int LIST_START_ROW = 20;  // 엑셀 21행 (0부터 시작)
+        final int LIST_MAX_COUNT = 5;   // 페이지당 5건
+
+        int size = shipmentItemList.size();
+
+        // 데이터가 없어도 기본 1페이지 출력
+        int pageCount = Math.max(
+                1, (size + LIST_MAX_COUNT - 1) / LIST_MAX_COUNT
+        );
+
+        try (
+                InputStream excelStream = getClass().getResourceAsStream(
+                        "/excel/shipment_report.xlsx"
+                );
+                Workbook workbook = ExcelStyleUtil.createWorkbook(excelStream)
+        ) {
+
+            Sheet sheet = workbook.getSheet("Sheet1");
+
+            // =====================================================
+            // 1. 기본 템플릿 복사
+            // =====================================================
+            for (int page = 1; page < pageCount; page++) {
+
+                int rowOffset = page * PAGE_ROW_COUNT;
+
+                // 행 복사
+                for (int r = 0; r < PAGE_ROW_COUNT; r++) {
+
+                    Row sourceRow = sheet.getRow(r);
+
+                    if (sourceRow == null) {
+                        continue;
+                    }
+
+                    Row targetRow = sheet.createRow(rowOffset + r);
+                    targetRow.setHeight(sourceRow.getHeight());
+
+                    for (int c = 0; c < sourceRow.getLastCellNum(); c++) {
+
+                        Cell sourceCell = sourceRow.getCell(c);
+
+                        if (sourceCell == null) {
+                            continue;
+                        }
+
+                        Cell targetCell = targetRow.createCell(c);
+
+                        // 기존 셀 스타일 유지
+                        targetCell.setCellStyle(sourceCell.getCellStyle());
+
+                        // 셀 타입별 값 복사
+                        switch (sourceCell.getCellType()) {
+
+                            case STRING:
+                                targetCell.setCellValue(
+                                        sourceCell.getStringCellValue()
+                                );
+                                break;
+
+                            case NUMERIC:
+                                targetCell.setCellValue(
+                                        sourceCell.getNumericCellValue()
+                                );
+                                break;
+
+                            case BOOLEAN:
+                                targetCell.setCellValue(
+                                        sourceCell.getBooleanCellValue()
+                                );
+                                break;
+
+                            case FORMULA:
+                                targetCell.setCellFormula(
+                                        sourceCell.getCellFormula()
+                                );
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                }
+
+                // =====================================================
+                // 2. 병합 셀 복사
+                // =====================================================
+                int mergedCount = sheet.getNumMergedRegions();
+
+                List<CellRangeAddress> mergedRegions = new ArrayList<>();
+
+                for (int i = 0; i < mergedCount; i++) {
+
+                    CellRangeAddress region = sheet.getMergedRegion(i);
+
+                    if (region.getFirstRow() >= PAGE_ROW_COUNT) {
+                        continue;
+                    }
+
+                    mergedRegions.add(
+                            new CellRangeAddress(
+                                    region.getFirstRow() + rowOffset,
+                                    region.getLastRow() + rowOffset,
+                                    region.getFirstColumn(),
+                                    region.getLastColumn()
+                            )
+                    );
+                }
+
+                for (CellRangeAddress region : mergedRegions) {
+                    sheet.addMergedRegion(region);
+                }
+
+                // 페이지 나누기
+                sheet.setRowBreak(rowOffset - 1);
+            }
+
+            // =====================================================
+            // 3. 셀 스타일 생성
+            // =====================================================
+            DataFormat dataFormat = workbook.createDataFormat();
+
+            // 납품지 주소 : 왼쪽 정렬
+            CellStyle addressStyle = createAlignmentStyle(
+                    workbook,
+                    getOrCreateCell(sheet, 7, 4).getCellStyle(),
+                    HorizontalAlignment.LEFT
+            );
+
+            // 제품명 : 왼쪽 정렬
+            CellStyle itemNameStyle = createAlignmentStyle(
+                    workbook,
+                    getOrCreateCell(sheet, LIST_START_ROW, 0).getCellStyle(),
+                    HorizontalAlignment.LEFT
+            );
+
+            // 로트번호 : 가운데 정렬
+            CellStyle lotNoStyle = createAlignmentStyle(
+                    workbook,
+                    getOrCreateCell(sheet, LIST_START_ROW, 10).getCellStyle(),
+                    HorizontalAlignment.CENTER
+            );
+
+            // 수량 : 오른쪽 정렬
+            CellStyle baseQtyStyle = createAlignmentStyle(
+                    workbook,
+                    getOrCreateCell(sheet, LIST_START_ROW, 16).getCellStyle(),
+                    HorizontalAlignment.RIGHT
+            );
+
+            // 정수용 스타일
+            CellStyle qtyIntStyle = workbook.createCellStyle();
+            qtyIntStyle.cloneStyleFrom(baseQtyStyle);
+            qtyIntStyle.setDataFormat(
+                    dataFormat.getFormat("#,##0")
+            );
+
+            // 소수 자릿수별 스타일 캐시
+            Map<Integer, CellStyle> qtyDecimalStyles = new HashMap<>();
+
+            // =====================================================
+            // 4. 페이지별 데이터 입력
+            // =====================================================
+            for (int page = 0; page < pageCount; page++) {
+
+                int rowOffset = page * PAGE_ROW_COUNT;
+
+                // -------------------------------------------------
+                // 4-1. 마스터 데이터 (모든 페이지 동일)
+                // -------------------------------------------------
+
+                // 거래처명
+                setCellValue(
+                        sheet, rowOffset + 6, 4,
+                        mst.getClientName()
+                );
+
+                // 출하요청일
+                setCellValue(
+                        sheet, rowOffset + 6, 15,
+                        mst.getShipmentReqDate()
+                );
+
+                // 납품지 주소 - 왼쪽 정렬
+                Cell addressCell = getOrCreateCell(
+                        sheet, rowOffset + 7, 4
+                );
+
+                addressCell.setCellValue(
+                        mst.getDeliveryAddress() == null
+                                ? ""
+                                : mst.getDeliveryAddress().toString()
+                );
+
+                addressCell.setCellStyle(addressStyle);
+
+                // -------------------------------------------------
+                // 4-2. 제품 리스트 (페이지당 최대 5건)
+                // -------------------------------------------------
+                int startIndex = page * LIST_MAX_COUNT;
+
+                int endIndex = Math.min(
+                        startIndex + LIST_MAX_COUNT,
+                        size
+                );
+
+                for (int i = startIndex; i < endIndex; i++) {
+
+                    ShipmentItemListVo item = shipmentItemList.get(i);
+
+                    int listRow = rowOffset
+                            + LIST_START_ROW
+                            + (i - startIndex);
+
+                    // =============================================
+                    // 제품명 A열 - 왼쪽 정렬
+                    // =============================================
+                    Cell itemNameCell = getOrCreateCell(
+                            sheet, listRow, 0
+                    );
+
+                    itemNameCell.setCellValue(
+                            item.getItemName() == null
+                                    ? ""
+                                    : item.getItemName().toString()
+                    );
+
+                    itemNameCell.setCellStyle(itemNameStyle);
+
+                    // =============================================
+                    // 로트번호 K열 - 가운데 정렬
+                    // 특수문자는 공백 처리 (_ 제외)
+                    // =============================================
+                    Cell lotNoCell = getOrCreateCell(
+                            sheet, listRow, 10
+                    );
+
+                    String lotNo = item.getLotNo() == null
+                            ? ""
+                            : item.getLotNo().toString();
+
+                    // 한글, 영문, 숫자, 언더바, 공백 유지
+                    // 나머지 특수문자는 공백으로 변경
+                    lotNo = lotNo.replaceAll(
+                            "[^가-힣a-zA-Z0-9_\\s]", " "
+                    );
+
+                    lotNoCell.setCellValue(lotNo);
+                    lotNoCell.setCellStyle(lotNoStyle);
+
+                    // =============================================
+                    // 수량 Q열 - 오른쪽 정렬
+                    // 정수 끝에 . 표시 방지
+                    // 숫자 타입 유지
+                    // =============================================
+                    Cell qtyCell = getOrCreateCell(
+                            sheet, listRow, 16
+                    );
+
+                    if (item.getQty() != null) {
+
+                        BigDecimal qty = new BigDecimal(
+                                item.getQty().toString()
+                        );
+
+                        // 불필요한 소수점 이하 0 제거
+                        BigDecimal normalizedQty =
+                                qty.stripTrailingZeros();
+
+                        // 실제 숫자 값으로 저장
+                        qtyCell.setCellValue(qty.doubleValue());
+
+                        int scale = Math.max(
+                                0, normalizedQty.scale()
+                        );
+
+                        if (scale == 0) {
+
+                            // 정수: 1,000 / 8,576
+                            qtyCell.setCellStyle(qtyIntStyle);
+
+                        } else {
+
+                            // 소수 자릿수에 맞는 서식 생성
+                            CellStyle decimalStyle =
+                                    qtyDecimalStyles.get(scale);
+
+                            if (decimalStyle == null) {
+
+                                decimalStyle = workbook.createCellStyle();
+                                decimalStyle.cloneStyleFrom(baseQtyStyle);
+
+                                String format =
+                                        "#,##0." + "0".repeat(scale);
+
+                                decimalStyle.setDataFormat(
+                                        dataFormat.getFormat(format)
+                                );
+
+                                qtyDecimalStyles.put(
+                                        scale, decimalStyle
+                                );
+                            }
+
+                            qtyCell.setCellStyle(decimalStyle);
+                        }
+
+                    } else {
+
+                        qtyCell.setBlank();
+                        qtyCell.setCellStyle(qtyIntStyle);
+                    }
+
+                    // =============================================
+                    // 출하검사결과 T열 - 기존 유지
+                    // =============================================
+                    setCellValue(
+                            sheet, listRow, 19,
+                            item.getQcStatusName()
+                    );
+                }
+            }
+
+            // =====================================================
+            // 5. 인쇄 설정
+            // =====================================================
+            sheet.setFitToPage(true);
+
+            PrintSetup printSetup = sheet.getPrintSetup();
+
+            printSetup.setPaperSize(PrintSetup.A4_PAPERSIZE);
+            printSetup.setFitWidth((short) 1);
+            printSetup.setFitHeight((short) 0);
+
+            sheet.setHorizontallyCenter(true);
+
+            // 인쇄 영역 A1:W(마지막 페이지)
+            workbook.setPrintArea(
+                    workbook.getSheetIndex(sheet),
+                    0,
+                    22,
+                    0,
+                    pageCount * PAGE_ROW_COUNT - 1
+            );
+
+            // =====================================================
+            // 6. byte[] 변환
+            // =====================================================
+            return ExcelStyleUtil.toByteArray(workbook);
+
+        } catch (Exception ex) {
+
+            ex.printStackTrace();
+
+            throw new BusinessException(
+                    "엑셀파일 생성중 에러발생!"
+            );
+        }
+    }
+
+
+    // =====================================================
+    // 셀 스타일 생성 (기존 서식 유지 + 정렬 변경)
+    // =====================================================
+    private CellStyle createAlignmentStyle(Workbook workbook, CellStyle baseStyle, HorizontalAlignment alignment) {
+        CellStyle style = workbook.createCellStyle();
+        // 기존 글꼴, 테두리, 배경색 등 유지
+        style.cloneStyleFrom(baseStyle);
+        // 가로 정렬만 변경
+        style.setAlignment(alignment);
+
+        return style;
+    }
+
+    // =====================================================
+    // 셀 생성 및 값 설정
+    // =====================================================
+    private void setCellValue(Sheet sheet, int rowIndex, int colIndex, Object value) {
+        Cell cell = getOrCreateCell(
+                sheet,
+                rowIndex,
+                colIndex
+        );
+
+        cell.setCellValue(value == null ? "" : value.toString());
+    }
+
+    // =====================================================
+    // 셀 가져오기 (없으면 생성)
+    // =====================================================
+    private Cell getOrCreateCell(Sheet sheet, int rowIndex, int colIndex) {
+        Row row = sheet.getRow(rowIndex);
+
+        if (row == null) {
+            row = sheet.createRow(rowIndex);
+        }
+
+        Cell cell = row.getCell(colIndex);
+
+        if (cell == null) {
+            cell = row.createCell(colIndex);
+        }
+
+        return cell;
+    }
+
+
+
+
 
 }
 

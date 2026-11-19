@@ -26,6 +26,7 @@ public class ShipmentItemListVo {
     private String storageCd;
     private String storageName;
     private String qcStatus;
+    private String qcStatusName;
     private String testNo;
     private Integer orderDist;
 

@@ -20,4 +20,6 @@ public interface ShipmentService {
     byte[] printTransactionStatement(Long shipmentId);
 
     String deleteShipment(ShipmentRequestVo vo);
+
+    byte[] downloadShipmentRecord(Long shipmentId);
 }

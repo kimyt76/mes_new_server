@@ -69,6 +69,22 @@ public class ShipmentController {
         return ResponseEntity.ok(ApiResponse.ok(messageUtil.get("success.deleted")));
     }
 
+    @GetMapping("/downloadShipmentRecord/{shipmentId}")
+    public ResponseEntity<byte[]> downloadShipmentRecord(@PathVariable Long shipmentId) throws Exception {
+        byte[] fileBytes = shipmentService.downloadShipmentRecord(shipmentId);
+        String fileName = "성적서_" + shipmentId + ".xlsx";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(fileName, StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
+                .body(fileBytes);
+    }
+
+
     @GetMapping("/printTransactionStatement/{shipmentId}")
     public ResponseEntity<byte[]> printTransactionStatement(@PathVariable Long shipmentId) {
         byte[] pdf = shipmentService.printTransactionStatement(shipmentId);

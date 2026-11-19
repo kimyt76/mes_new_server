@@ -169,6 +169,7 @@
                  ,a.item_type_cd
                  ,'' as etc
                  ,t.pass_state as qc_status
+                 ,isnull(dbo.getCommonName('pass_state', t.pass_state), '') as qc_status_name
         from   tb_shipment_item a
                    join tb_item_mst b
                         on b.item_cd = a.item_cd
@@ -326,6 +327,7 @@
                 ,t.pass_state  as qcStatus
                 ,a.work_batch_id
                 ,a.work_proc_id
+                ,s.storage_cd
         from   TB_WORK_ORDER_PROC a
                 join TB_WORK_ORDER_BATCH b
                 on b.work_batch_id = a.work_batch_id
@@ -349,11 +351,12 @@
             and  a.po_no like  '%' + #{poNo} + '%'
         </if>
         <if test="itemCd != null and itemCd != ''">
-            and  c.item_cd like  '%' + #{itemCd} + '%'
+            and  i.item_cd like  '%' + #{itemCd} + '%'
         </if>
         <if test="itemName != null and itemName != ''">
-            and  c.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
+            and  i.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
         </if>
+        order by a.po_no
     </select>
 
     <delete id="deleteShipmentItem">
