@@ -94,13 +94,11 @@ public class ProcCoatingServiceImpl implements ProcCoatingService {
 
         //여기에 prod_info 에 등록 로직 추가
         List<ProcUseInfoVo> prodList = procCommonMapper.getProdList(vo.getProcCd(), vo.getWorkProcId());
-        if (prodList.isEmpty()) {
+        if (!prodList.isEmpty()) {
             for (ProcUseInfoVo item : prodList) {
-                if ("".equals(item.getMatName()) || item.getMatName() == null) {
-                    item.setUserId(userId);
-                    item.setWorkProcId(vo.getWorkProcId());
-                    procCommonMapper.insertProdInfo(item);
-                }
+                item.setUserId(userId);
+                item.setWorkProcId(vo.getWorkProcId());
+                procCommonMapper.insertProdInfo(item);
             }
         }
 
