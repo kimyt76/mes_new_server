@@ -287,76 +287,11 @@
     </update>
 
     <select id="getWorkOrderItemList">
-        with shipment_qty as (
-            select   b.po_no
-                    ,b.test_no
-                    ,sum(isnull(b.qty, 0))  as qty
-            from   tb_shipment_mst a
-                    join tb_shipment_item b
-                    on a.shipment_id = b.shipment_id
-            where  a.shipment_yn ='N'
-            group  by  b.po_no, b.test_no
-        ),
-        stock_qty as (
-            select  s.item_cd
-                    ,s.test_no
-                    ,sum(s.qty) as qty
-                    ,s.storage_cd
-            FROM dbo.fn_get_stock(
-                    CAST(null AS DATE)
-                    ,NULL
-                    ,NULL
-                    ,'M0'
-                    ,#{itemCd}
-                    ,#{itemName}
-                    ,'TEST'
-                    ,NULL
-                ) s
-            group by s.item_cd ,s.test_no ,s.storage_cd
-        )
-        select  b.po_no
-                ,'M0'  as item_type_cd
-                ,a.item_cd
-                ,i.item_name
-                ,b.lot_no
-                ,b.make_no
-                ,a.test_no
-                ,ISNULL(s.qty, 0)  as stock_qty
-                ,ISNULL(s.qty, 0) - ISNULL(q.qty, 0  ) as qty
-                ,dbo.getStorageName(s.storage_cd) as storage_name
-                ,t.pass_state  as qcStatus
-                ,a.work_batch_id
-                ,a.work_proc_id
-                ,s.storage_cd
-        from   TB_WORK_ORDER_PROC a
-                join TB_WORK_ORDER_BATCH b
-                on b.work_batch_id = a.work_batch_id
-                join TB_WORK_ORDER_MST m
-                on a.work_order_id = m.work_order_id
-                join tb_item_mst i
-                on i.item_cd = a.item_cd
-                join tb_item_test_no t
-                on t.test_no = a.test_no
-                left join shipment_qty q
-                on q.test_no = a.test_no
-                left join stock_qty s
-                on s.item_cd = a.item_cd
-                and s.test_no = a.test_no
-        where  a.proc_cd = 'PRC005'
-        and    a.proc_status = '52'
-        <if test="customerCd != null and customerCd != ''">
-            and  m.customer_cd = #{customerCd}
-        </if>
-        <if test="poNo != null and poNo != ''">
-            and  a.po_no like  '%' + #{poNo} + '%'
-        </if>
-        <if test="itemCd != null and itemCd != ''">
-            and  i.item_cd like  '%' + #{itemCd} + '%'
-        </if>
-        <if test="itemName != null and itemName != ''">
-            and  i.item_name like '%' + dbo.fn_LikeEscape(#{itemName}) + '%'
-        </if>
-        order by a.po_no
+        EXEC dbo.usp_get_shipment_stock
+             @item_name   = #{itemName, jdbcType=NVARCHAR}
+            ,@customer_cd = #{customerCd, jdbcType=NVARCHAR}
+            ,@item_cd     = #{itemCd, jdbcType=NVARCHAR}
+            ,@po_no       = #{poNo, jdbcType=NVARCHAR}
     </select>
 
     <delete id="deleteShipmentItem">

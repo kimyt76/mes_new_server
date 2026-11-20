@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.apache.ibatis.annotations.Param;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.core.io.ClassPathResource;
@@ -73,7 +74,12 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     public List<ShipmentWorkOrderVo> getWorkOrderItemList(ShipmentWorkOrderVo vo){
-        return shipmentMapper.getWorkOrderItemList(vo);
+        String itemName = vo.getItemName();
+        String customerCd = vo.getCustomerCd();
+        String itemCd = vo.getItemCd();
+        String poNo = vo.getPoNo();
+
+        return shipmentMapper.getWorkOrderItemList(itemName, customerCd,itemCd,poNo);
     }
 
     @Transactional(rollbackFor = Exception.class)

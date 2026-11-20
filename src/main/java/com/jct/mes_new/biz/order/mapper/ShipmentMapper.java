@@ -2,6 +2,7 @@ package com.jct.mes_new.biz.order.mapper;
 
 import com.jct.mes_new.biz.order.vo.*;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -16,7 +17,10 @@ public interface ShipmentMapper {
     List<ShipmentItemListVo> getItemList(Long shipmentId);
 
     List<ShipmentItemListVo> getShipmentItemList(Long shipmentId);
-    List<ShipmentWorkOrderVo> getWorkOrderItemList(ShipmentWorkOrderVo vo);
+    List<ShipmentWorkOrderVo> getWorkOrderItemList( @Param("itemName") String itemName,
+                                                    @Param("customerCd") String customerCd,
+                                                    @Param("itemCd") String itemCd,
+                                                    @Param("poNo") String poNo);
 
 
     int insertShipmentMst(ShipmentVo mst);
