@@ -54,9 +54,9 @@ public class DailyReportController {
         return dailyReportService.getM1DailyReportList(vo);
     }
 
-    @GetMapping("/getM1DailyReportInfo")
-    public DailyReportRequestVo getM1DailyReportInfo(@RequestParam(required = false) Long dailyId) {
-        return dailyReportService.getM1DailyReportInfo(dailyId);
+    @PostMapping("/getM1DailyReportInfo")
+    public DailyReportRequestVo getM1DailyReportInfo(@RequestBody DailyReportVo vo) {
+        return dailyReportService.getM1DailyReportInfo(vo);
     }
 
     @PostMapping("/saveDailyReportM1")
@@ -72,9 +72,9 @@ public class DailyReportController {
         return dailyReportService.getM2DailyReportList(vo);
     }
 
-    @GetMapping("/getM2DailyReportInfo")
-    public DailyReportRequestVo getM2DailyReportInfo(@RequestParam(required = false) Long dailyId) {
-        return dailyReportService.getM2DailyReportInfo(dailyId);
+    @PostMapping("/getM2DailyReportInfo")
+    public DailyReportRequestVo getM2DailyReportInfo(@RequestBody DailyReportVo vo) {
+        return dailyReportService.getM2DailyReportInfo(vo);
     }
 
     @PostMapping("/saveDailyReportM2")
@@ -89,9 +89,9 @@ public class DailyReportController {
     public List<DailyReportVo> getM0DailyReportList (@RequestBody DailyReportVo vo) {
         return dailyReportService.getM0DailyReportList(vo);
     }
-    @GetMapping("/getM0DailyReportInfo")
-    public DailyReportRequestVo getM0DailyReportInfo(@RequestParam(required = false) Long dailyId) {
-        return dailyReportService.getM0DailyReportInfo(dailyId);
+    @PostMapping("/getM0DailyReportInfo")
+    public DailyReportRequestVo getM0DailyReportInfo(@RequestBody DailyReportVo vo) {
+        return dailyReportService.getM0DailyReportInfo(vo);
     }
 
     @PostMapping("/saveDailyReportM0")
@@ -112,9 +112,9 @@ public class DailyReportController {
         return dailyReportService.getLaborCostList();
     }
 
-    @GetMapping("/getLaborCostInfo")
-    public LaborCostRequestVo getLaborCostInfo(@RequestParam(required = false) Long dailyId) {
-        return dailyReportService.getLaborCostInfo(dailyId);
+    @PostMapping("/getLaborCostInfo")
+    public LaborCostRequestVo getLaborCostInfo(@RequestBody DailyLaborCostVo vo) {
+        return dailyReportService.getLaborCostInfo(vo);
     }
 
     @PostMapping("/saveLaborCostInfo")
