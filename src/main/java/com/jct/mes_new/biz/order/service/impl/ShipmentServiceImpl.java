@@ -281,8 +281,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Transactional(rollbackFor = Exception.class)
     public String deleteShipment(ShipmentRequestVo vo) {
-        List<Long> deleteShipmentIds = vo.getDeleteShipmentItemIds();
-
+        List<Long> deleteShipmentIds = vo.getDeleteShipmentIds();
         //item
         shipmentMapper.deleteShipmentItemList(deleteShipmentIds);
         //mst
@@ -415,17 +414,11 @@ public class ShipmentServiceImpl implements ShipmentService {
                         source.getPallet()
                 );
 
-                row.setLotNo(
-                        source.getLotNo()
-                );
-
-                // VO에 spec, etc 등이 있다면 필요시 추가
-                // row.setSpec(source.getSpec());
-                // row.setEtc(source.getEtc());
+                String lotNo = source.getLotNo();
+                row.setLotNo(lotNo == null ? "" : lotNo.replace("^", " ").replace("!!", "\n"));
 
                 pageItems.add(row);
             }
-
             // =====================================================
             // 10행보다 부족하면 빈행 추가
             // =====================================================
@@ -436,93 +429,52 @@ public class ShipmentServiceImpl implements ShipmentService {
 
                 pageItems.add(emptyRow);
             }
-
             // =====================================================
             // 상단 명세서
             // copyNo = 1
             // =====================================================
             for (int i = 0; i < ROWS_PER_COPY; i++) {
-
-                ShipmentItemListVo source =
-                        pageItems.get(i);
-
-                ShipmentItemListVo row =
-                        new ShipmentItemListVo();
-
+                ShipmentItemListVo source = pageItems.get(i);
+                ShipmentItemListVo row = new ShipmentItemListVo();
                 row.setRowId(i + 1);
                 row.setPageNo(pageNo);
                 row.setCopyNo(1);
 
-                row.setShipmentReqDate(
-                        source.getShipmentReqDate()
-                );
-
-                row.setItemName(
-                        source.getItemName()
-                );
-
-                row.setQty(
-                        source.getQty()
-                );
-
-                row.setPallet(
-                        source.getPallet()
-                );
-
-                row.setLotNo(
-                        source.getLotNo()
-                );
-
+                row.setShipmentReqDate(source.getShipmentReqDate());
+                row.setItemName(source.getItemName());
+                row.setQty(source.getQty());
+                row.setPallet(source.getPallet());
+                row.setLotNo(source.getLotNo());
                 // 필요시 추가
                 // row.setSpec(source.getSpec());
                 // row.setEtc(source.getEtc());
                 printItems.add(row);
             }
-
             // =====================================================
             // 하단 명세서
             // copyNo = 2
             // =====================================================
             for (int i = 0; i < ROWS_PER_COPY; i++) {
+                ShipmentItemListVo source = pageItems.get(i);
 
-                ShipmentItemListVo source =
-                        pageItems.get(i);
-
-                ShipmentItemListVo row =
-                        new ShipmentItemListVo();
+                ShipmentItemListVo row = new ShipmentItemListVo();
 
                 row.setRowId(i + 1);
                 row.setPageNo(pageNo);
                 row.setCopyNo(2);
-
-                row.setShipmentReqDate(
-                        source.getShipmentReqDate()
-                );
-
-                row.setItemName(
-                        source.getItemName()
-                );
-
-                row.setQty(
-                        source.getQty()
-                );
-
-                row.setPallet(
-                        source.getPallet()
-                );
-
+                row.setShipmentReqDate(source.getShipmentReqDate());
+                row.setItemName(source.getItemName());
+                row.setQty(source.getQty());
+                row.setPallet(source.getPallet());
                 row.setLotNo(
                         source.getLotNo()
                 );
-
                 // 필요시 추가
                 // row.setSpec(source.getSpec());
                 // row.setEtc(source.getEtc());
-
                 printItems.add(row);
             }
         }
-
         // =========================================================
         // 7. JRXML 파라미터
         // =========================================================
@@ -531,10 +483,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         // ---------------------------------------------------------
         // 상단 - 거래정보
         // ---------------------------------------------------------
-        params.put(
-                "poNo",
-                nvl(shipmentMst.getShipmentDateSeq())
-        );
+        params.put("poNo", nvl(shipmentMst.getShipmentDateSeq()));
 
         // ---------------------------------------------------------
         // 상단 - 공급자(본사) 정보
@@ -813,12 +762,15 @@ public class ShipmentServiceImpl implements ShipmentService {
                     HorizontalAlignment.LEFT
             );
 
-            // 로트번호 : 가운데 정렬
+            // 로트번호 : 가운데 정렬 + 줄바꿈
             CellStyle lotNoStyle = createAlignmentStyle(
                     workbook,
                     getOrCreateCell(sheet, LIST_START_ROW, 10).getCellStyle(),
                     HorizontalAlignment.CENTER
             );
+
+            lotNoStyle.setWrapText(true);
+            lotNoStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
             // 수량 : 오른쪽 정렬
             CellStyle baseQtyStyle = createAlignmentStyle(
@@ -918,8 +870,12 @@ public class ShipmentServiceImpl implements ShipmentService {
                             ? ""
                             : item.getLotNo().toString();
 
-                    // 한글, 영문, 숫자, 언더바, 공백 유지
-                    // 나머지 특수문자는 공백으로 변경
+                    // !!는 줄바꿈, ^는 공백으로 변경
+                    lotNo = lotNo.replace("!!", "\n")
+                            .replace("^", " ");
+
+                    // 한글, 영문, 숫자, 언더바, 공백, 줄바꿈 유지
+                        // 나머지 특수문자는 공백으로 변경
                     lotNo = lotNo.replaceAll(
                             "[^가-힣a-zA-Z0-9_\\s]", " "
                     );
