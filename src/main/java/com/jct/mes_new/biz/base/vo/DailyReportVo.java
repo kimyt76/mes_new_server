@@ -51,6 +51,7 @@ public class DailyReportVo {
     private BigDecimal inPrice;
     private BigDecimal supplyPrice;
     private BigDecimal requiredQuantity;  /* 소요량*/
+    private BigDecimal weighQty;  /* 소요량*/
     private BigDecimal qty;
     private BigDecimal orderQty;    /* 지시수량*/
     private BigDecimal prodQty;    /* 지시수량*/
@@ -61,6 +62,7 @@ public class DailyReportVo {
     private BigDecimal unitPrice;    /* g당 또는 개당 단가*/
     private BigDecimal totalPrice;
     private BigDecimal sumPrice;
+    private BigDecimal bomPrice;
 
     private String packingItemCd;
     private String regId;

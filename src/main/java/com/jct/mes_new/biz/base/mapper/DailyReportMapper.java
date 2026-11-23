@@ -20,15 +20,15 @@ public interface DailyReportMapper {
     void updateDailyReportMst(DailyReportVo mst);
 
     List<DailyReportVo> getInList(DailyReportVo report);
-    List<DailyReportVo> getProdList();
-    List<DailyReportVo> getUseList();
+    List<DailyReportVo> getProdList(DailyReportVo vo);
+    List<DailyReportVo> getUseList(DailyReportVo vo);
 
     DailyReportVo getDailyReportMst(Long dailyId);
     void updateDailyReportEndYn(DailyReportVo vo);
-    List<DailyReportVo> getUseM2List();
+    List<DailyReportVo> getUseM2List(DailyReportVo vo);
 
 
-    List<DailyLaborCostVo> getProcList(@Param("procCd") String procCd, @Param("procStatus") String procStatus);
+    List<DailyLaborCostVo> getProcList(DailyLaborCostVo vo);
 
 
     int insertDailyMgmt(DailyMgmtVo vo);

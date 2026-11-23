@@ -1233,10 +1233,19 @@ log.info("==================================qcType==============================
      * LOT 번호
      * ========================================================= */
     private String getLotNo(QcProcTestVo master) {
-        if ( master.getLotNo2() != null&& !master.getLotNo2().isBlank()&& !"/".equals(master.getLotNo2())) {
-            return master.getLotNo2();
+        String lotNo;
+
+        if (master.getLotNo2() != null
+                && !master.getLotNo2().isBlank()
+                && !"/".equals(master.getLotNo2())) {
+            lotNo = master.getLotNo2();
+        } else {
+            lotNo = master.getLotNo() != null ? master.getLotNo() : "";
         }
-        return master.getLotNo() != null? master.getLotNo(): "";
+
+        return lotNo
+                .replaceAll("[\\^\\s]+", " ")
+                .replace("!!", "\n");
     }
 
     /* =========================================================

@@ -10,22 +10,22 @@ public interface DailyReportService {
 
     /* 생산일보 원료*/
     List<DailyReportVo> getM1DailyReportList(DailyReportVo vo);
-    DailyReportRequestVo getM1DailyReportInfo(Long dailyId);
+    DailyReportRequestVo getM1DailyReportInfo(DailyReportVo vo);
     String saveDailyReportM1(DailyReportRequestVo vo);
 
     /* 생산일보 부자재*/
     List<DailyReportVo> getM2DailyReportList(DailyReportVo vo);
-    DailyReportRequestVo getM2DailyReportInfo(Long dailyId);
+    DailyReportRequestVo getM2DailyReportInfo(DailyReportVo vo);
     String saveDailyReportM2(DailyReportRequestVo vo);
 
     /* 생산일보 완제품*/
     List<DailyReportVo> getM0DailyReportList(DailyReportVo vo);
-    DailyReportRequestVo getM0DailyReportInfo(Long dailyId);
+    DailyReportRequestVo getM0DailyReportInfo(DailyReportVo vo);
     String saveDailyReportM0(DailyReportRequestVo vo);
 
     /* 생산일보 인건비*/
     List<DailyLaborCostVo> getDailyLaborCostList(DailyReportVo vo);
-    LaborCostRequestVo getLaborCostInfo(Long dailyId);
+    LaborCostRequestVo getLaborCostInfo(DailyLaborCostVo vo);
 
     byte[] downloadDailyReport(DailyReportVo vo);
 

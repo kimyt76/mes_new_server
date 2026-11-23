@@ -11,6 +11,7 @@ public class DailyLaborCostVo {
     private Long dailyCostId;
     private Long dailyId;
     private String procCd;
+    private String procStatus;
     private String workTypeCd;
     private String areaCd;
     private String areaName;

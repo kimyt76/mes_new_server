@@ -41,48 +41,46 @@ public class DailyReportServiceImpl implements DailyReportService {
         return dailyReportMapper.getM1DailyReportList(vo);
     }
 
-    public DailyReportRequestVo getM1DailyReportInfo(Long dailyId) {
-        DailyReportRequestVo vo = new DailyReportRequestVo();
-        DailyReportVo report = new DailyReportVo();
-
+    public DailyReportRequestVo getM1DailyReportInfo(DailyReportVo vo) {
+        DailyReportRequestVo req = new DailyReportRequestVo();
+        Long dailyId = vo.getDailyId();
         if (dailyId == null) {
             //입고
-            report.setTranTypeCd("A");
-            report.setItemTypeCd("M1");
-            vo.setInList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("A");
+            vo.setItemTypeCd("M1");
+            req.setInList(dailyReportMapper.getInList(vo));
             //반품
-            report.setTranTypeCd("P");
-            vo.setReturnList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("P");
+            req.setReturnList(dailyReportMapper.getInList(vo));
             //칭량
-            vo.setProdList(dailyReportMapper.getProdList());
+            req.setProdList(dailyReportMapper.getProdList(vo));
             //원료
-            vo.setUseList(dailyReportMapper.getUseList());
+            req.setUseList(dailyReportMapper.getUseList(vo));
         } else {
-            vo.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
-            report.setDailyId(dailyId);
+            req.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
             //입고
-            report.setTranTypeCd("A");
-            report.setItemTypeCd("M1");
-            vo.setInList(m1DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("A");
+            vo.setItemTypeCd("M1");
+            req.setInList(m1DailyReportMapper.getDailyReportList(vo));
             //반품
-            report.setTranTypeCd("P");
-            report.setItemTypeCd("M1");
-            vo.setReturnList(m1DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("P");
+            vo.setItemTypeCd("M1");
+            req.setReturnList(m1DailyReportMapper.getDailyReportList(vo));
             //불량
-            report.setTranTypeCd("G");
-            report.setItemTypeCd("M1");
-            vo.setDiscardList(m1DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("G");
+            vo.setItemTypeCd("M1");
+            req.setDiscardList(m1DailyReportMapper.getDailyReportList(vo));
             //칭량
-            vo.setProdList(m1DailyReportMapper.getProdList(report));
+            req.setProdList(m1DailyReportMapper.getProdList(vo));
             //원료
-            vo.setUseList(m1DailyReportMapper.getUseList(report));
+            req.setUseList(m1DailyReportMapper.getUseList(vo));
             //외부출고
-            report.setTranTypeCd("Z");
-            report.setItemTypeCd("M1");
-            vo.setOspList(m1DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("Z");
+            vo.setItemTypeCd("M1");
+            req.setOspList(m1DailyReportMapper.getDailyReportList(vo));
         }
 
-        return vo;
+        return req;
     }
 
     @Transactional
@@ -243,40 +241,40 @@ public class DailyReportServiceImpl implements DailyReportService {
     }
 
 
-    public DailyReportRequestVo getM2DailyReportInfo(Long dailyId) {
-        DailyReportRequestVo vo = new DailyReportRequestVo();
-        DailyReportVo report = new DailyReportVo();
+    public DailyReportRequestVo getM2DailyReportInfo(DailyReportVo vo) {
+        DailyReportRequestVo req = new DailyReportRequestVo();
+        Long dailyId = vo.getDailyId();
 
         if (dailyId == null) {
             //입고
-            report.setTranTypeCd("A");
-            report.setItemTypeCd("M2");
-            vo.setInList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("A");
+            vo.setItemTypeCd("M2");
+            req.setInList(dailyReportMapper.getInList(vo));
             //반품
-            report.setTranTypeCd("P");
-            vo.setReturnList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("P");
+            req.setReturnList(dailyReportMapper.getInList(vo));
             //사용량
-            vo.setUseList(dailyReportMapper.getUseM2List());
+            req.setUseList(dailyReportMapper.getUseM2List(vo));
         } else {
-            vo.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
-            report.setDailyId(dailyId);
+            req.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
+            vo.setDailyId(dailyId);
             //입고
-            report.setTranTypeCd("A");
-            report.setItemTypeCd("M2");
-            vo.setInList(m2DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("A");
+            vo.setItemTypeCd("M2");
+            req.setInList(m2DailyReportMapper.getDailyReportList(vo));
             //반품
-            report.setTranTypeCd("P");
-            report.setItemTypeCd("M2");
-            vo.setReturnList(m2DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("P");
+            vo.setItemTypeCd("M2");
+            req.setReturnList(m2DailyReportMapper.getDailyReportList(vo));
             //불량
-            report.setTranTypeCd("G");
-            report.setItemTypeCd("M2");
-            vo.setDiscardList(m2DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("G");
+            vo.setItemTypeCd("M2");
+            req.setDiscardList(m2DailyReportMapper.getDailyReportList(vo));
             //사용량
-            vo.setUseList(m2DailyReportMapper.getUseList(report));
+            req.setUseList(m2DailyReportMapper.getUseList(vo));
         }
 
-        return vo;
+        return req;
     }
 
     @Transactional
@@ -397,40 +395,40 @@ public class DailyReportServiceImpl implements DailyReportService {
         return dailyReportMapper.getM0DailyReportList(vo);
     }
 
-    public DailyReportRequestVo getM0DailyReportInfo(Long dailyId) {
-        DailyReportRequestVo vo = new DailyReportRequestVo();
-        DailyReportVo report = new DailyReportVo();
+    public DailyReportRequestVo getM0DailyReportInfo(DailyReportVo vo) {
+        DailyReportRequestVo mst = new DailyReportRequestVo();
+        Long dailyId = vo.getDailyId();
 
         /*A: 입고, O :외주생산내역,  E: 외주생산비용,   P: 반품, G: 불량 : F: 출하*/
         if (dailyId == null) {
-            report.setTranTypeCd("A");
-            report.setItemTypeCd("M0");
-            vo.setInList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("B");
+            vo.setItemTypeCd("M0");
+            mst.setInList(dailyReportMapper.getInList(vo));
 
-            report.setTranTypeCd("P");
-            vo.setInList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("P");
+            mst.setReturnList(dailyReportMapper.getInList(vo));
             //출하
-            report.setTranTypeCd("F");
-            vo.setReturnList(dailyReportMapper.getInList(report));
+            vo.setTranTypeCd("F");
+            mst.setShipmentList(dailyReportMapper.getInList(vo));
         } else {
-            vo.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
-            report.setDailyId(dailyId);
+            mst.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
+            vo.setDailyId(dailyId);
 
-            report.setTranTypeCd("A");
-            vo.setInList(m0DailyReportMapper.getDailyReportList(report));
-            report.setTranTypeCd("O");
-            vo.setOutList(m0DailyReportMapper.getDailyReportList(report));
-            report.setTranTypeCd("E");
-            vo.setOutExpenseList(m0DailyReportMapper.getDailyReportList(report));
-            report.setTranTypeCd("P");
-            vo.setReturnList(m0DailyReportMapper.getDailyReportList(report));
-            report.setTranTypeCd("G");
-            vo.setDiscardList(m0DailyReportMapper.getDailyReportList(report));
-            report.setTranTypeCd("F");
-            vo.setShipmentList(m0DailyReportMapper.getDailyReportList(report));
+            vo.setTranTypeCd("A");
+            mst.setInList(m0DailyReportMapper.getDailyReportList(vo));
+            vo.setTranTypeCd("O");
+            mst.setOutList(m0DailyReportMapper.getDailyReportList(vo));
+            vo.setTranTypeCd("E");
+            mst.setOutExpenseList(m0DailyReportMapper.getDailyReportList(vo));
+            vo.setTranTypeCd("P");
+            mst.setReturnList(m0DailyReportMapper.getDailyReportList(vo));
+            vo.setTranTypeCd("G");
+            mst.setDiscardList(m0DailyReportMapper.getDailyReportList(vo));
+            vo.setTranTypeCd("F");
+            mst.setShipmentList(m0DailyReportMapper.getDailyReportList(vo));
         }
 
-        return vo;
+        return mst;
     }
 
     @Transactional
@@ -557,27 +555,38 @@ public class DailyReportServiceImpl implements DailyReportService {
         return laborCostsMapper.getDailyLaborCostList(vo);
     }
 
-    public LaborCostRequestVo getLaborCostInfo(Long dailyId) {
-        LaborCostRequestVo vo = new LaborCostRequestVo();
+    public LaborCostRequestVo getLaborCostInfo(DailyLaborCostVo vo) {
+        LaborCostRequestVo req = new LaborCostRequestVo();
+        Long dailyId = vo.getDailyId();
 
         if (dailyId == null) {
-            vo.setWeighList(dailyReportMapper.getProcList("PRC001", "12"));    // 칭량
-            vo.setMatList(dailyReportMapper.getProcList("PRC002", "22"));     // 제조
-            vo.setCoatingList(dailyReportMapper.getProcList("PRC003", "32"));  // 코팅
-            vo.setChargeList(dailyReportMapper.getProcList("PRC004", "42"));  // 충전
-            vo.setPackingList(dailyReportMapper.getProcList("PRC005", "52"));  // 포장
+            vo.setProcCd("PRC001");
+            vo.setProcStatus("12");
+            req.setWeighList(dailyReportMapper.getProcList(vo));    // 칭량
+            vo.setProcCd("PRC002");
+            vo.setProcStatus("22");
+            req.setMatList(dailyReportMapper.getProcList(vo));     // 제조
+            vo.setProcCd("PRC003");
+            vo.setProcStatus("32");
+            req.setCoatingList(dailyReportMapper.getProcList(vo));  // 코팅
+            vo.setProcCd("PRC004");
+            vo.setProcStatus("42");
+            req.setChargeList(dailyReportMapper.getProcList(vo));  // 충전
+            vo.setProcCd("PRC005");
+            vo.setProcStatus("52");
+            req.setPackingList(dailyReportMapper.getProcList(vo));  // 포장
 
         } else {
-            vo.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
+            req.setDailyReportInfo(dailyReportMapper.getDailyReportMst(dailyId));
 
-            vo.setWeighList(laborCostsMapper.getLaborCostProcList("PRC001", dailyId));    // 칭량
-            vo.setMatList(laborCostsMapper.getLaborCostProcList("PRC002", dailyId));     // 제조
-            vo.setCoatingList(laborCostsMapper.getLaborCostProcList("PRC003", dailyId));  // 코팅
-            vo.setChargeList(laborCostsMapper.getLaborCostProcList("PRC004", dailyId));  // 충전
-            vo.setPackingList(laborCostsMapper.getLaborCostProcList("PRC005", dailyId));  // 포장
+            req.setWeighList(laborCostsMapper.getLaborCostProcList("PRC001", dailyId));    // 칭량
+            req.setMatList(laborCostsMapper.getLaborCostProcList("PRC002", dailyId));     // 제조
+            req.setCoatingList(laborCostsMapper.getLaborCostProcList("PRC003", dailyId));  // 코팅
+            req.setChargeList(laborCostsMapper.getLaborCostProcList("PRC004", dailyId));  // 충전
+            req.setPackingList(laborCostsMapper.getLaborCostProcList("PRC005", dailyId));  // 포장
         }
 
-        return vo;
+        return req;
     }
 
     public List<DailyLaborCostVo> getLaborCostList() {
