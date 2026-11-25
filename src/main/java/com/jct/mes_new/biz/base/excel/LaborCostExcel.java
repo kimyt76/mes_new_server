@@ -1208,10 +1208,7 @@ public class LaborCostExcel {
                             item.getProdQty()
                     );
 
-            double workTime =
-                    toDouble(
-                            item.getWorkTime()
-                    );
+            String workTime = stringValue(item.getWorkTime());
 
             double manFCnt =
                     toDouble(
@@ -1248,11 +1245,11 @@ public class LaborCostExcel {
             // =========================================================
             // 작업시간
             // =========================================================
-            ExcelStyleUtil.setNumberCell(
+            ExcelStyleUtil.setCellValue(
                     row,
                     6,
                     workTime,
-                    qtyStyle
+                    centerStyle
             );
 
 
@@ -1475,10 +1472,7 @@ public class LaborCostExcel {
             DailyLaborCostVo item
     ) {
 
-        double workTime =
-                toDouble(
-                        item.getWorkTime()
-                );
+        double workTime = toWorkHours(item.getWorkTime());
 
         double manFCost =
                 toDouble(
@@ -1569,6 +1563,32 @@ public class LaborCostExcel {
         };
     }
 
+
+    // 작업시간 문자열을 시간 단위 숫자로 변환
+    private double toWorkHours(String value) {
+        if (value == null || value.isBlank()) {
+            return 0D;
+        }
+
+        String text = value.trim();
+        if (text.matches("[0-9]+(?:\\.[0-9]+)?")) {
+            double hours = Double.parseDouble(text);
+            if (Double.isFinite(hours)) {
+                return hours;
+            }
+        } else if (text.matches("[0-9]+:[0-5][0-9](?::[0-5][0-9])?")) {
+            String[] parts = text.split(":");
+            double hours = Double.parseDouble(parts[0]);
+            double minutes = Double.parseDouble(parts[1]);
+            double seconds = parts.length == 3
+                    ? Double.parseDouble(parts[2]) : 0D;
+            if (Double.isFinite(hours)) {
+                return hours + minutes / 60D + seconds / 3600D;
+            }
+        }
+
+        throw new IllegalArgumentException("잘못된 작업시간 형식: " + value);
+    }
 
     private double toDouble(
             Number value

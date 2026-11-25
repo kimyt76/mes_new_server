@@ -258,7 +258,7 @@
                        else b.lot_no end as lot_no
                  ,cl.client_name
                  ,i.item_name
-                 ,a.prod_qty
+                 ,isnull(a.prod_qty, 0) as prod_qty
                  ,CASE WHEN r.work_start_time IS NULL OR r.work_end_time IS NULL THEN ''
                        ELSE CONCAT(
                           RIGHT('00' + CAST(DATEDIFF(MINUTE, r.work_start_time, r.work_end_time) / 60 AS varchar(10)), 2),

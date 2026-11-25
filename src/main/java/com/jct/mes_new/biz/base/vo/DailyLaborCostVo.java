@@ -22,7 +22,7 @@ public class DailyLaborCostVo {
     private String itemName;
     private String prodType;
     private BigDecimal prodQty;
-    private BigDecimal workTime;
+    private String workTime;
     private Integer manFCnt;
     private Integer manDCnt;
     private Integer womFCnt;
