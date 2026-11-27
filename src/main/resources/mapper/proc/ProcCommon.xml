@@ -452,7 +452,7 @@
         from (
             select c.item_cd
                     ,d.item_name
-                    ,a.order_qty*isnull(c.qty, 0) /b.qty as order_qty
+                    ,ISNULL(a.order_qty * ISNULL(c.qty, 0) / NULLIF(b.qty, 0), 0) AS order_qty
                     , '' as memo
             from TB_WORK_ORDER_PROC a
                 inner join tb_bom_mst b
@@ -669,17 +669,46 @@
     </select>
 
     <select id="getStatusEndCheck">
-        SELECT  ISNULL(v.batch_status, '00') AS batch_status
-                 ,a.proc_status
-                 ,a.work_proc_id
-                 ,a.work_batch_id
-                 ,a.work_order_id
-        FROM TB_WORK_ORDER_PROC a
-                 INNER JOIN TB_WORK_ORDER_BATCH b
-                            ON a.work_batch_id = b.work_batch_id
-                 LEFT JOIN dbo.vw_work_batch_status v
-                           ON a.work_batch_id = v.work_batch_id
-        WHERE a.work_proc_id = #{workProcId}
+        SELECT    A.work_proc_id
+                 ,A.work_batch_id
+                 ,A.proc_cd
+                 ,A.proc_status
+                 ,B.batch_status
+                 ,P.proc_cd AS prev_proc_cd
+                 ,P.proc_status AS prev_proc_status
+                 ,P.proc_name AS prev_proc_name
+                 ,P.complete_status AS prev_complete_status
+                 ,CASE  WHEN P.proc_cd IS NULL THEN 'Y'
+                        WHEN P.proc_status = P.complete_status THEN 'Y'
+                        ELSE 'N' END AS prev_complete_yn
+        FROM    dbo.TB_WORK_ORDER_PROC A
+                LEFT JOIN dbo.vw_work_batch_status B
+                ON A.work_batch_id = B.work_batch_id
+                OUTER APPLY (
+                        SELECT TOP 1
+                               C.proc_cd
+                                ,ISNULL(C.proc_status, '00') AS proc_status
+                                ,CASE   C.proc_cd WHEN 'PRC001' THEN '칭량'
+                                        WHEN 'PRC002' THEN '제조'
+                                        WHEN 'PRC003' THEN '코팅'
+                                        WHEN 'PRC004' THEN '충전'
+                                        WHEN 'PRC005' THEN '포장' END AS proc_name
+                                ,CASE C.proc_cd WHEN 'PRC001' THEN '12'
+                                        WHEN 'PRC002' THEN '22'
+                                        WHEN 'PRC003' THEN '32'
+                                        WHEN 'PRC004' THEN '42'
+                                        WHEN 'PRC005' THEN '52' END AS complete_status
+                        FROM dbo.TB_WORK_ORDER_PROC C
+                        WHERE C.work_batch_id = A.work_batch_id
+                        AND C.proc_cd IN (
+                              'PRC001', 'PRC002', 'PRC003',
+                              'PRC004', 'PRC005'
+                            )
+                        AND C.proc_cd &lt; A.proc_cd
+                        AND ISNULL(C.proc_status, '00') != '99'
+                        ORDER BY C.proc_cd DESC, C.work_proc_id DESC
+                ) P
+        WHERE A.work_proc_id = #{workProcId}
     </select>
 
     <select id="getProdUseQty">
